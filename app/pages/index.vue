@@ -24,5 +24,7 @@ useHead({
   <main>
     <HeroSection />
     <StatsBar />
+    <OurStorySection />
+    <ConchoDivider />
   </main>
 </template>
