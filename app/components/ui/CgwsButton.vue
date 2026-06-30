@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline-light'
   size?: 'md' | 'sm'
   disabled?: boolean
   loading?: boolean
@@ -29,6 +29,8 @@ const variantClasses: Record<NonNullable<Props['variant']>, string> = {
     'bg-transparent text-cgws-denim border-2 border-cgws-denim font-sans font-semibold uppercase tracking-wide hover:bg-cgws-denim/10 active:bg-cgws-denim/20 focus-visible:ring-cgws-copper',
   ghost:
     'bg-transparent text-cgws-leather font-sans font-medium underline-offset-4 hover:text-cgws-copper hover:underline focus-visible:ring-cgws-copper px-2 py-1 text-sm',
+  'outline-light':
+    'bg-transparent text-cgws-rope border-2 border-cgws-rope font-sans font-semibold uppercase tracking-wide hover:bg-cgws-rope/10 hover:text-cgws-cream active:bg-cgws-rope/20 focus-visible:ring-cgws-copper',
 }
 
 const sizeClasses: Record<NonNullable<Props['size']>, string> = {

@@ -4,11 +4,13 @@ interface Props {
   label: string
   suffix?: string
   animateOnVisible?: boolean
+  onDark?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   animateOnVisible: false,
   suffix: undefined,
+  onDark: false,
 })
 
 const displayValue = ref<string | number>(props.value)
@@ -92,7 +94,10 @@ onUnmounted(() => {
 
     <!-- Label below medallion -->
     <span
-      class="font-eyebrow text-[10px] md:text-[11px] text-cgws-leather uppercase tracking-wider leading-tight text-center"
+      :class="[
+        'font-eyebrow text-[10px] md:text-[11px] uppercase tracking-wider leading-tight text-center',
+        onDark ? 'text-cgws-rope' : 'text-cgws-leather',
+      ]"
       aria-hidden="true"
     >
       {{ label }}
