@@ -1,0 +1,23 @@
+:root {
+  /* Couleurs CGWS v2 */
+  --cgws-tack:      #3D1A06;
+  --cgws-leather:   #7B3B1C;
+  --cgws-copper:    #B8650A;
+  --cgws-rope:      #C8AB82;
+  --cgws-parchment: #F0DDB8;
+  --cgws-cream:     #FAF3E3;
+  --cgws-denim:     #2C4A72;
+  --cgws-rust:      #943218;
+  --cgws-charcoal:  #1A0B03;
+
+  /* Typographie */
+  --font-display: 'Bebas Neue', cursive;
+  --font-eyebrow: 'Rye', serif;
+  --font-serif:   'Playfair Display', Georgia, serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+
+  /* Espacements */
+  --section-py:    clamp(3rem, 8vw, 6rem);
+  --container-max: 1280px;
+  --container-px:  clamp(1rem, 4vw, 2rem);
+}
