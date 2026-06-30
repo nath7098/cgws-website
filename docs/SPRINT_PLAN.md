@@ -118,10 +118,10 @@ And    le composable useSupabase() fonctionne et retourne le client typé
 ```gherkin
 Given  la page de développement des composants est ouverte
 When   j'inspecte les tokens de couleur
-Then   les variables CSS cgws-brown, cgws-amber, cgws-parchment, cgws-dark, cgws-rust, cgws-sand, cgws-cream sont définies
-And    les fonts Bebas Neue (hero), Playfair Display (titres), Inter (corps) sont chargées
-And    les composants CgwsButton, CgwsCard, CgwsBadge, CgwsInput sont disponibles
-And    CgwsButton a les variants "primary" (amber), "secondary" (outline sand), "ghost" (texte)
+Then   les variables CSS cgws-tack, cgws-leather, cgws-copper, cgws-rope, cgws-parchment, cgws-cream, cgws-denim, cgws-rust, cgws-charcoal sont définies
+And    les fonts Bebas Neue (hero), Playfair Display (titres), Inter (corps), Rye (eyebrows) sont chargées
+And    les composants CgwsButton, CgwsCard, CgwsBadge, CgwsInput, TagCard sont disponibles
+And    CgwsButton a les variants "primary" (copper), "secondary" (outline denim), "ghost" (texte)
 And    la page /dev-components affiche tous les composants avec leurs states
 And    le layout de base (header placeholder + footer placeholder + slot) est fonctionnel
 ```

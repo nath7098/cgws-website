@@ -8,7 +8,7 @@
 
 | Sprint | Statut | US complétées | Points réalisés / planifiés |
 |--------|--------|----------------|------------------------------|
-| Sprint 0 | En cours | 1/3 | 3/13 |
+| Sprint 0 | En cours | 2/3 | 8/13 |
 | Sprint 1 | À démarrer | 0/5 | 0/27 |
 | Sprint 2 | À démarrer | 0/4 | 0/13 |
 | Sprint 3 | À démarrer | 0/5 | 0/26 |
@@ -27,6 +27,12 @@
 
 QA PASS au premier passage. Nuxt 4 scaffoldé avec @nuxt/ui v4 (v3 incompatible avec vue-router v5), @nuxt/image v2, @pinia/nuxt, gsap, @vueuse/motion, @nuxt/eslint, prettier. TypeScript strict, tokens CSS CGWS v2, types CGWS complets. Build ✅ typecheck ✅ lint ✅.
 Note : @nuxt/ui retenu en v4 (non v3) — incompatibilité vue-router v5. Doc à aligner.
+
+### US-002 — Configuration Supabase (partielle) — PASS local — commit 8167374
+
+QA PASS sur artefacts locaux. Migrations SQL (5 tables + trigger + CHECK), RLS policies, seed (3 catégories + 5 produits), composable useSupabase.ts, .env.example. Build ✅ typecheck ✅.
+Note : camelCase/snake_case mismatch dans Database type — à corriger lors des premiers accès data (US-012+).
+Bloqué humain : projet Supabase en ligne, bucket storage, utilisateur admin, .env.local.
 
 ---
 
