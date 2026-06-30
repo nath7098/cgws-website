@@ -8,7 +8,7 @@
 
 | Sprint | Statut | US complétées | Points réalisés / planifiés |
 |--------|--------|----------------|------------------------------|
-| Sprint 0 | En cours | 2/3 | 8/13 |
+| Sprint 0 | Terminé ✅ | 3/3 | 13/13 |
 | Sprint 1 | À démarrer | 0/5 | 0/27 |
 | Sprint 2 | À démarrer | 0/4 | 0/13 |
 | Sprint 3 | À démarrer | 0/5 | 0/26 |
@@ -33,6 +33,29 @@ Note : @nuxt/ui retenu en v4 (non v3) — incompatibilité vue-router v5. Doc à
 QA PASS sur artefacts locaux. Migrations SQL (5 tables + trigger + CHECK), RLS policies, seed (3 catégories + 5 produits), composable useSupabase.ts, .env.example. Build ✅ typecheck ✅.
 Note : camelCase/snake_case mismatch dans Database type — à corriger lors des premiers accès data (US-012+).
 Bloqué humain : projet Supabase en ligne, bucket storage, utilisateur admin, .env.local.
+
+### US-003 — Design System CGWS — PASS (2e passe) — commit 6117de5
+
+QA FAIL au 1er passage (2 issues) → PASS au 2e. Composants créés : CgwsButton (3 variants), CgwsCard, CgwsBadge (4 variants), CgwsInput, TagCard (composant phare étiquette de selle), ConchoStat (médaillon SVG), AppHeader, AppFooter. Layout default.vue mis à jour. Page /dev-components complète. Build ✅ typecheck ✅ lint ✅.
+Corrections QA : polygones SVG passés de fill hardcodé à class="fill-cgws-copper" + focus-visible ring corrigé en cgws-copper sur variant secondary.
+
+---
+
+## Résumé Sprint 0 — Fondations Techniques
+
+**Vélocité** : 13/13 pts réalisés (100%) | Durée : 1 session
+**Statut** : ✅ Terminé — en attente validation humaine avant Sprint 1
+
+### US complétées
+| US | Titre | Pts | Résultat | Commit |
+|----|-------|-----|----------|--------|
+| US-001 | Init Nuxt 4 | 3 | ✅ PASS 1re passe | c180cae |
+| US-002 | Supabase config (partiel) | 5 | ✅ PASS local | 8167374 |
+| US-003 | Design System | 5 | ✅ PASS 2e passe | 6117de5 |
+
+### Points de blocage ouverts
+1. **US-002 partie Supabase en ligne** : décision requise de Nathan sur quel projet utiliser (A: créer "cgws", B: réutiliser existant). Ensuite créer `.env.local` manuellement.
+2. **Vercel preview** (US-001 critère optionnel) : nécessite lien manuel du projet Vercel.
 
 ---
 
