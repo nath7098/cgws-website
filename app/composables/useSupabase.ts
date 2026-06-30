@@ -1,24 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Product, Consignment, Sale, Client } from '~/types'
-
-export type Database = {
-  public: {
-    Tables: {
-      products: { Row: Product }
-      consignments: { Row: Consignment }
-      sales: { Row: Sale }
-      clients: { Row: Client }
-    }
-  }
-}
+import type { Database } from '~/types/database.types'
 
 export function useSupabase() {
   const config = useRuntimeConfig()
 
-  const supabase = createClient<Database>(
-    config.public.supabaseUrl,
-    config.public.supabaseAnonKey,
+  return createClient<Database>(
+    config.public.supabaseUrl as string,
+    config.public.supabaseAnonKey as string,
   )
-
-  return supabase
 }
