@@ -4,6 +4,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   future: { compatibilityVersion: 4 },
 
+  runtimeConfig: {
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+    resendApiKey: process.env.RESEND_API_KEY ?? '',
+    public: {
+      supabaseUrl: process.env.SUPABASE_URL ?? '',
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? '',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://cgws.fr',
+    },
+  },
+
   modules: [
     '@nuxt/ui',
     '@pinia/nuxt',
