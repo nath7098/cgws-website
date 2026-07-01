@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import CgwsButton from '../ui/CgwsButton.vue'
+import SaddleIllustration from './SaddleIllustration.vue'
+
 const TITLE = "L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
 
 interface TitleChar {

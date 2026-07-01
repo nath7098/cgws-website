@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 interface Props {
   variant?: 'primary' | 'secondary' | 'ghost' | 'outline-light'
   size?: 'md' | 'sm'

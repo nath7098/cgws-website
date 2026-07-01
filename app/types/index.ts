@@ -1,4 +1,15 @@
 export type ProductStatus = 'active' | 'sold' | 'reserved' | 'inactive'
+export type SortOption = 'relevance' | 'price_asc' | 'price_desc' | 'newest'
+
+export interface CatalogueFilters {
+  categories: ProductCategory[]
+  conditions: Array<'new' | 'occasion'>
+  brands: string[]
+  priceMin: number
+  priceMax: number
+  includeReserved: boolean
+  isConsignment: boolean | null
+}
 export type ProductCondition = 'new' | 'excellent' | 'good' | 'fair'
 export type ProductCategory =
   | 'selles'

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CgwsButton from '../ui/CgwsButton.vue'
+
 let ctx: { revert: () => void } | undefined
 
 onMounted(async () => {
