@@ -5,7 +5,7 @@ interface Props {
   modelValue?: string
   label: string
   placeholder?: string
-  type?: 'text' | 'email' | 'tel' | 'number' | 'password' | 'url'
+  rows?: number
   error?: string
   hint?: string
   required?: boolean
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  type: 'text',
+  rows: 4,
   modelValue: undefined,
   placeholder: undefined,
   error: undefined,
@@ -26,9 +26,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
-const inputId = computed(() => props.id ?? `cgws-input-${Math.random().toString(36).slice(2, 7)}`)
-const errorId = computed(() => `${inputId.value}-error`)
-const hintId = computed(() => `${inputId.value}-hint`)
+const textareaId = computed(
+  () => props.id ?? `cgws-textarea-${Math.random().toString(36).slice(2, 7)}`,
+)
+const errorId = computed(() => `${textareaId.value}-error`)
+const hintId = computed(() => `${textareaId.value}-hint`)
 
 const describedBy = computed(() => {
   const ids: string[] = []
@@ -41,17 +43,17 @@ const describedBy = computed(() => {
 <template>
   <div class="flex flex-col gap-1">
     <label
-      :for="inputId"
+      :for="textareaId"
       class="block font-sans font-medium text-sm text-cgws-charcoal mb-1.5"
     >
       {{ label }}
       <span v-if="required" class="text-cgws-rust ml-0.5" aria-hidden="true">*</span>
     </label>
 
-    <input
-      :id="inputId"
+    <textarea
+      :id="textareaId"
       :name="name"
-      :type="type"
+      :rows="rows"
       :value="modelValue"
       :placeholder="placeholder"
       :disabled="disabled"
@@ -63,14 +65,15 @@ const describedBy = computed(() => {
         'w-full bg-cgws-cream text-cgws-charcoal border rounded-sm px-3 py-2.5',
         'font-sans text-sm placeholder:text-cgws-rope placeholder:font-normal',
         'transition-shadow transition-colors duration-150 outline-none',
+        'resize-y min-h-[100px]',
         'focus:ring-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cgws-parchment/50',
         error
           ? 'border-cgws-rust focus:border-cgws-rust focus:ring-cgws-rust/20'
           : 'border-cgws-leather focus:border-cgws-copper focus:ring-cgws-copper/20',
       ]"
       v-bind="$attrs"
-      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-    >
+      @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+    />
 
     <p v-if="hint && !error" :id="hintId" class="mt-1 font-sans text-xs text-cgws-leather">
       {{ hint }}

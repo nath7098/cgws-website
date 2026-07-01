@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import CgwsBadge from '~/components/ui/CgwsBadge.vue'
+import CgwsButton from '~/components/ui/CgwsButton.vue'
+import CgwsCard from '~/components/ui/CgwsCard.vue'
+import CgwsInput from '~/components/ui/CgwsInput.vue'
+import CgwsTextarea from '~/components/ui/CgwsTextarea.vue'
+import CgwsSelect from '~/components/ui/CgwsSelect.vue'
+import ConchoStat from '~/components/ui/ConchoStat.vue'
+import TagCard from '~/components/ui/TagCard.vue'
 import type { Product } from '~/types'
+import type { SelectOption } from '~/components/ui/CgwsSelect.vue'
 
 if (process.env.NODE_ENV === 'production') {
   throw createError({ statusCode: 404, message: 'Not Found' })
@@ -79,6 +88,14 @@ const demoProducts: Product[] = [
     createdAt: '2026-06-01T00:00:00Z',
     updatedAt: '2026-06-01T00:00:00Z',
   },
+]
+
+const textareaValue = ref('')
+const selectValue = ref('')
+const selectOptions: SelectOption[] = [
+  { value: 'excellent', label: 'Excellent état' },
+  { value: 'good', label: 'Bon état' },
+  { value: 'fair', label: 'État correct' },
 ]
 
 const colors: Record<string, string> = {
@@ -217,6 +234,65 @@ const colors: Record<string, string> = {
           placeholder="Non modifiable"
           disabled
           model-value="Valeur fixe"
+        />
+      </div>
+    </section>
+
+    <!-- Section: CgwsTextarea -->
+    <section aria-labelledby="section-textarea">
+      <h2
+        id="section-textarea"
+        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+      >
+        Textarea
+      </h2>
+      <div class="max-w-sm space-y-4">
+        <CgwsTextarea
+          v-model="textareaValue"
+          label="Description de l'article"
+          placeholder="Marque, taille, état général…"
+          :rows="4"
+        />
+        <CgwsTextarea
+          label="Requis avec erreur"
+          placeholder="Champ requis"
+          required
+          error="Décrivez l'article en au moins 20 caractères"
+        />
+        <CgwsTextarea
+          label="Désactivé"
+          model-value="Valeur non modifiable"
+          disabled
+        />
+      </div>
+    </section>
+
+    <!-- Section: CgwsSelect -->
+    <section aria-labelledby="section-select">
+      <h2
+        id="section-select"
+        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+      >
+        Select
+      </h2>
+      <div class="max-w-sm space-y-4">
+        <CgwsSelect
+          v-model="selectValue"
+          label="État de l'article"
+          :options="selectOptions"
+          required
+        />
+        <CgwsSelect
+          label="Avec erreur"
+          :options="selectOptions"
+          required
+          error="Veuillez indiquer l'état de l'article"
+        />
+        <CgwsSelect
+          label="Désactivé"
+          :options="selectOptions"
+          model-value="good"
+          disabled
         />
       </div>
     </section>

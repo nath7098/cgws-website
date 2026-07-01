@@ -1,7 +1,17 @@
+<script setup lang="ts">
+interface Props {
+  bgClass?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  bgClass: 'bg-cgws-cream',
+})
+</script>
+
 <template>
   <!-- Diviseur décoratif — concho centré entre deux lignes horizontales -->
   <div
-    class="bg-cgws-cream py-6 md:py-8"
+    :class="['py-6 md:py-8', props.bgClass]"
     aria-hidden="true"
   >
     <div class="flex items-center gap-4 max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
