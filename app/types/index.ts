@@ -77,6 +77,27 @@ export interface Client {
   createdAt: string
 }
 
+// ProductForm payload emitted on submit
+export interface ProductFormPayload {
+  fields: {
+    title: string
+    category: ProductCategory
+    brand: string
+    description: string
+    price: number
+    condition: ProductCondition
+    size: string
+    stock: number
+    isConsignment: boolean
+    consignmentId: string | null
+    slug: string
+    status?: ProductStatus
+  }
+  newImages: File[]
+  keptImages: string[]
+  removedImages: string[]
+}
+
 // Dashboard admin — sub-shapes used by KpiCard / RecentActivity
 export interface RecentConsignment {
   id: string

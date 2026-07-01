@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { NuxtLink } from '#imports'
 import { useScrollHeader } from '~/composables/useScrollHeader'
+import MobileMenu from './MobileMenu.vue'
 
 const { isScrolled } = useScrollHeader(50)
 const isMobileMenuOpen = ref(false)

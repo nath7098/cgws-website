@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ConchoStat from '../ui/ConchoStat.vue'
+
 interface Stat {
   value: number | string
   suffix: string | undefined
