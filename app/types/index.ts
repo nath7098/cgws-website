@@ -141,3 +141,23 @@ export interface CategoryFormPayload {
 export interface ReorderPayload {
   items: Array<{ id: string; sortOrder: number; parentId: string | null }>
 }
+
+// ─── Status History (US-034) ──────────────────────────────────────────────────
+
+export interface ProductStatusHistory {
+  id: string
+  productId: string
+  oldStatus: ProductStatus | null
+  newStatus: ProductStatus
+  changedAt: string
+  changedBy: string
+}
+
+export interface QuickSalePayload {
+  productId: string
+  salePrice: number
+  saleDate: string
+  paymentMethod: PaymentMethod
+  clientName?: string
+  notes?: string
+}

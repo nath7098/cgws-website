@@ -11,7 +11,7 @@
 | Sprint 0 | Terminé ✅ | 3/3 | 13/13 |
 | Sprint 1 | Terminé ✅ | 5/5 | 27/27 |
 | Sprint 2 | Terminé ✅ | 4/4 | 13/13 |
-| Sprint 3 | En cours 🔄 | 4/5 | 24/26 |
+| Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
 | Sprint 4 | À démarrer | 0/4 | 0/23 |
 | Sprint 5 | À démarrer | 0/4 | 0/21 |
 
@@ -23,7 +23,11 @@
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
 
-### US-033 — Gestion des Catégories — PASS (2e passe) — commit [à venir]
+### US-034 — Gestion Stock & Statuts — PASS (2e passe) — commit [à venir]
+
+QA FAIL au 1er passage (1 issue) → PASS au 2e. Composants créés : StatusDropdown.vue (badge statut cliquable, popover desktop via Teleport + getBoundingClientRect, bottom-sheet mobile slide-up, spinner inline, onClickOutside + Escape, role="listbox"/role="option"/aria-selected), SaleModal.vue (focus trap handleModalKeydown, champs date/prix/paiement/client optionnel, "Ignorer" ferme sans POST). Routes serveur : PATCH /api/admin/products/[id]/status (insert product_status_history si statut change), GET /api/admin/products/[id]/status-history, POST /api/admin/sales (Zod, client optionnel). Migration ajoutée : 003_product_status_history.sql (table + 2 index). Pages modifiées : produits/index.vue (StatusDropdown remplace le span statique dans table + cartes mobiles, SaleModal ajoutée), produits/[id].vue (section historique skeleton/timeline/vide). Correction QA : fichier migration SQL manquant créé. TypeScript ✅ ESLint ✅.
+
+### US-033 — Gestion des Catégories — PASS (2e passe) — commit 3f82bcf
 
 QA FAIL au 1er passage (1 issue) → PASS au 2e. Page créée : admin/categories/index.vue (arbre 2 niveaux, skeleton, états vide/chargé, modale suppression bloquante si produits). Composants créés : CategoryTree.vue (liste racine + Sortable racine, skeleton, état vide, watcher loading), CategoryTreeItem.vue (nœud récursif niveau 1/2, Sortable enfants, toggle is_active inline, boutons clavier sr-only pour accessibilité), CategoryPanel.vue (Teleport + Transition slide depuis droite/bottom-sheet mobile, focus trap, slug auto-synchronisé). API routes : 5 routes CRUD + PATCH reorder avec requireAdminAuth. Types ajoutés : Category, CategoryWithMeta, CategoryFormPayload, ReorderPayload. Correction QA : `.eq('parent_id', null)` → ternaire `.is()` / `.eq()` pour fix PostgREST null comparison (sort_order des racines cassé sinon). TypeScript ✅ ESLint ✅.
 

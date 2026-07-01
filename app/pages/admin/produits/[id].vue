@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Product, ProductFormPayload } from '~/types'
+import type { Product, ProductFormPayload, ProductStatus, ProductStatusHistory } from '~/types'
 
 definePageMeta({
   middleware: 'admin',
@@ -36,7 +36,59 @@ onMounted(async () => {
   catch {
     loadError.value = 'Produit introuvable ou erreur de chargement.'
   }
+  // Load status history independently — non-blocking
+  fetchStatusHistory()
 })
+
+// ─── Status history ───────────────────────────────────────────────────────────
+
+const statusHistory = ref<ProductStatusHistory[]>([])
+const isLoadingHistory = ref(true)
+
+const STATUS_LABELS: Record<ProductStatus, string> = {
+  active: 'Disponible',
+  reserved: 'Réservé',
+  sold: 'Vendu',
+  inactive: 'Inactif',
+}
+
+function statusDotClass(status: string): string {
+  const map: Record<string, string> = {
+    active: 'bg-green-500 border-green-300',
+    reserved: 'bg-cgws-copper border-cgws-copper/40',
+    sold: 'bg-cgws-charcoal border-cgws-charcoal/30',
+    inactive: 'bg-cgws-leather/60 border-cgws-leather/30',
+  }
+  return map[status] ?? 'bg-cgws-leather/40 border-cgws-leather/20'
+}
+
+function formatHistoryDate(iso: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso))
+}
+
+async function fetchStatusHistory(): Promise<void> {
+  isLoadingHistory.value = true
+  try {
+    const token = await getAccessToken()
+    const data = await $fetch<{ history: ProductStatusHistory[] }>(
+      `/api/admin/products/${productId.value}/status-history`,
+      { headers: buildAuthHeaders(token) },
+    )
+    statusHistory.value = data.history
+  }
+  catch {
+    statusHistory.value = []
+  }
+  finally {
+    isLoadingHistory.value = false
+  }
+}
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 const isSubmitting = ref(false)
@@ -154,6 +206,106 @@ async function handleUpdate(payload: ProductFormPayload) {
       <div class="h-32 bg-cgws-leather/10 rounded-[4px]" />
       <div class="h-24 bg-cgws-leather/10 rounded-[4px]" />
     </div>
+
+    <!-- Status history section -->
+    <section
+      v-if="product || !loadError"
+      aria-labelledby="status-history-title"
+      class="bg-white border border-cgws-leather/30 rounded-[4px] p-5"
+    >
+      <h3
+        id="status-history-title"
+        class="font-sans font-semibold text-xs uppercase tracking-widest
+               text-cgws-copper mb-4"
+      >
+        Historique des statuts
+      </h3>
+
+      <!-- Skeleton -->
+      <div
+        v-if="isLoadingHistory"
+        aria-busy="true"
+        aria-label="Chargement de l'historique"
+      >
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="flex items-center gap-3 mb-4 last:mb-0 animate-pulse"
+        >
+          <div class="w-3 h-3 rounded-full bg-cgws-leather/20 flex-shrink-0" />
+          <div class="flex-1 space-y-1.5">
+            <div class="h-3.5 w-28 bg-cgws-leather/15 rounded" />
+            <div class="h-3 w-44 bg-cgws-leather/10 rounded" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div
+        v-else-if="statusHistory.length === 0"
+        class="flex items-center gap-3 py-2"
+      >
+        <UIcon
+          name="i-lucide-clock"
+          class="w-4 h-4 text-cgws-leather/40 flex-shrink-0"
+          aria-hidden="true"
+        />
+        <p class="font-sans text-sm text-cgws-leather italic">
+          Aucun changement de statut enregistré.
+        </p>
+      </div>
+
+      <!-- Timeline -->
+      <ol
+        v-else
+        class="relative"
+        aria-label="Historique des changements de statut"
+      >
+        <li
+          v-for="(entry, index) in statusHistory"
+          :key="entry.id"
+          class="flex gap-3 pb-4 last:pb-0 relative"
+        >
+          <!-- Vertical connector line -->
+          <div
+            v-if="index < statusHistory.length - 1"
+            class="absolute left-[5px] top-4 bottom-0 w-px bg-cgws-leather/15"
+            aria-hidden="true"
+          />
+
+          <!-- Colored dot -->
+          <div
+            class="flex-shrink-0 w-3 h-3 rounded-full mt-1 border-2"
+            :class="statusDotClass(entry.newStatus)"
+            aria-hidden="true"
+          />
+
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="font-sans text-sm font-semibold text-cgws-charcoal">
+                {{ STATUS_LABELS[entry.newStatus] }}
+              </span>
+              <span
+                v-if="entry.oldStatus"
+                class="font-sans text-xs text-cgws-leather"
+              >
+                ← {{ STATUS_LABELS[entry.oldStatus] }}
+              </span>
+              <span
+                v-else
+                class="font-sans text-xs text-cgws-leather italic"
+              >
+                (statut initial)
+              </span>
+            </div>
+            <p class="font-sans text-xs text-cgws-leather mt-0.5">
+              {{ formatHistoryDate(entry.changedAt) }} · {{ entry.changedBy }}
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
 
   </div>
 </template>

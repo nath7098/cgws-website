@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Product, ProductCategory, ProductStatus } from '~/types'
+import type { Product, ProductCategory, ProductStatus, QuickSalePayload } from '~/types'
 
 definePageMeta({
   middleware: 'admin',
@@ -29,6 +29,44 @@ const searchQuery = ref('')
 const filterCategory = ref<ProductCategory | ''>('')
 const filterStatus = ref<ProductStatus | ''>('')
 
+// Sale modal
+const saleModalOpen = ref(false)
+const saleTargetProduct = ref<Product | null>(null)
+
+function openSaleModal(product: Product): void {
+  saleTargetProduct.value = product
+  saleModalOpen.value = true
+}
+
+function closeSaleModal(): void {
+  saleModalOpen.value = false
+  saleTargetProduct.value = null
+}
+
+async function handleSaleSubmit(payload: QuickSalePayload): Promise<void> {
+  try {
+    const token = await getAccessToken()
+    await $fetch('/api/admin/sales', {
+      method: 'POST',
+      body: payload,
+      headers: buildAuthHeaders(token),
+    })
+    showToast('success', 'Vente enregistrée.')
+    closeSaleModal()
+  }
+  catch {
+    showToast('error', 'Erreur lors de l\'enregistrement de la vente.')
+    closeSaleModal()
+  }
+}
+
+function updateProductStatus(product: Product, newStatus: ProductStatus): void {
+  const index = products.value.findIndex(p => p.id === product.id)
+  if (index !== -1) {
+    products.value[index] = { ...products.value[index]!, status: newStatus }
+  }
+}
+
 // Delete modal
 const deleteTarget = ref<Product | null>(null)
 const isDeleting = ref(false)
@@ -49,25 +87,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   'vetements': 'Vêtements',
   'accessoires': 'Accessoires',
   'protections': 'Protections',
-}
-
-const STATUS_LABELS: Record<ProductStatus, string> = {
-  active: 'Disponible',
-  sold: 'Vendu',
-  reserved: 'Réservé',
-  inactive: 'Inactif',
-}
-
-const BASE_PILL = 'rounded-full px-2.5 py-0.5 font-sans font-medium text-[11px] uppercase tracking-wider'
-
-function statusPillClass(status: ProductStatus): string {
-  const map: Record<ProductStatus, string> = {
-    active: `${BASE_PILL} bg-green-100 text-green-700`,
-    sold: `${BASE_PILL} bg-cgws-charcoal/10 text-cgws-charcoal`,
-    reserved: `${BASE_PILL} bg-cgws-copper/15 text-cgws-copper`,
-    inactive: `${BASE_PILL} bg-cgws-leather/15 text-cgws-leather`,
-  }
-  return map[status] ?? BASE_PILL
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -432,7 +451,14 @@ onUnmounted(() => {
             </p>
             <div class="flex items-center gap-2 mt-1.5 flex-wrap">
               <span class="font-display text-sm text-cgws-copper">{{ formatPrice(product.price) }}</span>
-              <span :class="statusPillClass(product.status)">{{ STATUS_LABELS[product.status] }}</span>
+              <StatusDropdown
+                :product-id="product.id"
+                :current-status="product.status"
+                :product-title="product.title"
+                @update:status="updateProductStatus(product, $event)"
+                @sale-required="openSaleModal(product)"
+                @error="showToast('error', 'Impossible de modifier le statut.')"
+              />
             </div>
           </div>
           <!-- Actions -->
@@ -636,9 +662,14 @@ onUnmounted(() => {
 
             <!-- Status badge -->
             <td class="py-2.5 px-3">
-              <span :class="statusPillClass(product.status)">
-                {{ STATUS_LABELS[product.status] ?? product.status }}
-              </span>
+              <StatusDropdown
+                :product-id="product.id"
+                :current-status="product.status"
+                :product-title="product.title"
+                @update:status="updateProductStatus(product, $event)"
+                @sale-required="openSaleModal(product)"
+                @error="showToast('error', 'Impossible de modifier le statut.')"
+              />
             </td>
 
             <!-- Date (lg+) -->
@@ -735,6 +766,15 @@ onUnmounted(() => {
         </button>
       </nav>
     </div>
+
+    <!-- Sale modal -->
+    <SaleModal
+      v-if="saleTargetProduct"
+      :product="saleTargetProduct"
+      :is-open="saleModalOpen"
+      @close="closeSaleModal"
+      @submitted="handleSaleSubmit"
+    />
 
     <!-- Delete modal -->
     <Teleport to="body">
