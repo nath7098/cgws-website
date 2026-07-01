@@ -1,10 +1,12 @@
 <script setup lang="ts">
 interface Props {
   bgClass?: string
+  ringClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   bgClass: 'bg-cgws-cream',
+  ringClass: 'ring-cgws-cream',
 })
 </script>
 
@@ -19,10 +21,13 @@ const props = withDefaults(defineProps<Props>(), {
 
       <!-- Médaillon concho central -->
       <div
-        class="w-5 h-5 rounded-full border-2 border-cgws-copper
-               flex items-center justify-center flex-shrink-0
-               ring-[3px] ring-cgws-cream ring-offset-0
-               outline outline-1 outline-cgws-leather/20"
+        :class="[
+          'w-5 h-5 rounded-full border-2 border-cgws-copper',
+          'flex items-center justify-center flex-shrink-0',
+          'ring-[3px] ring-offset-0',
+          'outline outline-1 outline-cgws-leather/20',
+          props.ringClass,
+        ]"
       >
         <div class="w-1.5 h-1.5 rounded-full bg-cgws-copper" />
       </div>
