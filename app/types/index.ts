@@ -114,3 +114,30 @@ export interface RecentSale {
   paymentMethod: PaymentMethod
   saleDate: string
 }
+
+// ─── Categories (US-033) ──────────────────────────────────────────────────────
+
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  parentId: string | null
+  sortOrder: number
+  isActive: boolean
+}
+
+export interface CategoryWithMeta extends Category {
+  productCount: number
+  children: CategoryWithMeta[]
+}
+
+export interface CategoryFormPayload {
+  name: string
+  slug: string
+  parentId: string | null
+  isActive: boolean
+}
+
+export interface ReorderPayload {
+  items: Array<{ id: string; sortOrder: number; parentId: string | null }>
+}

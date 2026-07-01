@@ -11,7 +11,7 @@
 | Sprint 0 | Terminé ✅ | 3/3 | 13/13 |
 | Sprint 1 | Terminé ✅ | 5/5 | 27/27 |
 | Sprint 2 | Terminé ✅ | 4/4 | 13/13 |
-| Sprint 3 | En cours 🔄 | 3/5 | 21/26 |
+| Sprint 3 | En cours 🔄 | 4/5 | 24/26 |
 | Sprint 4 | À démarrer | 0/4 | 0/23 |
 | Sprint 5 | À démarrer | 0/4 | 0/21 |
 
@@ -23,7 +23,11 @@
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
 
-### US-032 — CRUD Produits — PASS (2e passe) — commit [à venir]
+### US-033 — Gestion des Catégories — PASS (2e passe) — commit [à venir]
+
+QA FAIL au 1er passage (1 issue) → PASS au 2e. Page créée : admin/categories/index.vue (arbre 2 niveaux, skeleton, états vide/chargé, modale suppression bloquante si produits). Composants créés : CategoryTree.vue (liste racine + Sortable racine, skeleton, état vide, watcher loading), CategoryTreeItem.vue (nœud récursif niveau 1/2, Sortable enfants, toggle is_active inline, boutons clavier sr-only pour accessibilité), CategoryPanel.vue (Teleport + Transition slide depuis droite/bottom-sheet mobile, focus trap, slug auto-synchronisé). API routes : 5 routes CRUD + PATCH reorder avec requireAdminAuth. Types ajoutés : Category, CategoryWithMeta, CategoryFormPayload, ReorderPayload. Correction QA : `.eq('parent_id', null)` → ternaire `.is()` / `.eq()` pour fix PostgREST null comparison (sort_order des racines cassé sinon). TypeScript ✅ ESLint ✅.
+
+### US-032 — CRUD Produits — PASS (2e passe) — commit ef15ea1
 
 QA FAIL au 1er passage (2 issues) → PASS au 2e. Pages créées : admin/produits/index.vue (tableau + cartes mobiles, recherche debounce 300ms, filtres catégorie/statut, pagination fenêtre glissante, modale suppression focus trap, toast aria-live), admin/produits/nouveau.vue, admin/produits/[id].vue (skeleton chargement). Composants créés : ProductForm.vue (3 fieldsets, slug preview computed, validation blur+submit, status select en mode édition), ImageUploader.vue (drag & drop, Sortable.js réordonnement, preview blob URL, cleanup onUnmounted). Composable : useAdminApi.ts (getAccessToken + buildAuthHeaders). API routes serveur : 5 routes CRUD avec requireAdminAuth + getAdminSupabase (service role key, bypass RLS). Utils serveur : adminAuth.ts (JWT validation), adminSupabase.ts (slugify, generateUniqueSlug, storagePathFromUrl, mapProductRow snake→camel). Dépendances ajoutées : sortablejs + @types/sortablejs. Corrections QA : vue mobile (tableau→cartes empilées `hidden sm:block`), focus trap modale (handleModalKeydown Tab/Shift+Tab). TypeScript ✅ ESLint ✅.
 
