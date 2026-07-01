@@ -46,4 +46,29 @@ export default defineNuxtConfig({
     quality: 85,
     format: ['webp', 'jpeg'],
   },
+
+  site: {
+    url: 'https://cgws.fr',
+    name: 'CGWS — Camille Guignon Western Shop',
+    description:
+      'Sellerie équestre western à Brèches, Indre-et-Loire. Vente neuf & occasion, service de consignation de selles.',
+    defaultLocale: 'fr',
+  },
+
+  robots: {
+    disallow: ['/admin', '/api'],
+    sitemap: '/sitemap_index.xml',
+  },
+
+  sitemap: {
+    urls: [
+      { loc: '/', changefreq: 'weekly', priority: 1.0 },
+      { loc: '/catalogue', changefreq: 'daily', priority: 0.9 },
+      { loc: '/consignation', changefreq: 'monthly', priority: 0.6 },
+      { loc: '/contact', changefreq: 'monthly', priority: 0.5 },
+      { loc: '/mentions-legales', changefreq: 'yearly', priority: 0.1 },
+    ],
+    sources: ['/api/__sitemap/urls'],
+    exclude: ['/admin/**', '/api/**', '/dev-components'],
+  },
 })

@@ -12,6 +12,10 @@ useSeoMeta({
   ogTitle: 'Contact — CGWS Western Shop',
   ogDescription:
     'Une question, un rendez-vous ou un projet de consignation ? Contactez Camille et l\'équipe CGWS à Brèches (37).',
+  ogType: 'website',
+  ogImage: DEFAULT_OG_IMAGE,
+  twitterCard: 'summary_large_image',
+  twitterImage: DEFAULT_OG_IMAGE,
 })
 
 // ---------------------------------------------------------------------------

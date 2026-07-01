@@ -7,6 +7,9 @@ useSeoMeta({
   ogDescription:
     "Confiez-nous votre matériel western d'occasion. Nous l'exposons en boutique et en ligne, vous recevez le prix convenu.",
   ogType: 'website',
+  ogImage: DEFAULT_OG_IMAGE,
+  twitterCard: 'summary_large_image',
+  twitterImage: DEFAULT_OG_IMAGE,
 })
 
 let ctx: { revert: () => void } | undefined

@@ -15,6 +15,9 @@ useSeoMeta({
   ogDescription:
     'Selles, brides, bottes et accessoires western. Filtrez par catégorie, marque et prix. Livraison disponible.',
   ogType: 'website',
+  ogImage: DEFAULT_OG_IMAGE,
+  twitterCard: 'summary_large_image',
+  twitterImage: DEFAULT_OG_IMAGE,
 })
 
 const catalogue = useCatalogue()
