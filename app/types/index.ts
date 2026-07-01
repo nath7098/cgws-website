@@ -76,3 +76,20 @@ export interface Client {
   notes?: string
   createdAt: string
 }
+
+// Dashboard admin — sub-shapes used by KpiCard / RecentActivity
+export interface RecentConsignment {
+  id: string
+  depositorName: string
+  itemDescription: string
+  status: ConsignmentStatus
+  createdAt: string
+}
+
+export interface RecentSale {
+  id: string
+  productTitle: string
+  salePrice: number
+  paymentMethod: PaymentMethod
+  saleDate: string
+}
