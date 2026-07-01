@@ -23,7 +23,7 @@
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
 
-### US-034 — Gestion Stock & Statuts — PASS (2e passe) — commit [à venir]
+### US-034 — Gestion Stock & Statuts — PASS (2e passe) — commit e922ad7
 
 QA FAIL au 1er passage (1 issue) → PASS au 2e. Composants créés : StatusDropdown.vue (badge statut cliquable, popover desktop via Teleport + getBoundingClientRect, bottom-sheet mobile slide-up, spinner inline, onClickOutside + Escape, role="listbox"/role="option"/aria-selected), SaleModal.vue (focus trap handleModalKeydown, champs date/prix/paiement/client optionnel, "Ignorer" ferme sans POST). Routes serveur : PATCH /api/admin/products/[id]/status (insert product_status_history si statut change), GET /api/admin/products/[id]/status-history, POST /api/admin/sales (Zod, client optionnel). Migration ajoutée : 003_product_status_history.sql (table + 2 index). Pages modifiées : produits/index.vue (StatusDropdown remplace le span statique dans table + cartes mobiles, SaleModal ajoutée), produits/[id].vue (section historique skeleton/timeline/vide). Correction QA : fichier migration SQL manquant créé. TypeScript ✅ ESLint ✅.
 
