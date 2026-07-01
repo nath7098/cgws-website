@@ -7,6 +7,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
     resendApiKey: process.env.RESEND_API_KEY ?? '',
+    // TODO: set CGWS_CAMILLE_EMAIL env var in production (replace placeholder)
+    camilleEmail: process.env.CGWS_CAMILLE_EMAIL ?? 'nathcouton@gmail.com',
     public: {
       supabaseUrl: process.env.SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? '',

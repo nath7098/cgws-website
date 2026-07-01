@@ -1,5 +1,140 @@
 import { Resend } from 'resend'
 
+// ---------------------------------------------------------------------------
+// Contact email
+// ---------------------------------------------------------------------------
+
+export interface ContactEmailData {
+  senderName: string
+  senderEmail: string
+  subject: string
+  message: string
+  sentAt: string
+}
+
+const subjectLabels: Record<string, string> = {
+  'question-produit': 'Question sur un produit',
+  'consignation': 'Service de consignation',
+  'rdv-boutique': 'Rendez-vous en boutique',
+  'commande': 'Commande / Livraison',
+  'autre': 'Autre',
+}
+
+function buildContactEmailHtml(data: ContactEmailData): string {
+  const subjectLabel = subjectLabels[data.subject] ?? data.subject
+  const dateFormatted = new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(data.sentAt))
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nouveau message de contact — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .table th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #7B3B1C; background: #F0DDB8; border: 1px solid #1A0B03; padding: 8px 12px; text-align: left; font-family: Georgia, serif; }
+    .table td { font-size: 14px; color: #1A0B03; background: #FAF3E3; border: 1px solid #1A0B03; padding: 8px 12px; vertical-align: top; }
+    .message-cell { white-space: pre-wrap; line-height: 1.6; }
+    .reply-link { color: #B8650A; font-weight: 700; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .divider { border: none; border-top: 1px solid #C8AB82; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">FORMULAIRE DE CONTACT · CGWS.FR</p>
+      <h1 class="header-h1">NOUVEAU MESSAGE</h1>
+    </div>
+
+    <div class="body">
+      <div class="body-inner">
+        <p class="greeting">Camille,</p>
+        <p class="intro">
+          Vous avez reçu un nouveau message via le formulaire de contact de votre site.
+        </p>
+
+        <hr class="divider" />
+
+        <table class="table">
+          <thead>
+            <tr><th colspan="2">DÉTAILS DU MESSAGE</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Expéditeur</th>
+              <td>${data.senderName}</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td><a href="mailto:${data.senderEmail}" class="reply-link">${data.senderEmail}</a></td>
+            </tr>
+            <tr>
+              <th>Sujet</th>
+              <td>${subjectLabel}</td>
+            </tr>
+            <tr>
+              <th>Message</th>
+              <td class="message-cell">${data.message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+            </tr>
+            <tr>
+              <th>Reçu le</th>
+              <td>${dateFormatted}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p style="font-size:13px;color:#1A0B03;opacity:0.7;margin:16px 0 0;font-style:italic;">
+          Pour répondre, cliquez sur Répondre dans votre messagerie — l'email sera adressé à
+          <a href="mailto:${data.senderEmail}" class="reply-link">${data.senderEmail}</a>.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendContactEmail(
+  apiKey: string,
+  data: ContactEmailData,
+  recipientEmail: string,
+): Promise<void> {
+  if (!apiKey) return
+
+  const resend = new Resend(apiKey)
+  const subjectLabel = subjectLabels[data.subject] ?? data.subject
+
+  await resend.emails.send({
+    from: 'CGWS <noreply@cgws.fr>',
+    to: [recipientEmail],
+    replyTo: data.senderEmail,
+    subject: `[CGWS Contact] ${subjectLabel} — ${data.senderName}`,
+    html: buildContactEmailHtml(data),
+  })
+}
+
 export interface ConsignmentEmailData {
   depositorName: string
   depositorEmail: string
