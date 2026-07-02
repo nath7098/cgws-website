@@ -12,7 +12,7 @@
 | Sprint 1 | Terminé ✅ | 5/5 | 27/27 |
 | Sprint 2 | Terminé ✅ | 4/4 | 13/13 |
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
-| Sprint 4 | À démarrer | 0/4 | 0/23 |
+| Sprint 4 | En cours 🔄 | 1/4 | 8/23 |
 | Sprint 5 | À démarrer | 0/4 | 0/21 |
 
 ---
@@ -22,6 +22,10 @@
 > Format ajouté par l'orchestrateur à chaque US :
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
+
+### US-040 — Gestion des Consignations — PASS (1re passe) — commit [à venir]
+
+QA PASS au premier passage. Pages créées : admin/consignations/index.vue (tableau desktop + cartes mobile, tri pending-first via 2 requêtes séquentielles, badge pulsant animate-pulse bg-cgws-copper sur lignes pending, filtres déposant/statut debounce 300ms, pagination), admin/consignations/[id].vue (grid lg:3 colonnes, photos NuxtImg sticky desktop, prix éditable si pending, panels d'action contextuels selon statut, commission 20% calculée frontend, toasts). Composant créé : RejectModal.vue (Teleport + Transition + focus trap handleRejectModalKeydown, textarea motif requis, bouton disabled si vide). Routes serveur : index.get (pending-first 2 queries concaténées), [id].get (détail + linkedProduct + linkedSale), accept.post (garde pending → 409, crée produit auto, email non-bloquant), reject.post (garde pending + reason validation, email), [id].patch (agreed_price/notes). Email : sendConsignmentAcceptEmail + sendConsignmentRejectEmail ajoutés à server/services/email.ts. TypeScript ✅ ESLint ✅.
 
 ### US-034 — Gestion Stock & Statuts — PASS (2e passe) — commit e922ad7
 

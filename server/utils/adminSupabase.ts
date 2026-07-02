@@ -69,6 +69,41 @@ export function storagePathFromUrl(publicUrl: string): string | null {
 }
 
 /**
+ * Maps a DB consignment row (snake_case) to the Consignment domain type (camelCase).
+ */
+export function mapConsignmentRow(row: {
+  id: string
+  depositor_name: string
+  depositor_email: string
+  depositor_phone: string | null
+  item_description: string
+  brand: string | null
+  condition: string
+  asking_price: number
+  agreed_price: number | null
+  images: string[] | null
+  status: string | null
+  notes: string | null
+  created_at: string | null
+}) {
+  return {
+    id: row.id,
+    depositorName: row.depositor_name,
+    depositorEmail: row.depositor_email,
+    depositorPhone: row.depositor_phone ?? '',
+    itemDescription: row.item_description,
+    brand: row.brand ?? '',
+    condition: row.condition,
+    askingPrice: row.asking_price,
+    agreedPrice: row.agreed_price ?? undefined,
+    images: row.images ?? [],
+    status: row.status ?? 'pending',
+    notes: row.notes ?? undefined,
+    createdAt: row.created_at ?? '',
+  }
+}
+
+/**
  * Maps a DB product row (snake_case) to the Product domain type (camelCase).
  */
 export function mapProductRow(row: {

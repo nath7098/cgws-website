@@ -267,3 +267,225 @@ export async function sendConsignmentConfirmation(
     html: buildConsignmentConfirmationHtml(data),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Consignment accept / reject emails
+// ---------------------------------------------------------------------------
+
+export interface ConsignmentAcceptEmailData {
+  depositorName: string
+  depositorEmail: string
+  itemDescription: string
+  brand?: string
+  agreedPrice: number
+  consignmentId: string
+}
+
+function buildConsignmentAcceptHtml(data: ConsignmentAcceptEmailData): string {
+  const priceFormatted = new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(data.agreedPrice)
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Votre consignation a été acceptée — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .price-highlight { font-size: 28px; font-weight: 700; color: #B8650A; display: block; margin: 16px 0; }
+    .table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .table th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #7B3B1C; background: #F0DDB8; border: 1px solid #1A0B03; padding: 8px 12px; text-align: left; font-family: Georgia, serif; }
+    .table td { font-size: 14px; color: #1A0B03; background: #FAF3E3; border: 1px solid #1A0B03; padding: 8px 12px; }
+    .note { font-size: 13px; color: #1A0B03; opacity: 0.7; margin: 24px 0 0; font-style: italic; line-height: 1.6; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .divider { border: none; border-top: 1px solid #C8AB82; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">DÉPÔT-VENTE · BRÈCHES · INDRE-ET-LOIRE</p>
+      <h1 class="header-h1">CGWS</h1>
+    </div>
+    <div class="body">
+      <div class="body-inner">
+        <p class="greeting">Bonjour ${data.depositorName},</p>
+        <p class="intro">
+          Bonne nouvelle ! Votre demande de consignation a été examinée et
+          <strong>nous acceptons de mettre votre article en vente</strong>
+          dans notre boutique.
+        </p>
+        <hr class="divider" />
+        <table class="table">
+          <thead>
+            <tr><th colspan="2">DÉTAILS DE VOTRE CONSIGNATION</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Article</th>
+              <td>${data.itemDescription}${data.brand ? ` — ${data.brand}` : ''}</td>
+            </tr>
+            <tr>
+              <th>Prix de mise en vente convenu</th>
+              <td><strong style="font-size:18px;color:#B8650A;">${priceFormatted}</strong></td>
+            </tr>
+            <tr>
+              <th>Commission CGWS</th>
+              <td>20 % du prix de vente effectif</td>
+            </tr>
+            <tr>
+              <th>Référence</th>
+              <td style="font-size:11px;color:#7B3B1C;">${data.consignmentId}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Votre article est désormais en vente sur notre site et en boutique.
+          Vous serez contacté dès qu'une vente sera conclue pour convenir des modalités de reversement
+          (80 % du prix de vente effectif vous sera reversé).
+          La durée de consignation est de 3 mois renouvelable.
+        </p>
+        <p style="margin-top:16px;font-size:14px;color:#1A0B03;">
+          Pour toute question, n'hésitez pas à nous contacter :
+          <a href="mailto:contact@cgws.fr" style="color:#B8650A;font-weight:700;">contact@cgws.fr</a>
+        </p>
+      </div>
+    </div>
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendConsignmentAcceptEmail(
+  apiKey: string,
+  data: ConsignmentAcceptEmailData,
+): Promise<void> {
+  if (!apiKey) return
+
+  const resend = new Resend(apiKey)
+
+  await resend.emails.send({
+    from: 'CGWS <noreply@cgws.fr>',
+    to: [data.depositorEmail],
+    subject: 'Votre consignation a été acceptée — CGWS',
+    html: buildConsignmentAcceptHtml(data),
+  })
+}
+
+export interface ConsignmentRejectEmailData {
+  depositorName: string
+  depositorEmail: string
+  itemDescription: string
+  reason: string
+  consignmentId: string
+}
+
+function buildConsignmentRejectHtml(data: ConsignmentRejectEmailData): string {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Votre demande de consignation — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .reason-box { background: #FAF3E3; border-left: 4px solid #943218; padding: 12px 16px; margin: 16px 0; font-size: 14px; color: #1A0B03; font-style: italic; line-height: 1.6; white-space: pre-wrap; }
+    .table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .table th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #7B3B1C; background: #F0DDB8; border: 1px solid #1A0B03; padding: 8px 12px; text-align: left; font-family: Georgia, serif; }
+    .table td { font-size: 14px; color: #1A0B03; background: #FAF3E3; border: 1px solid #1A0B03; padding: 8px 12px; }
+    .note { font-size: 13px; color: #1A0B03; opacity: 0.7; margin: 24px 0 0; font-style: italic; line-height: 1.6; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .divider { border: none; border-top: 1px solid #C8AB82; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">DÉPÔT-VENTE · BRÈCHES · INDRE-ET-LOIRE</p>
+      <h1 class="header-h1">CGWS</h1>
+    </div>
+    <div class="body">
+      <div class="body-inner">
+        <p class="greeting">Bonjour ${data.depositorName},</p>
+        <p class="intro">
+          Nous avons examiné votre demande de consignation pour
+          <strong>${data.itemDescription}</strong>
+          et nous ne sommes malheureusement pas en mesure de l'accepter pour le moment.
+        </p>
+        <hr class="divider" />
+        <p style="font-size:14px;font-weight:700;color:#1A0B03;margin:0 0 8px;">Motif communiqué :</p>
+        <div class="reason-box">${data.reason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+        <hr class="divider" />
+        <table class="table">
+          <thead>
+            <tr><th colspan="2">RAPPEL DE VOTRE DEMANDE</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Article</th>
+              <td>${data.itemDescription}</td>
+            </tr>
+            <tr>
+              <th>Référence</th>
+              <td style="font-size:11px;color:#7B3B1C;">${data.consignmentId}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Si vous avez des questions ou souhaitez nous soumettre d'autres articles,
+          n'hésitez pas à nous contacter.
+        </p>
+        <p style="margin-top:16px;font-size:14px;color:#1A0B03;">
+          <a href="mailto:contact@cgws.fr" style="color:#B8650A;font-weight:700;">contact@cgws.fr</a>
+        </p>
+      </div>
+    </div>
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendConsignmentRejectEmail(
+  apiKey: string,
+  data: ConsignmentRejectEmailData,
+): Promise<void> {
+  if (!apiKey) return
+
+  const resend = new Resend(apiKey)
+
+  await resend.emails.send({
+    from: 'CGWS <noreply@cgws.fr>',
+    to: [data.depositorEmail],
+    subject: 'Votre demande de consignation — CGWS',
+    html: buildConsignmentRejectHtml(data),
+  })
+}
