@@ -5,6 +5,19 @@
 
 ---
 
+## ⚠️ Règle absolue — MCPs obligatoires avant toute implémentation Nuxt
+
+**AVANT** d'utiliser n'importe quel composant Nuxt UI, composable Nuxt, ou pattern SSR, les agents (`nuxt-developer`, `qa-engineer`, etc.) **DOIVENT** consulter :
+
+- `mcp__nuxt-ui-remote__*` — pour tout composant @nuxt/ui (UButton, UModal, UDrawer, UTable, etc.)
+- `mcp__nuxt-remote__*` — pour les APIs Nuxt 4 (useAsyncData, useFetch, useState, definePageMeta, Teleport, layouts, middleware...)
+
+**Pourquoi** : Des erreurs de config, SSR warnings, hydration mismatches et comportements incorrects ont été causés par des APIs mal utilisées sans vérification doc. La doc officielle via MCP est la seule source de vérité.
+
+**Comment appliquer** : Le prompt de chaque subagent doit inclure l'instruction explicite d'utiliser ces MCPs avant tout pattern Nuxt. L'orchestrateur l'inclut systématiquement.
+
+---
+
 ## Contexte métier
 
 **CGWS** est une boutique d'équipements équestres western à Brèches (37, Indre-et-Loire).

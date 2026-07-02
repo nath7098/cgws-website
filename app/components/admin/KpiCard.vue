@@ -1,0 +1,66 @@
+<script setup lang="ts">
+interface Props {
+  label: string
+  value: string | number
+  icon?: string
+  variant?: 'default' | 'warning'
+  loading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  icon: undefined,
+  loading: false,
+})
+
+const containerClasses = computed<string>(() => {
+  const base = 'rounded-[4px] shadow-sm p-5 flex flex-col gap-1'
+  if (props.variant === 'warning') {
+    return `bg-white border border-cgws-leather/30 border-l-4 border-l-cgws-rust ${base}`
+  }
+  return `bg-white border border-cgws-leather/30 ${base}`
+})
+
+const valueClasses = computed<string>(() => {
+  const base = 'font-display text-5xl leading-none'
+  if (props.variant === 'warning') return `${base} text-cgws-rust`
+  return `${base} text-cgws-charcoal`
+})
+
+const iconClasses = computed<string>(() => {
+  if (props.variant === 'warning') return 'w-5 h-5 text-cgws-rust flex-shrink-0'
+  return 'w-5 h-5 text-cgws-copper flex-shrink-0'
+})
+
+const ariaLabel = computed<string>(() => `${props.label} : ${props.value}`)
+</script>
+
+<template>
+  <div
+    :class="containerClasses"
+    :aria-label="ariaLabel"
+    role="region"
+  >
+    <!-- Skeleton state -->
+    <template v-if="loading">
+      <div class="h-10 w-24 bg-cgws-leather/10 rounded animate-pulse mb-3" />
+      <div class="h-3 w-20 bg-cgws-leather/10 rounded animate-pulse" />
+    </template>
+
+    <!-- Loaded state -->
+    <template v-else>
+      <div class="flex items-start justify-between">
+        <span :class="valueClasses">{{ value }}</span>
+        <UIcon
+          v-if="icon"
+          :name="icon"
+          :class="iconClasses"
+          aria-hidden="true"
+        />
+      </div>
+      <p class="font-sans text-[11px] uppercase tracking-widest text-cgws-leather mt-1">
+        {{ label }}
+      </p>
+    </template>
+  </div>
+</template>

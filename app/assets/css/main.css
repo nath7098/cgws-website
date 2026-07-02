@@ -1,0 +1,89 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+@import './tokens.css';
+
+@theme static {
+  /* CGWS color palette — enables bg-cgws-*, text-cgws-*, border-cgws-* etc. */
+  --color-cgws-tack:      #3D1A06;
+  --color-cgws-leather:   #7B3B1C;
+  --color-cgws-copper:    #B8650A;
+  --color-cgws-rope:      #C8AB82;
+  --color-cgws-parchment: #F0DDB8;
+  --color-cgws-cream:     #FAF3E3;
+  --color-cgws-denim:     #2C4A72;
+  --color-cgws-rust:      #943218;
+  --color-cgws-charcoal:  #1A0B03;
+
+  /* Typography tokens */
+  --font-display: 'Bebas Neue', cursive;
+  --font-eyebrow: 'Rye', serif;
+  --font-serif:   'Playfair Display', Georgia, serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--cgws-charcoal);
+  background-color: var(--cgws-cream);
+}
+
+body {
+  margin: 0;
+}
+
+/* ─── Hero background parallax target ───────────────────── */
+.hero-bg-img {
+  will-change: transform;
+}
+
+/* ─── Page transitions ──────────────────────────────────── */
+.page-enter-active {
+  transition: opacity 200ms ease-out;
+}
+.page-leave-active {
+  transition: opacity 150ms ease-in;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* ─── prefers-reduced-motion — global CSS kill-switch ───── */
+@media (prefers-reduced-motion: reduce) {
+  /* Désactive toutes les transitions et animations CSS */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Neutralise la transition de page */
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+
+  /* Restaure la visibilité immédiate des états de transition */
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1 !important;
+  }
+
+  /* Neutralise le drawer admin */
+  #admin-sidebar {
+    transition: none !important;
+  }
+
+  /* Neutralise les hover CSS ProductCard */
+  .product-card article {
+    transition: none !important;
+    transform: none !important;
+  }
+}
