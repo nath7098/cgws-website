@@ -12,7 +12,7 @@
 | Sprint 1 | Terminé ✅ | 5/5 | 27/27 |
 | Sprint 2 | Terminé ✅ | 4/4 | 13/13 |
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
-| Sprint 4 | En cours 🔄 | 1/4 | 8/23 |
+| Sprint 4 | En cours 🔄 | 2/4 | 13/23 |
 | Sprint 5 | À démarrer | 0/4 | 0/21 |
 
 ---

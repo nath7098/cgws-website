@@ -590,8 +590,8 @@ function formatCategory(cat: string): string {
                 <span class="font-normal normal-case tracking-normal text-cgws-leather/70">(optionnel)</span>
               </label>
               <ClientAutocomplete
-                input-id="sale-client"
                 v-model="clientSelection"
+                input-id="sale-client"
                 :disabled="isSubmitting"
                 placeholder="Rechercher ou créer un client…"
               />

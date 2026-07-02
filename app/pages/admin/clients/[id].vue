@@ -412,9 +412,10 @@ onUnmounted(() => {
             v-if="!isLoading"
             class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden"
           >
-            <div class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
-                        font-sans text-[10px] uppercase tracking-widest text-cgws-leather
-                        flex items-center justify-between"
+            <div
+              class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
+                     font-sans text-[10px] uppercase tracking-widest text-cgws-leather
+                     flex items-center justify-between"
             >
               <span>Achats passés ({{ purchases.length }})</span>
               <NuxtLink
@@ -513,8 +514,9 @@ onUnmounted(() => {
             v-if="!isLoading && consignments.length > 0"
             class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden"
           >
-            <div class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
-                        font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+            <div
+              class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
+                     font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
             >
               Consignations déposées ({{ consignments.length }})
             </div>
@@ -570,9 +572,10 @@ onUnmounted(() => {
             class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden"
             aria-label="Notes sur le client"
           >
-            <div class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
-                        font-sans text-[10px] uppercase tracking-widest text-cgws-leather
-                        flex items-center justify-between"
+            <div
+              class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
+                     font-sans text-[10px] uppercase tracking-widest text-cgws-leather
+                     flex items-center justify-between"
             >
               <span>Notes client</span>
               <button
