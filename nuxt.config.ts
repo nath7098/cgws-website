@@ -16,14 +16,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: [
-    '@nuxt/ui',
-    '@pinia/nuxt',
-    '@nuxt/image',
-    '@nuxtjs/google-fonts',
-    '@nuxtjs/seo',
-    '@nuxt/eslint',
-  ],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxt/image', '@nuxtjs/google-fonts', '@nuxtjs/seo', '@nuxt/eslint', '@vueuse/nuxt'],
 
   googleFonts: {
     families: {
@@ -58,6 +51,15 @@ export default defineNuxtConfig({
       sm: 800,
       md: 1200,
       lg: 1600,
+    },
+    providers: {
+      supabase: {
+        name: 'supabase',
+        provider: '~/providers/supabase-provider.ts',
+        options: {
+          baseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL ?? '' + '/storage/v1/object/public/product-images' 
+        }
+      }
     },
     // Supabase Storage image transformation provider
     // Uses the render endpoint which supports resize, format conversion, and quality
