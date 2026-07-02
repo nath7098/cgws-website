@@ -8,6 +8,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { imageProps } = useProductImage()
+
 const isSold = computed(() => props.product.status === 'sold')
 const isReserved = computed(() => props.product.status === 'reserved')
 const isActive = computed(() => props.product.status === 'active')
@@ -28,6 +30,11 @@ const formattedPrice = computed(() =>
 )
 
 const primaryImage = computed(() => props.product.images[0] ?? null)
+
+// Computed image attrs (src + optional provider) for use with v-bind on NuxtImg
+const primaryImageData = computed(() =>
+  primaryImage.value !== null ? imageProps(primaryImage.value) : null,
+)
 
 const ariaLabel = computed(() => {
   let label = `${props.product.title} — ${props.product.brand} — ${formattedPrice.value} €`
@@ -62,11 +69,12 @@ const cardContent = computed(() => ({
       <!-- Image zone -->
       <div class="relative aspect-[4/3] overflow-hidden rounded-t-[4px]">
         <NuxtImg
-          v-if="primaryImage"
-          :src="primaryImage"
+          v-if="primaryImageData"
+          v-bind="primaryImageData"
           :alt="`${product.title}, ${product.brand}`"
           loading="lazy"
           format="webp"
+          sizes="xs:100vw sm:50vw md:33vw lg:25vw"
           class="w-full h-full object-cover grayscale"
         />
         <div
@@ -130,11 +138,12 @@ const cardContent = computed(() => ({
       <!-- Image zone -->
       <div class="relative aspect-[4/3] overflow-hidden rounded-t-[4px]">
         <NuxtImg
-          v-if="primaryImage"
-          :src="primaryImage"
+          v-if="primaryImageData"
+          v-bind="primaryImageData"
           :alt="`${product.title}, ${product.brand}`"
           loading="lazy"
           format="webp"
+          sizes="xs:100vw sm:50vw md:33vw lg:25vw"
           class="w-full h-full object-cover transition-transform duration-300"
           :class="isActive ? 'group-hover:scale-105' : ''"
         />

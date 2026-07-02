@@ -11,10 +11,18 @@ const props = withDefaults(defineProps<Props>(), {
   sold: false,
 })
 
+const { imageProps } = useProductImage()
+
 const currentIndex = ref(0)
 const swiperEl = ref<HTMLElement | null>(null)
 let swiperInstance: SwiperInstance | null = null
 let ctx: { revert: () => void } | undefined
+
+// Resolved image data for the first slide (single-image case)
+const firstImageData = computed(() => {
+  const first = props.images[0]
+  return first !== undefined ? imageProps(first) : { src: '' }
+})
 
 const hasImages = computed(() => props.images.length > 0)
 const hasMultipleImages = computed(() => props.images.length > 1)
@@ -115,11 +123,12 @@ onUnmounted(() => {
             :aria-label="`Photo ${idx + 1} sur ${images.length} — ${alt}`"
           >
             <NuxtImg
-              :src="img"
+              v-bind="imageProps(img)"
               :alt="`${alt}, photo ${idx + 1}`"
               :loading="idx === 0 ? 'eager' : 'lazy'"
               :fetch-priority="idx === 0 ? 'high' : 'auto'"
               format="webp"
+              sizes="xs:100vw sm:100vw md:60vw lg:50vw"
               class="w-full h-full object-cover"
             />
           </div>
@@ -133,11 +142,12 @@ onUnmounted(() => {
         :aria-label="`Photo 1 sur 1 — ${alt}`"
       >
         <NuxtImg
-          :src="images[0]"
+          v-bind="firstImageData"
           :alt="alt"
           loading="eager"
           fetch-priority="high"
           format="webp"
+          sizes="xs:100vw sm:100vw md:60vw lg:50vw"
           class="w-full h-full object-cover"
         />
       </div>
@@ -232,10 +242,11 @@ onUnmounted(() => {
         @click="goToSlide(idx)"
       >
         <NuxtImg
-          :src="img"
+          v-bind="imageProps(img)"
           :alt="`${alt}, miniature ${idx + 1}`"
           loading="lazy"
           format="webp"
+          sizes="xs:80px"
           class="w-full h-full object-cover"
         />
       </button>

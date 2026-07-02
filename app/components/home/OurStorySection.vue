@@ -125,7 +125,7 @@ onUnmounted(() => {
               loading="lazy"
               format="webp"
               quality="85"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="xs:100vw sm:100vw md:50vw lg:50vw"
             />
           </div>
         </div>

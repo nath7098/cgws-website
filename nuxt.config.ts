@@ -52,6 +52,18 @@ export default defineNuxtConfig({
   image: {
     quality: 85,
     format: ['webp', 'jpeg'],
+    // Custom screens covering the required 400w / 800w / 1200w / 1600w srcset range
+    screens: {
+      xs: 400,
+      sm: 800,
+      md: 1200,
+      lg: 1600,
+    },
+    // Supabase Storage image transformation provider
+    // Uses the render endpoint which supports resize, format conversion, and quality
+    supabase: {
+      baseURL: `${process.env.NUXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/render/image/public/product-images`,
+    },
   },
 
   site: {

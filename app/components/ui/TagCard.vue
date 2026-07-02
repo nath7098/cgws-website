@@ -9,6 +9,14 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{ click: [product: Product] }>()
 
+const { imageProps } = useProductImage()
+
+// Resolved image data for the primary product image
+const firstImageData = computed(() => {
+  const first = props.product.images[0]
+  return first !== undefined ? imageProps(first) : null
+})
+
 type BadgeVariant = 'new' | 'occasion' | 'consignment' | 'sold'
 
 const badgeVariant = computed<BadgeVariant>(() => {
@@ -95,12 +103,13 @@ onUnmounted(() => {
       ]"
     >
       <NuxtImg
-        v-if="product.images.length > 0"
-        :src="product.images[0]"
+        v-if="firstImageData"
+        v-bind="firstImageData"
         :alt="`${product.title} — ${product.brand}`"
         class="h-full w-full object-cover"
         loading="lazy"
         format="webp"
+        sizes="xs:100vw sm:50vw md:33vw"
       />
       <div
         v-else

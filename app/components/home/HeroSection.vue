@@ -100,18 +100,21 @@ onUnmounted(() => {
     class="relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-tack"
     aria-label="Accueil CGWS — Sellerie équestre western"
   >
-    <!-- Background image (LCP element) -->
-    <NuxtImg
+    <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
+    <NuxtPicture
       src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80&auto=format&fit=crop"
       alt=""
-      class="absolute inset-0 h-full w-full object-cover object-[center_top] md:object-[center_40%]"
+      class="absolute inset-0 h-full w-full"
+      :img-attrs="{
+        class: 'h-full w-full object-cover object-[center_top] md:object-[center_40%]',
+        fetchpriority: 'high',
+      }"
       :width="1920"
       :height="1080"
-      fetchpriority="high"
       loading="eager"
       format="webp"
       quality="85"
-      sizes="(max-width: 768px) 768px, 1920px"
+      sizes="xs:100vw sm:100vw md:100vw lg:100vw"
     />
 
     <!-- Gradient overlay -->
