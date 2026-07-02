@@ -12,7 +12,7 @@
 | Sprint 1 | Terminé ✅ | 5/5 | 27/27 |
 | Sprint 2 | Terminé ✅ | 4/4 | 13/13 |
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
-| Sprint 4 | En cours 🔄 | 2/4 | 13/23 |
+| Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
 | Sprint 5 | À démarrer | 0/4 | 0/21 |
 
 ---
@@ -22,6 +22,44 @@
 > Format ajouté par l'orchestrateur à chaque US :
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
+
+---
+
+## Résumé Sprint 4 — Backoffice Commerce
+
+**Vélocité** : 23/23 pts réalisés (100%) | Durée : 1 session
+**Statut** : ✅ Terminé — en attente validation humaine avant Sprint 5
+
+### US complétées
+| US | Titre | Pts | Résultat | Commit |
+|----|-------|-----|----------|--------|
+| US-040 | Gestion des Consignations | 8 | ✅ PASS 1re passe | 9f1885d |
+| US-041 | Suivi des Ventes | 5 | ✅ PASS 2e passe | cf84ce9 |
+| US-042 | Gestion des Clients | 5 | ✅ PASS 1re passe | 893191a |
+| US-043 | Exports & Reporting | 5 | ✅ PASS 1re passe | b559c45 |
+
+### Notes techniques
+- Dépendances ajoutées : `vue-chartjs` + `chart.js` v4 (graphique CA), `pdfmake` v0.3.11 (PDF bon de dépôt)
+- pdfmake configuré en `nitro.externals` pour compatibilité Vercel serverless (évite bundle size limits)
+- pdfmake API v0.3.x (singleton + `createPdf()` + `.getBuffer()`) — différente de la v0.2.x documentée dans le spec
+- Graphique stacked bar avec couleurs hex dans options Chart.js (exception acceptable — correspond aux tokens cgws-copper/denim du design system)
+- Bouton "Bon de dépôt PDF" uniquement sur statuts `accepted`/`sold` (côté client + garde côté serveur)
+- Autocomplete ClientAutocomplete : pattern ARIA combobox v1.1/v1.2 mixte (conforme au design spec)
+- Bouton "+ Nouveau client" (admin/clients) sans page dédiée — hors scope US-042, à traiter si besoin
+
+### Points de blocage ouverts
+(En plus des blocages précédents — Supabase live, vrais contenus Camille)
+- Aucun nouveau blocage bloquant pour Sprint 5
+
+---
+
+### US-043 — Exports & Reporting — PASS (1re passe) — commit b559c45
+
+QA PASS au premier passage. Page créée : admin/rapports.vue (sélecteur de période from/to avec validation client-side validateDates(), bouton "Export CSV" avec états idle/loading/success/empty/error + auto-dismiss, `<ClientOnly>` wrapping de RevenueChart). Composant créé : RevenueChart.vue (vue-chartjs Bar stacked, copper=#B8650A pour CA propre, denim=#2C4A72 pour CA consignation, légende HTML custom bg-cgws-*, overflow-x-auto + min-w-[560px] mobile, fetch interne revenue-monthly, états loading skeleton + error). Plugin créé : chart.client.ts (registration CategoryScale/LinearScale/BarElement/Tooltip/Legend, tree-shaking). Routes serveur créées : admin/exports/sales.get.ts (CSV UTF-8 BOM + header X-Record-Count, 7 colonnes date/produit/prix_vente/type/client/commission/net_deposant, validation dates), admin/exports/consignment-receipt.get.ts (PDF pdfmake v0.3.11 singleton API, garde statut accepted/sold, contenu CGWS header + déposant + article + financier + zones signature, setUrlAccessPolicy bloque accès externes), admin/stats/revenue-monthly.get.ts (12 derniers mois agrégés, inclut mois à zéro). Fichiers modifiés : admin/consignations/[id].vue (bouton PDF dans sections accepted+sold uniquement), admin.vue (lien nav Rapports), types/index.ts (MonthlyRevenue), nuxt.config.ts (nitro.externals pdfmake). Dépendances ajoutées : vue-chartjs, chart.js v4, pdfmake v0.3.11. TypeScript ✅ ESLint ✅.
+
+### US-042 — Gestion des Clients — PASS (1re passe) — commit 893191a
+
+QA PASS au premier passage. Pages créées/complétées : admin/clients/index.vue (tableau desktop + cartes mobile ClientCard.vue, recherche debounce 300ms filtrée serveur sur nom+email `.ilike`, pagination serveur page/limit, animations GSAP `.client-row`), admin/clients/[id].vue (fiche avec coordonnées, historique 10 derniers achats avec products JOIN, liste consignations par depositor_email, notes éditables inline avec PUT + toast). Composant créé : ClientAutocomplete.vue (ARIA combobox pattern, debounce 300ms, ≥3 chars, navigation ↑↓ Entrée Échap, option "Créer" inline, skeleton loading). ClientAutocomplete intégré dans SaleForm.vue (v-model clientSelection, payload QuickSalePayload porte clientId+clientName). Types ajoutés : ClientWithStats, ClientPurchase, QuickSalePayload. Routes serveur : index.get (purchase aggregate COUNT+last_date via sales JOIN), [id].get (detail+purchases+consignments), [id].put (notes Zod). Lint fixes appliqués : vue/first-attribute-linebreak dans [id].vue, vue/attributes-order dans SaleForm.vue. TypeScript ✅ ESLint ✅. Note : bouton "+ Nouveau client" pointe vers /admin/clients/nouveau (hors scope US-042) — à traiter dans US dédiée.
 
 ### US-041 — Suivi des Ventes — PASS (2e passe) — commit [à venir]
 
