@@ -57,7 +57,7 @@ export default defineNuxtConfig({
         name: 'supabase',
         provider: '~/providers/supabase-provider.ts',
         options: {
-          baseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL ?? '' + '/storage/v1/object/public/product-images' 
+          baseUrl: `${process.env.NUXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/object/public/product-images`,
         }
       }
     },

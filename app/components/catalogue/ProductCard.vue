@@ -31,8 +31,6 @@ const formattedPrice = computed(() =>
 
 const primaryImage = computed(() => props.product.images[0] ?? null)
 
-console.log(primaryImage)
-
 // Computed image attrs (src + optional provider) for use with v-bind on NuxtImg
 const primaryImageData = computed(() =>
   primaryImage.value !== null ? imageProps(primaryImage.value) : null,

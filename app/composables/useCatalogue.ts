@@ -89,6 +89,7 @@ export function useCatalogue() {
   const availableBrands = ref<string[]>([])
   const maxPrice = ref(5000)
   const initialized = ref(false)
+  let fetchVersion = 0
 
   const hasActiveFilters = computed(
     () =>
@@ -122,6 +123,8 @@ export function useCatalogue() {
   }
 
   async function fetchProducts(): Promise<void> {
+    const myVersion = ++fetchVersion
+    isFetchingMore.value = false  // cancel any in-flight loadMore
     isLoading.value = true
     currentOffset.value = 0
     products.value = []
@@ -149,6 +152,7 @@ export function useCatalogue() {
       q = q.range(0, PAGE_SIZE - 1)
 
       const { data, error, count } = await q
+      if (fetchVersion !== myVersion) return  // superseded by a newer fetch, discard
       if (error) throw error
 
       products.value = (data ?? []).map(mapProductRow)
@@ -157,13 +161,14 @@ export function useCatalogue() {
       currentOffset.value = data?.length ?? 0
     }
     finally {
-      isLoading.value = false
+      if (fetchVersion === myVersion) isLoading.value = false
     }
   }
 
   async function loadMore(): Promise<void> {
     if (!hasMore.value || isFetchingMore.value) return
     isFetchingMore.value = true
+    const myVersion = fetchVersion
 
     try {
       const conditionValues = buildConditionValues()
@@ -188,6 +193,7 @@ export function useCatalogue() {
       q = q.range(currentOffset.value, currentOffset.value + PAGE_SIZE - 1)
 
       const { data, error } = await q
+      if (fetchVersion !== myVersion) { isFetchingMore.value = false; return }
       if (error) throw error
 
       const newProducts = (data ?? []).map(mapProductRow)
@@ -303,8 +309,9 @@ export function useCatalogue() {
   )
 
   async function init(): Promise<void> {
-    initFromUrl()
+    // fetchMaxPrice must complete before initFromUrl so that URL prix_max can override the DB max
     await Promise.all([fetchMaxPrice(), fetchBrands()])
+    initFromUrl()
     await fetchProducts()
     initialized.value = true
   }

@@ -111,6 +111,15 @@ export default defineEventHandler(async (event: H3Event) => {
     .single()
 
   if (insertErr || !product) {
+    // Clean up uploaded images to avoid orphaned Storage objects
+    const storagePaths = imageUrls.map((url) => {
+      const marker = '/product-images/'
+      const idx = url.indexOf(marker)
+      return idx !== -1 ? url.slice(idx + marker.length) : null
+    }).filter((p): p is string => p !== null)
+    if (storagePaths.length > 0) {
+      await supabase.storage.from('product-images').remove(storagePaths)
+    }
     throw createError({
       statusCode: 500,
       statusMessage: "Erreur lors de la création du produit",

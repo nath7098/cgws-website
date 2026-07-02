@@ -11,7 +11,12 @@ export function useAdminApi() {
   }
 
   function buildAuthHeaders(token: string | null): Record<string, string> {
-    return token ? { Authorization: `Bearer ${token}` } : {}
+    if (!token) {
+      // Session expired — redirect to login on next tick so caller can still handle gracefully
+      navigateTo('/admin/login')
+      return {}
+    }
+    return { Authorization: `Bearer ${token}` }
   }
 
   return { getAccessToken, buildAuthHeaders }
