@@ -126,8 +126,8 @@ const cardContent = computed(() => ({
     class="product-card group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2 rounded-[6px]"
   >
     <article
-      class="relative flex flex-col bg-cgws-parchment border-2 border-cgws-leather rounded-[6px] overflow-hidden transition-[transform,box-shadow] duration-200 ease-in-out"
-      :class="isActive ? 'group-hover:-translate-y-1 group-hover:shadow-lg group-hover:shadow-cgws-leather/20' : ''"
+      class="relative flex flex-col bg-cgws-parchment border-2 border-cgws-leather rounded-[6px] overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-in-out"
+      :class="isActive ? 'group-hover:-translate-y-[4px] group-hover:shadow-xl group-hover:shadow-cgws-leather/25 group-hover:border-cgws-copper' : ''"
     >
       <!-- Perforation hole -->
       <div

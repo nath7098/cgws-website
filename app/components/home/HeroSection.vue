@@ -87,6 +87,20 @@ onMounted(async () => {
         })
       },
     })
+
+    // Parallax scrub — desktop only (avoids GPU jank on mobile)
+    if (window.innerWidth >= 768) {
+      gsap.to('.hero-bg-img', {
+        y: '30%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.hero-section',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      })
+    }
   })
 })
 
@@ -97,7 +111,7 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-tack"
+    class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-tack"
     aria-label="Accueil CGWS — Sellerie équestre western"
   >
     <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
@@ -106,7 +120,7 @@ onUnmounted(() => {
       alt=""
       class="absolute inset-0 h-full w-full"
       :img-attrs="{
-        class: 'h-full w-full object-cover object-[center_top] md:object-[center_40%]',
+        class: 'hero-bg-img h-full w-full object-cover object-[center_top] md:object-[center_40%]',
         fetchpriority: 'high',
       }"
       :width="1920"

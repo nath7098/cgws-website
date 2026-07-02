@@ -34,3 +34,56 @@ html {
 body {
   margin: 0;
 }
+
+/* ─── Hero background parallax target ───────────────────── */
+.hero-bg-img {
+  will-change: transform;
+}
+
+/* ─── Page transitions ──────────────────────────────────── */
+.page-enter-active {
+  transition: opacity 200ms ease-out;
+}
+.page-leave-active {
+  transition: opacity 150ms ease-in;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* ─── prefers-reduced-motion — global CSS kill-switch ───── */
+@media (prefers-reduced-motion: reduce) {
+  /* Désactive toutes les transitions et animations CSS */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Neutralise la transition de page */
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+
+  /* Restaure la visibilité immédiate des états de transition */
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1 !important;
+  }
+
+  /* Neutralise le drawer admin */
+  #admin-sidebar {
+    transition: none !important;
+  }
+
+  /* Neutralise les hover CSS ProductCard */
+  .product-card article {
+    transition: none !important;
+    transform: none !important;
+  }
+}

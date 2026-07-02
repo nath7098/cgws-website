@@ -14,6 +14,36 @@ const stats: Stat[] = [
   { value: '100%', suffix: undefined, label: 'passion équestre',         animateOnVisible: false },
   { value: 37,     suffix: '',        label: 'Brèches · Indre-et-Loire', animateOnVisible: true  },
 ]
+
+let ctx: { revert: () => void } | undefined
+
+onMounted(async () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const { gsap } = await import('gsap')
+  const { ScrollTrigger } = await import('gsap/ScrollTrigger')
+  gsap.registerPlugin(ScrollTrigger)
+
+  ctx = gsap.context(() => {
+    gsap.from('.concho-stat-root', {
+      opacity: 0,
+      y: 24,
+      scale: 0.85,
+      duration: 0.55,
+      ease: 'power2.out',
+      stagger: 0.12,
+      scrollTrigger: {
+        trigger: 'section[aria-label="Chiffres clés CGWS"]',
+        start: 'top 80%',
+        once: true,
+      },
+    })
+  })
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
 </script>
 
 <template>
