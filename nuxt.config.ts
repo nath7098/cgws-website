@@ -91,7 +91,16 @@ export default defineNuxtConfig({
     exclude: ['/admin/**', '/api/**', '/dev-components'],
   },
 
+  routeRules: {
+    // Nuxt built assets have content-hash filenames — safe to cache immutably
+    '/_nuxt/**': {
+      headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },
+    },
+  },
+
   nitro: {
+    minify: true,
+    compressPublicAssets: { gzip: true, brotli: true },
     externals: {
       // pdfmake is a CJS-only package; prevent Nitro from bundling it
       // so Node.js resolves it at runtime from node_modules
