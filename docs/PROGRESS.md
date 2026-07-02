@@ -13,7 +13,7 @@
 | Sprint 2 | Terminé ✅ | 4/4 | 13/13 |
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
 | Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
-| Sprint 5 | À démarrer | 0/4 | 0/21 |
+| Sprint 5 | Terminé ✅ | 4/4 | 21/21 |
 
 ---
 
@@ -22,6 +22,40 @@
 > Format ajouté par l'orchestrateur à chaque US :
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
+
+---
+
+## Résumé Sprint 5 — Polish & Go-live
+
+**Vélocité** : 21/21 pts réalisés (100%) | Durée : 1 session
+**Statut** : ✅ Terminé — **PROJET COMPLET** 🎉
+
+### US complétées
+| US | Titre | Pts | Résultat | Commit |
+|----|-------|-----|----------|--------|
+| US-050 | Animations Immersives | 8 | ✅ PASS 1re passe | 5281352 |
+| US-051 | Optimisation Images | 3 | ✅ PASS 1re passe | 2866991 |
+| US-052 | Performance Lighthouse | 5 | ✅ PASS 1re passe | 6f3de47 |
+| US-053 | Tests E2E & CI | 5 | ✅ PASS 1re passe | 16d804e |
+
+### Notes techniques
+- `app/plugins/gsap.client.ts` : registration centralisée ScrollTrigger (évite les double-registrations)
+- `app/composables/useAnimation.ts` : helpers partagés (revealFrom, staggerReveal, animateCounter, parallaxScrub) avec guard prefers-reduced-motion
+- Page transitions CSS `name='page'` mode `out-in` — 150ms leave / 200ms enter
+- Double couche prefers-reduced-motion : CSS `@media` global + guard JS dans chaque composant GSAP
+- Hero parallax désactivé sur mobile (< 768px) pour éviter le layout shift
+- `useProductImage.ts` composable : extraction path Supabase Storage pour provider nuxt/image
+- `vercel.json` : headers CDN Cache-Control pour assets Nuxt (immutable) et images (1 jour)
+- `nitro.compressPublicAssets: { gzip: true, brotli: true }` activé
+- `@playwright/test` v1.61.1 installé ; mock Supabase via `page.route('**/rest/v1/products*')`
+- CI GitHub Actions : build avec secrets GitHub (pas de credentials hardcodés), artifact upload on failure
+- `npm run lint` échoue car eslint global Windows cassé (acorn.js manquant) — utiliser `./node_modules/.bin/eslint` localement. À corriger : `npm uninstall -g eslint`
+
+### Points en suspens (nécessitent Nathan)
+- **Scores Lighthouse réels** : mesure uniquement possible après déploiement Vercel production
+- **Supabase en ligne** : migrations non appliquées en production (blocage US-002 toujours ouvert)
+- **Vrais contenus Camille** : textes, photos, coordonnées, CGV, SIRET
+- **Secrets GitHub** : `SUPABASE_URL` et `SUPABASE_ANON_KEY` à ajouter dans les secrets du repo pour que le CI E2E fonctionne
 
 ---
 
