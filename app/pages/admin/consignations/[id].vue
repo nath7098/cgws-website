@@ -45,6 +45,7 @@ const errors = reactive({
 // ─── Action state ─────────────────────────────────────────────────────────────
 const isSubmitting = ref(false)
 const pendingAction = ref<'accept' | 'reject' | null>(null)
+const isGeneratingPdf = ref(false)
 
 // ─── Reject modal ─────────────────────────────────────────────────────────────
 const showRejectModal = ref(false)
@@ -242,6 +243,36 @@ async function handleReject(reason: string): Promise<void> {
   finally {
     isSubmitting.value = false
     pendingAction.value = null
+  }
+}
+
+// ─── PDF download ────────────────────────────────────────────────────────────
+
+async function handleDownloadReceipt(): Promise<void> {
+  if (!consignment.value) return
+  isGeneratingPdf.value = true
+  try {
+    const token = await getAccessToken()
+    const blob = await $fetch<Blob>('/api/admin/exports/consignment-receipt', {
+      query: { id: consignationId.value },
+      headers: buildAuthHeaders(token),
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `bon-depot-${consignment.value.id.slice(0, 8)}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast('success', 'Bon de dépôt téléchargé.')
+  }
+  catch {
+    showToast('error', 'Impossible de générer le bon de dépôt. Réessayez.')
+  }
+  finally {
+    isGeneratingPdf.value = false
   }
 }
 
@@ -697,6 +728,39 @@ onUnmounted(() => {
                   aria-hidden="true"
                 />
               </NuxtLink>
+
+              <!-- PDF receipt button -->
+              <div class="mt-4 pt-4 border-t border-cgws-leather/15">
+                <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather/70 mb-2">
+                  Documents
+                </p>
+                <button
+                  type="button"
+                  :disabled="isGeneratingPdf"
+                  :aria-busy="isGeneratingPdf ? 'true' : undefined"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-cgws-leather/40
+                         bg-cgws-parchment text-cgws-charcoal font-sans text-sm font-medium
+                         hover:border-cgws-copper hover:text-cgws-copper
+                         transition-colors duration-150
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+                  aria-label="Générer et télécharger le bon de dépôt PDF"
+                  @click="handleDownloadReceipt"
+                >
+                  <span
+                    v-if="isGeneratingPdf"
+                    class="w-4 h-4 rounded-full border-2 border-cgws-copper border-t-transparent animate-spin"
+                    aria-hidden="true"
+                  />
+                  <UIcon
+                    v-else
+                    name="i-lucide-file-text"
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                  {{ isGeneratingPdf ? 'Génération…' : 'Bon de dépôt PDF' }}
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -773,6 +837,39 @@ onUnmounted(() => {
           <p class="font-sans text-xs text-cgws-leather/70">
             Taux de commission CGWS fixe : 20 % du prix de vente effectif.
           </p>
+
+          <!-- PDF receipt button -->
+          <div class="pt-4 border-t border-cgws-leather/15">
+            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather/70 mb-2">
+              Documents
+            </p>
+            <button
+              type="button"
+              :disabled="isGeneratingPdf"
+              :aria-busy="isGeneratingPdf ? 'true' : undefined"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-cgws-leather/40
+                     bg-cgws-parchment text-cgws-charcoal font-sans text-sm font-medium
+                     hover:border-cgws-copper hover:text-cgws-copper
+                     transition-colors duration-150
+                     disabled:opacity-40 disabled:cursor-not-allowed
+                     focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+              aria-label="Générer et télécharger le bon de dépôt PDF"
+              @click="handleDownloadReceipt"
+            >
+              <span
+                v-if="isGeneratingPdf"
+                class="w-4 h-4 rounded-full border-2 border-cgws-copper border-t-transparent animate-spin"
+                aria-hidden="true"
+              />
+              <UIcon
+                v-else
+                name="i-lucide-file-text"
+                class="w-4 h-4"
+                aria-hidden="true"
+              />
+              {{ isGeneratingPdf ? 'Génération…' : 'Bon de dépôt PDF' }}
+            </button>
+          </div>
         </section>
 
         <!-- returned -->

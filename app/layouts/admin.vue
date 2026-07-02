@@ -86,6 +86,7 @@ const navLinks: NavLink[] = [
   { href: '/admin/consignations', label: 'Consignations', icon: 'i-lucide-arrow-left-right' },
   { href: '/admin/ventes', label: 'Ventes', icon: 'i-lucide-receipt' },
   { href: '/admin/clients', label: 'Clients', icon: 'i-lucide-users' },
+  { href: '/admin/rapports', label: 'Rapports', icon: 'i-lucide-bar-chart-2' },
 ]
 
 function isLinkActive(href: string): boolean {

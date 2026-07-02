@@ -178,3 +178,14 @@ export interface ClientPurchase {
   paymentMethod: PaymentMethod
   saleDate: string
 }
+
+// ─── Reporting (US-043) ───────────────────────────────────────────────────────
+
+export interface MonthlyRevenue {
+  /** ISO month string — "YYYY-MM" */
+  month: string
+  /** Revenue from own (non-consignment) sales in € */
+  ownRevenue: number
+  /** Revenue from consignment sales in € */
+  consignmentRevenue: number
+}

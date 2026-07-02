@@ -78,4 +78,12 @@ export default defineNuxtConfig({
     sources: ['/api/__sitemap/urls'],
     exclude: ['/admin/**', '/api/**', '/dev-components'],
   },
+
+  nitro: {
+    externals: {
+      // pdfmake is a CJS-only package; prevent Nitro from bundling it
+      // so Node.js resolves it at runtime from node_modules
+      external: ['pdfmake'],
+    },
+  },
 })
