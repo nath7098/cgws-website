@@ -489,3 +489,142 @@ export async function sendConsignmentRejectEmail(
     html: buildConsignmentRejectHtml(data),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Consignment sale email (notifie le déposant que son article a été vendu)
+// ---------------------------------------------------------------------------
+
+export interface ConsignmentSaleEmailData {
+  depositorName: string
+  depositorEmail: string
+  itemDescription: string
+  salePrice: number
+  commissionAmount: number | null
+  agreedPrice: number | null
+  consignmentId: string
+}
+
+function buildConsignmentSaleHtml(data: ConsignmentSaleEmailData): string {
+  const salePriceFormatted = new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(data.salePrice)
+
+  const netAmount = data.agreedPrice !== null ? data.agreedPrice : null
+  const netFormatted = netAmount !== null
+    ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(netAmount)
+    : '—'
+
+  const commissionFormatted = data.commissionAmount !== null
+    ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(data.commissionAmount)
+    : '—'
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Votre article a été vendu — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .table th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #7B3B1C; background: #F0DDB8; border: 1px solid #1A0B03; padding: 8px 12px; text-align: left; font-family: Georgia, serif; }
+    .table td { font-size: 14px; color: #1A0B03; background: #FAF3E3; border: 1px solid #1A0B03; padding: 8px 12px; }
+    .price-cell { font-size: 22px; color: #B8650A; font-weight: 700; }
+    .net-cell { font-size: 20px; color: #1A0B03; font-weight: 700; }
+    .note { font-size: 13px; color: #1A0B03; opacity: 0.7; margin: 24px 0 0; font-style: italic; line-height: 1.6; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .divider { border: none; border-top: 1px solid #C8AB82; margin: 16px 0; }
+    .sold-badge { display: inline-block; background: #B8650A; color: #FAF3E3; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 2px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">DÉPÔT-VENTE · BRÈCHES · INDRE-ET-LOIRE</p>
+      <h1 class="header-h1">CGWS</h1>
+    </div>
+
+    <div class="body">
+      <div class="body-inner">
+        <span class="sold-badge">Vendu !</span>
+        <p class="greeting">Bonjour ${data.depositorName},</p>
+        <p class="intro">
+          Excellente nouvelle ! Votre article a été vendu dans notre boutique.
+          Voici le récapitulatif de la transaction et le montant qui vous sera reversé.
+        </p>
+
+        <hr class="divider" />
+
+        <table class="table">
+          <thead>
+            <tr><th colspan="2">DÉTAILS DE LA VENTE</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Article vendu</th>
+              <td>${data.itemDescription}</td>
+            </tr>
+            <tr>
+              <th>Prix de vente effectif</th>
+              <td class="price-cell">${salePriceFormatted}</td>
+            </tr>
+            <tr>
+              <th>Commission CGWS</th>
+              <td>${commissionFormatted}</td>
+            </tr>
+            <tr>
+              <th>Montant net à vous reverser</th>
+              <td class="net-cell">${netFormatted}</td>
+            </tr>
+            <tr>
+              <th>Référence consignation</th>
+              <td style="font-size:11px;color:#7B3B1C;">${data.consignmentId}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="note">
+          Nous vous contacterons prochainement pour convenir des modalités de reversement
+          (espèces en boutique, virement bancaire ou chèque selon votre préférence).
+        </p>
+        <p style="margin-top:16px;font-size:14px;color:#1A0B03;">
+          Pour toute question, contactez-nous :
+          <a href="mailto:contact@cgws.fr" style="color:#B8650A;font-weight:700;">contact@cgws.fr</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendConsignmentSaleEmail(
+  apiKey: string,
+  data: ConsignmentSaleEmailData,
+): Promise<void> {
+  if (!apiKey) return
+
+  const resend = new Resend(apiKey)
+
+  await resend.emails.send({
+    from: 'CGWS <noreply@cgws.fr>',
+    to: [data.depositorEmail],
+    subject: 'Votre article a été vendu — CGWS',
+    html: buildConsignmentSaleHtml(data),
+  })
+}
