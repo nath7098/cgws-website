@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import CatalogueHeader from '~/components/catalogue/CatalogueHeader.vue'
-import ConchoDivider from '~/components/ui/ConchoDivider.vue'
-import FilterDrawer from '~/components/catalogue/FilterDrawer.vue'
-import FilterPanel from '~/components/catalogue/FilterPanel.vue'
-import ProductGrid from '~/components/catalogue/ProductGrid.vue'
-import SortSelect from '~/components/catalogue/SortSelect.vue'
+
 import { CATALOGUE_CONTEXT_KEY } from '~/composables/useCatalogue'
 
 useSeoMeta({

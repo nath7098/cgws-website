@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { NuxtLink } from '#imports'
 import gsap from 'gsap'
 import CgwsButton from '../ui/CgwsButton.vue';
 

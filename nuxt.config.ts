@@ -5,13 +5,13 @@ export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
   runtimeConfig: {
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+    supabaseServiceRoleKey: process.env.NUXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY ?? '',
     resendApiKey: process.env.RESEND_API_KEY ?? '',
     // TODO: set CGWS_CAMILLE_EMAIL env var in production (replace placeholder)
     camilleEmail: process.env.CGWS_CAMILLE_EMAIL ?? 'nathcouton@gmail.com',
     public: {
-      supabaseUrl: process.env.SUPABASE_URL ?? '',
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? '',
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL ?? '',
+      supabaseAnonKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://cgws.fr',
     },
   },
@@ -41,6 +41,13 @@ export default defineNuxtConfig({
     strict: true,
     typeCheck: false,
   },
+
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+  ],
 
   image: {
     quality: 85,

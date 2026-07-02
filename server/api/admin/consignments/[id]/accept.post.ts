@@ -1,7 +1,5 @@
 import type { H3Event } from 'h3'
-import {
-  sendConsignmentAcceptEmail,
-} from '~/server/services/email'
+import { sendConsignmentAcceptEmail } from '~~/server/services/email'
 
 interface AcceptBody {
   agreedPrice: number

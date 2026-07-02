@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import HeroSection from '~/components/home/HeroSection.vue';
-import OurStorySection from '~/components/home/OurStorySection.vue';
-import StatsBar from '~/components/home/StatsBar.vue';
-import ConchoDivider from '~/components/ui/ConchoDivider.vue';
 
 useSeoMeta({
   title: 'CGWS — Sellerie Équestre Western à Brèches (37)',

@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import type { ConsignmentStatus, PaymentMethod, RecentConsignment, RecentSale } from '~/types'
-import KpiCard from '~/components/admin/KpiCard.vue'
-import RecentActivity from '~/components/admin/RecentActivity.vue'
-import CgwsButton from '~/components/ui/CgwsButton.vue'
 
 definePageMeta({
   middleware: 'admin',

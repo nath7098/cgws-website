@@ -49,7 +49,7 @@ const computedClasses = computed(() => {
 
 <template>
   <component
-    :is="as === 'NuxtLink' ? resolveComponent('NuxtLink') : as"
+    :is="as === 'NuxtLink' ? defineNuxtLink({}) : as"
     :type="as === 'button' ? type : undefined"
     :href="as === 'a' ? href : undefined"
     :to="as === 'NuxtLink' ? to : undefined"

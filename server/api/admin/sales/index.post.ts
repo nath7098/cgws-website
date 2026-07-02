@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { H3Event } from 'h3'
-import { sendConsignmentSaleEmail } from '~/server/services/email'
+import { sendConsignmentSaleEmail } from '~~/server/services/email'
 
 const saleSchema = z.object({
   productId: z.string().uuid('ID produit invalide'),
@@ -9,6 +9,7 @@ const saleSchema = z.object({
   paymentMethod: z.enum(['cash', 'card', 'transfer', 'check'], {
     error: 'Moyen de paiement invalide',
   }),
+  clientId: z.string().uuid().nullable().optional(),
   clientName: z.string().optional(),
   notes: z.string().optional(),
 })
@@ -83,18 +84,31 @@ export default defineEventHandler(async (event: H3Event) => {
     commissionAmount = input.salePrice - agreedPrice
   }
 
-  // ─── Optionally create client record ──────────────────────────────────────
+  // ─── Resolve client record ────────────────────────────────────────────────
 
   let clientId: string | null = null
-  if (input.clientName?.trim()) {
-    const { data: createdClient } = await supabase
+
+  if (input.clientId) {
+    // Existing client selected — verify it exists
+    const { data: existingClient } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', input.clientId)
+      .maybeSingle()
+
+    if (existingClient) clientId = existingClient.id
+  }
+  else if (input.clientName?.trim()) {
+    // Create client on the fly from free-text name
+    const { data: newClient } = await supabase
       .from('clients')
       .insert({ name: input.clientName.trim() })
       .select('id')
       .single()
 
-    clientId = createdClient?.id ?? null
+    if (newClient) clientId = newClient.id
   }
+  // else clientId remains null
 
   // ─── Insert sale ───────────────────────────────────────────────────────────
 

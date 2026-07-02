@@ -158,6 +158,23 @@ export interface QuickSalePayload {
   salePrice: number
   saleDate: string
   paymentMethod: PaymentMethod
+  clientId?: string | null
   clientName?: string
   notes?: string
+}
+
+// ─── Clients (US-042) ─────────────────────────────────────────────────────────
+
+export interface ClientWithStats extends Client {
+  purchaseCount: number
+  lastPurchaseDate: string | null
+}
+
+export interface ClientPurchase {
+  id: string
+  productTitle: string
+  productBrand: string
+  salePrice: number
+  paymentMethod: PaymentMethod
+  saleDate: string
 }

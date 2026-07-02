@@ -1,7 +1,5 @@
 import type { H3Event } from 'h3'
-import {
-  sendConsignmentRejectEmail,
-} from '~/server/services/email'
+import { sendConsignmentRejectEmail } from '~~/server/services/email'
 
 interface RejectBody {
   reason: string

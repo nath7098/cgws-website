@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type { Product } from '~/types'
+import ProductCardSkeleton from '../ui/ProductCardSkeleton.vue'
+import ProductCard from './ProductCard.vue'
+import ConchoDivider from '../ui/ConchoDivider.vue'
+import EmptyState from './EmptyState.vue'
 
 interface Props {
   products: Product[]

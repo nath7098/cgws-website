@@ -1,12 +1,4 @@
 <script setup lang="ts">
-import CgwsBadge from '~/components/ui/CgwsBadge.vue'
-import CgwsButton from '~/components/ui/CgwsButton.vue'
-import CgwsCard from '~/components/ui/CgwsCard.vue'
-import CgwsInput from '~/components/ui/CgwsInput.vue'
-import CgwsTextarea from '~/components/ui/CgwsTextarea.vue'
-import CgwsSelect from '~/components/ui/CgwsSelect.vue'
-import ConchoStat from '~/components/ui/ConchoStat.vue'
-import TagCard from '~/components/ui/TagCard.vue'
 import type { Product } from '~/types'
 import type { SelectOption } from '~/components/ui/CgwsSelect.vue'
 

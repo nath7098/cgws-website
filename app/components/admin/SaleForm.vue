@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { PaymentMethod, Product, QuickSalePayload } from '~/types'
 
+interface ClientSelection {
+  clientId: string | null
+  clientName: string
+}
+
 interface Props {
   isOpen: boolean
 }
@@ -44,11 +49,11 @@ async function loadProducts(): Promise<void> {
 const today = new Date().toISOString().split('T')[0]!
 
 const selectedProductId = ref('')
+const clientSelection = ref<ClientSelection | null>(null)
 const form = reactive({
   saleDate: today,
   salePrice: 0,
   paymentMethod: 'cash' as PaymentMethod,
-  clientName: '',
   notes: '',
 })
 
@@ -116,10 +121,10 @@ const netToDepositor = computed<number | null>(() => agreedPrice.value)
 
 function resetForm(): void {
   selectedProductId.value = ''
+  clientSelection.value = null
   form.saleDate = new Date().toISOString().split('T')[0]!
   form.salePrice = 0
   form.paymentMethod = 'cash'
-  form.clientName = ''
   form.notes = ''
   errors.productId = ''
   errors.salePrice = ''
@@ -185,7 +190,8 @@ function submitSale(): void {
     salePrice: form.salePrice,
     saleDate: form.saleDate,
     paymentMethod: form.paymentMethod,
-    clientName: form.clientName.trim() || undefined,
+    clientId: clientSelection.value?.clientId ?? undefined,
+    clientName: clientSelection.value?.clientName.trim() || undefined,
     notes: form.notes.trim() || undefined,
   }
 
@@ -583,17 +589,12 @@ function formatCategory(cat: string): string {
                 Client
                 <span class="font-normal normal-case tracking-normal text-cgws-leather/70">(optionnel)</span>
               </label>
-              <input
-                id="sale-client"
-                v-model="form.clientName"
-                type="text"
-                placeholder="Nom du client…"
+              <ClientAutocomplete
+                input-id="sale-client"
+                v-model="clientSelection"
                 :disabled="isSubmitting"
-                class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                       font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope
-                       focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none
-                       disabled:opacity-50"
-              >
+                placeholder="Rechercher ou créer un client…"
+              />
             </div>
 
             <!-- Notes internes (optionnel) -->

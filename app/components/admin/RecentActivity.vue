@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ConsignmentStatus, PaymentMethod, RecentConsignment, RecentSale } from '~/types'
-import CgwsButton from '~/components/ui/CgwsButton.vue'
 
 type ActivityType = 'consignments' | 'sales'
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Product } from '~/types'
+import CgwsBadge from '../ui/CgwsBadge.vue';
 
 interface Props {
   product: Product
