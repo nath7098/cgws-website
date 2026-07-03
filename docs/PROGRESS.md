@@ -14,7 +14,7 @@
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
 | Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
 | Sprint 5 | Terminé ✅ | 4/4 | 21/21 |
-| Sprint 6 | En cours 🔨 | 2/6 | 11/~31 |
+| Sprint 6 | Terminé ✅ | 6/6 | ~31/~31 |
 
 ---
 
@@ -26,10 +26,71 @@
 
 ---
 
-## Sprint 6 — Refonte identité « CGWS v3 — Cowgirl élégante » (en cours)
+## Sprint 6 — Refonte identité « CGWS v3 — Cowgirl élégante »
 
 **Objectif** : rebranding bi-thème (peaux **Élégante** rose/crème + **Rugueux** cuir/laiton, switcher public), dérivé du nouveau logo (cavalière de reining). Typo Playfair/Rye, motifs étoile-boussole. Décidé avec Nathan de faire la refonte identité en Sprint 6, puis les features (espace déposant + import CSV) en Sprint 7.
-**Specs** : `docs/design-specs/DESIGN_SYSTEM_v3.md` (doc maître) + US-070/071/072 + outline pages, produits par `ux-designer`.
+**Specs** : `docs/design-specs/DESIGN_SYSTEM_v3.md` (doc maître) + US-070/071/072 + `US-073-homepage.md` + `US-074-catalogue-fiche.md` + `US-075-services-header-footer-admin.md`, produits par `ux-designer`.
+
+---
+
+## Résumé Sprint 6 — Refonte identité « CGWS v3 — Cowgirl élégante »
+
+**Vélocité** : ~31/~31 pts réalisés (100%) | **Statut** : ✅ Terminé — en attente validation humaine (mode checkpoint) avant Sprint 7.
+
+### US complétées
+| US | Titre | Résultat | Commit |
+|----|-------|----------|--------|
+| US-070 | Design System v3 — fondations bi-thème | ✅ PASS 2e passe | ac25119 (+ fix e9eee01) |
+| US-071 | Switcher de thème public/admin | ✅ PASS 1re passe | 9b16ffe |
+| US-072 | Composants signature (étoile-boussole, filigranes, boutons/badges danger) | ✅ PASS 1re passe | a2efc72 |
+| US-073 | Refonte Homepage | ✅ PASS 1re passe | 293e83c |
+| US-074 | Refonte Catalogue + Fiche produit | ✅ PASS 1re passe | 032f12f |
+| US-075 | Services/Contact/Header/Footer + cohérence Admin | ✅ PASS 1re passe | 9852d59 |
+
+**Qualité** : 5 US sur 6 en PASS 1re passe (seule US-070 a nécessité une 2e passe, avant cette session). Aucune boucle de correction pour US-072→075. vue-tsc / ESLint / build EXIT 0 vérifiés à chaque US.
+
+### Réalisations clés de la session
+- **Système bi-peaux × 3 rendus** (`elegante-jour`, `elegante-nuit`, `rugueux`) désormais appliqué à TOUT le site public ET l'admin — plus aucun bandeau/panneau à couleur figée.
+- **Composants signature v3** : `StarDivider` (remplace ConchoDivider+ConchoStat), `FiligreeCorner`, re-skin TagCard/CgwsButton(+`destructive`)/CgwsBadge(+`reserved`,+`rejected`).
+- **Régressions theme-aware corrigées au passage** (au-delà du périmètre re-skin, trouvées par audit ux-designer) : 58 `bg-white` figés dans l'admin, ruban « Réservé » à tort en `danger` (violation taxonomie §4.1), hex v2 résiduels (SaddleIllustration, ContactMap), focus ring offset footer calé sur fond sombre fixe, 4 mappings de statut divergents unifiés.
+- **Discipline de contraste** : chaque paire texte lisible recalculée et validée AA dans les 3 rendus ; règle décoratif (`accent-deco`) vs lisible (`accent`/`danger`) tenue partout.
+
+### Points produit à confirmer par Nathan/Camille (non bloquants — défauts raisonnables déjà appliqués)
+1. **Asset logo / illustration définitif** : `SaddleIllustration.vue` (selle statique v2) recolorée à titre conservatoire — alignement avec le nouveau logo « cavalière de reining » à trancher (nouvel asset ? conserver ?). Idem logo texte header (`text-cgws-accent`) vs logo image fourni par le rebranding.
+2. **`success`/`warning` Nuxt UI natif vs tokens CGWS pour l'admin** : ux-designer a délibérément écarté les couleurs sémantiques natives Nuxt UI (non liées aux tokens de peau → non theme-aware) au profit des tokens CGWS `success`/`danger`/`accent`. Choix techniquement fondé mais à valider.
+3. **`KpiCard` variant `warning`** remappé `danger`→`accent` : à confirmer que le sens visuel « alerte douce » reste satisfaisant.
+4. **Header + footer sur `surface`** (bande chrome distincte) plutôt que `ground` : tranché par la spec, à valider visuellement en recette.
+5. **Libellé CTA fiche produit si statut `reserved`** (« Réservé — nous contacter » ?) et **comportement fiche `inactive`** accessible par URL directe (404 ? masquage ?) — décisions métier laissées ouvertes.
+6. **Détails cosmétiques reportés** (non bloquants) : `RevenueChart.vue` couleurs Chart.js non theme-aware ; boutons « Supprimer définitivement » (modale produit) et « Enregistrer la vente » encore en `<button>` brut au lieu de `CgwsButton` ; cible tactile bouton switcher compact 36px.
+
+### Points de blocage hérités toujours ouverts (rappel, non traités ce sprint car hors périmètre design)
+- **Supabase en ligne** (US-002) : migrations non appliquées en prod.
+- **Vrais contenus Camille** : textes, photos, coordonnées, CGV, SIRET, vrais prix.
+- **Scores Lighthouse réels** : mesurables seulement après déploiement Vercel prod.
+- **Secrets GitHub** (`SUPABASE_URL`/`SUPABASE_ANON_KEY`) pour le CI E2E.
+
+### Recette humaine recommandée avant Sprint 7
+Lancer `npm run dev` et parcourir visuellement chaque écran (public : home, catalogue, fiche, consignation, contact, mentions ; admin : login, dashboard, produits, catégories, consignations, ventes, clients, rapports) en basculant les **3 rendus** via le switcher, pour valider l'esthétique et les points produit ci-dessus — la QA automatisée couvre les tokens/contrastes/build mais pas le jugement esthétique final.
+
+### US-075 — Services/Contact/Header/Footer + cohérence Admin v3 — PASS (1re passe) — commit 9852d59
+
+QA PASS au premier passage. Plus large US du sprint. Spec `docs/design-specs/US-075-services-header-footer-admin.md` (ux-designer, 3 blocs, audit code exhaustif). **31 fichiers.**
+**Bloc A (header/footer/menu theme-aware, décision client §8.1)** : `AppHeader`/`AppFooter` abandonnent le bandeau sombre fixe `bg-cgws-tack` → `bg-cgws-surface` (défaut + scrolled `surface/90 backdrop-blur`, mécanique `useScrollHeader` intacte) ; logo `text-cgws-accent`, liens `text-cgws-ink-soft hover:text-cgws-accent`, bordure header `hairline`, footer `border-t-2 border-cgws-accent-deco`. **Fix focus ring offset critique** : 9 occurrences `ring-offset-cgws-tack`/`-ground` → `ring-offset-cgws-surface` (sinon offset sombre sur footer clair en Jour). `MobileMenu` reste `bg-cgws-ground` (convention drawer), backdrop `brand-espresso/60`→`ink/60`. `ThemeSwitcher` : **nouvelle variante `layout="compact"`** (icône-seule bascule peau) + garde `v-if="skin==='elegante' && !colorMode?.forced"` sur le `<ClientOnly>` jour/nuit (points US-071 reportés, réglés).
+**Bloc B (contact)** : `ContactMap.vue` 4 hex v2 en dur → `var(--cgws-*)` (marker `accent-deco`, halo `ground`, popup `ink`/`ink-soft`) + override popup Leaflet theme-aware dans `main.css` (élimine le flash blanc en Nuit/Rugueux) ; `contact.vue` cadre `border-edge`.
+**Bloc C (admin — switcher dispo, pas de peau figée, décision client §8.1)** : `admin.vue` sidebar/topbar plus figées (`bg-cgws-tack`/`bg-cgws-parchment` → theme-aware), `ThemeSwitcher` intégré topbar avec **2 wrappers `flex sm:hidden`(compact) / `hidden sm:flex`(inline)** mutuellement exclusifs (corrige le `hidden sm:flex` qui masquait totalement le switcher admin mobile). **58 `bg-white`→`bg-cgws-surface`** sur 22 fichiers (bien plus que les ~35 estimés — vraie régression theme-aware : panneaux blancs figés quelle que soit la peau) + 8 spinners `border-white`→`border-current`, 0 résiduel vérifié QA. `RejectModal` : bouton confirmation → `CgwsButton variant="destructive"` (fin des classes `bg-cgws-rust`/`text-white`/`hover:bg-cgws-charcoal` en dur), icône/astérisque/bordure `danger`. **Mapping statut→couleur canonique §C.11** unifié sur 4 fichiers divergents (`StatusDropdown`/`consignations/index`/`RecentActivity`/`CgwsBadge`) : `success` accepted/active, `danger` PLEIN rejected/returned, `accent` plein sold, neutre pending/reserved/inactive — **aucune couleur Nuxt UI native `success`/`warning` introduite** (elles ne sont pas liées aux tokens de peau dans `app.config.ts` → ne seraient pas theme-aware ; décision ux-designer justifiée, à confirmer PO non bloquant). `KpiCard` warning `danger`→`accent` + `tabular-nums`. `RevenueChart.vue` NON traité (hors périmètre, couleurs Chart.js statiques — arbitrage technique ultérieur). Contrastes QA sur `surface` : Jour `ink` 12.7 / `ink-soft` 7.0 / `accent` 5.05, Rugueux `accent` 5.34, pilule neutre 6.34 — tous AA. vue-tsc ✅ ESLint ✅ build EXIT 0 ✅.
+**Observations mineures non bloquantes (QA)** : bouton « Supprimer définitivement » de la modale produit (`produits/index.vue`) et bouton « Enregistrer la vente » (`SaleModal`/`SaleForm`) restent des `<button>` bruts au lieu de `CgwsButton` (recommandé non bloquant, spinners déjà `border-current`). Cible tactile du bouton compact 36px (<44px, identique au toggle existant, ajustement transversal futur).
+
+### US-074 — Refonte Catalogue + Fiche produit v3 — PASS (1re passe) — commit 032f12f
+
+QA PASS au premier passage. Spec détaillée `docs/design-specs/US-074-catalogue-fiche.md` (ux-designer, audit ligne par ligne du code existant). 9 composants re-skinés + `CgwsBadge`. **Violation taxonomie §4.1 corrigée** : ruban diagonal « Réservé » de `ProductCard.vue` était en `bg-cgws-danger/90` (danger = refus/destructif UNIQUEMENT) → `bg-cgws-ink-soft/90 text-cgws-ground` neutre. **Nouveau variant `reserved`** sur `CgwsBadge` (neutre `surface-2`/`ink-soft`/`hairline`) intégré à `ProductInfo.vue` qui ne gérait PAS ce statut (fiche affichait CTA actif comme si dispo → incohérence grille/fiche comblée) ; mapping statut→badge complet et cohérent des deux côtés. `tabular-nums` ajouté aux 3 prix (ProductCard ×2 + ProductInfo). **Point critique a11y respecté** : chips/comptages de filtre actifs, `accent-color` natif, vignettes galerie sélectionnées = indicateurs FONCTIONNELS en `accent` (jamais `accent-deco`) — vérifié, verrouillé. **Focus rings Nuxt UI natifs** (`USlider` FilterPanel+FilterDrawer, `USelect` SortSelect) migrés de la palette « stone » par défaut → `accent` via `:ui` (pattern MCP nuxt-ui confirmé, override `ring-primary`/`ring-inverted`). `CatalogueHeader` H1 « Catalogue » (1 mot ≤4) `font-display`→`font-heading` Rye + `text-cgws-heading` + 2 `FiligreeCorner` opposés `opacity-40`. `ProductGallery` cadre `border-edge`, overlay VENDU + `aria-live` préservés. `EmptyState` CTA `ghost`. `StarDivider` déjà présent au-dessus de RelatedProducts. Bonus a11y : `aria-controls`/`role="region"` sur les 5 accordéons FilterDrawer (ids préfixés `drawer-`). Contrastes recalculés QA : badge comptage `accent`/`accent/10` composité 4.89/5.85/5.27 (AA les 3), badge `reserved` `ink-soft`/`surface-2` 6.34/6.13/4.94, ruban réservé `ground`/`ink-soft` 7.78:1, H1 `heading`/`ground` 5.79:1+ — tous ≥ seuil. GSAP préservé (stagger/ScrollTrigger/fade, cleanup, guard reduced-motion). vue-tsc ✅ ESLint ✅ build EXIT 0 ✅. **Points produit non bloquants (à trancher Nathan/Camille)** : libellé CTA fiche si `reserved` (« Réservé — nous contacter » ?), comportement fiche `inactive` accessible par URL directe (404 ? masquage ?), dette archi `ProductCard`/`TagCard` dupliqués (non fusionnés, hors scope re-skin).
+
+### US-073 — Refonte Homepage v3 — PASS (1re passe) — commit 293e83c
+
+QA PASS au premier passage. Spec détaillée produite par ux-designer (`docs/design-specs/US-073-homepage.md`) sur le modèle US-072. Re-skin des 5 fichiers home : `index.vue` (2 `StarDivider` ajoutés → 3 diviseurs total), `HeroSection.vue` (H1 `font-bold` — `font-display` ne pilotait que la famille Playfair pas le 700 ; arche fine ornementale SVG `stroke accent-deco` autour du bloc eyebrow+H1, marge `mt-6`≥24px, `aria-hidden` ; scrim+textes Hero conservés en **littéraux marque fixes** `brand-espresso`/`brand-cream`/`brand-sand`, NON theme-aware par décision §1.3 car illisibles en Jour clair sinon), `OurStorySection.vue` (barre verticale déco `bg-cgws-accent`→`accent-deco`, arche quart d'arc portrait), `StatsBar.vue` (2 `FiligreeCorner` coins diagonalement opposés `opacity-40`, max 2/viewport), `SaddleIllustration.vue` (dégradé radial hex v2 résiduels `#C8AB82`/`#7B3B1C`→`var(--cgws-surface-2)`/`var(--cgws-edge)`, éléments déco médaillon/tooling/coiffe/étriers `accent`→`accent-deco`, `brand-tack` conservé §2.5). Contrastes recontrôlés QA : H1 `brand-cream`/`brand-espresso` 14.08:1, eyebrow/tagline `brand-sand`/`brand-espresso` 7.66:1, corps `ink`/`ground` AAA, CTA `on-accent`/`accent` 5.70–6.88:1 — tous AA/AAA. GSAP préservé (sélecteurs `.hero-eyebrow`/`.hero-letter` toujours atteignables sous le wrapper d'arche, cleanup `onUnmounted`, guard `prefers-reduced-motion`). vue-tsc ✅ ESLint ✅ build EXIT 0 ✅. **Interruption** : sous-agent dev coupé par limite de session à mi-parcours (seul `index.vue` fait), repris via SendMessage avec contexte intact → complété. **Points produit non bloquants (à trancher Nathan/Camille)** : (1) `SaddleIllustration` = selle statique v2 recolorée à titre conservatoire, alignement narratif avec le logo « cavalière de reining » à décider ; (2) arche portrait OurStory optionnelle, à réévaluer une fois la vraie photo de Camille livrée. **Renvoyé US-075** : `AppHeader`/`AppFooter` theme-aware (hors périmètre US-073).
+
+### US-072 — Composants signature v3 — PASS (1re passe) — commit a2efc72
+
+QA PASS au premier passage. Livré : `StarDivider.vue` (nouveau, variantes `divider`/`stat`, étoile-boussole 8 branches `fill accent-deco` décoratif, valeur stat `text-cgws-accent tabular-nums` lisible, compteur GSAP `onMounted`+cleanup `onUnmounted`, skeleton sans valeur, a11y `aria-hidden` divider / `role="img"`+`aria-label` stat) qui **remplace et supprime** `ConchoDivider.vue`+`ConchoStat.vue` (aucune référence orpheline — 9 fichiers consommateurs migrés : ProductGrid, StatsBar, AppFooter, index/consignation/contact/catalogue×2/dev-components). `FiligreeCorner.vue` (nouveau, SVG décoratif `stroke accent-deco`/`fill:none`, `aria-hidden`, opacité 40/50/60 — intégration pages reportée US-073/074/075). Re-skins : `TagCard` (prix `accent tabular-nums` vs copper v2, image manquante `surface-2`+icône `edge/40`, focus `ring-accent`), `CgwsButton` (+variant `destructive` danger/on-danger, primary nettoyé des corrections ad hoc v2), `CgwsBadge` (+variant `rejected` danger plein, `consignment` theme-aware via nouveau `@custom-variant rugueux` Tailwind v4 — `brand-blush` Élégante → `accent/15` Rugueux, `occasion` reste neutre). CgwsInput/Textarea/Select déjà en `danger` depuis US-070 (conformes §6.1). **Bug-catch dev validé QA** : le badge consignation `text-cgws-ink` littéral de la spec §6 aurait donné 1.31:1 en Élégante Nuit (`brand-blush` non theme-aware) → corrigé en `text-cgws-brand-espresso` (10.26:1 Jour+Nuit, autorisé §2.5), Rugueux `ink`/`accent@15%` composité 9.46:1. Contrastes recalculés QA indépendamment : `ink`/`surface` 12.69/12.34/11.89, `accent`/`surface` (prix) 5.05/5.98/5.34 — tous AA. vue-tsc ✅ ESLint ✅ build EXIT 0 ✅. **Points mineurs non bloquants (repoussés)** : (1) `CgwsButton` L24 `rounded-sm` statique au lieu de `rounded-[--ui-radius]` (perd la différenciation de rayon par peau §5 — à corriger avant que d'autres composants répliquent l'oubli) ; (2) variant `destructive` réutilise l'échelle générique `size` au lieu du gabarit dédié `px-5 py-2 text-sm` de la spec (cosmétique). **Exclus du périmètre (US-073/074/075)** : Certificat élégant (§7), intégration effective FiligreeCorner/ArchFrame, variante secondary denim-en-Rugueux (marquée « à confirmer PO » dans la spec).
 
 ### US-071 — Switcher de thème public/admin — PASS (1re passe) — commit [à venir]
 
