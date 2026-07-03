@@ -189,6 +189,10 @@ onUnmounted(() => {
           <div class="flex-1 border-t border-cgws-hairline" />
         </div>
 
+        <div class="px-5 py-4 flex-shrink-0">
+          <ThemeSwitcher layout="stacked" />
+        </div>
+
         <div class="px-5 py-5 flex flex-col gap-3 flex-shrink-0">
           <a
             href="tel:+33247XXXXXX"

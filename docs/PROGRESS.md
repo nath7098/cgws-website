@@ -14,7 +14,7 @@
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
 | Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
 | Sprint 5 | Terminé ✅ | 4/4 | 21/21 |
-| Sprint 6 | En cours 🔨 | 1/6 | 8/~31 |
+| Sprint 6 | En cours 🔨 | 2/6 | 11/~31 |
 
 ---
 
@@ -30,6 +30,10 @@
 
 **Objectif** : rebranding bi-thème (peaux **Élégante** rose/crème + **Rugueux** cuir/laiton, switcher public), dérivé du nouveau logo (cavalière de reining). Typo Playfair/Rye, motifs étoile-boussole. Décidé avec Nathan de faire la refonte identité en Sprint 6, puis les features (espace déposant + import CSV) en Sprint 7.
 **Specs** : `docs/design-specs/DESIGN_SYSTEM_v3.md` (doc maître) + US-070/071/072 + outline pages, produits par `ux-designer`.
+
+### US-071 — Switcher de thème public/admin — PASS (1re passe) — commit [à venir]
+
+QA PASS au premier passage. Bascule entre les 3 rendus (elegante-jour/nuit/rugueux) pilotée par `useCgwsSkin()` (état `useState` + `localStorage['cgws-skin']` + attribut `data-skin` sur `<html>`) pour l'axe peau, et `useColorMode()` natif pour l'axe jour/nuit (masqué quand Rugueux, préférence conservée). Anti-flash SSR via `useHead({ script, tagPriority:'critical' })` dans `app.vue` (mécanisme confirmé via MCP nuxt-remote + types `unhead` : `critical = -8`). Composant `ThemeSwitcher.vue` (`role="radiogroup"`, roving tabindex, flèches, `aria-checked`/`aria-live`, `<ClientOnly>`+fallback dimensionné), intégré à `AppHeader` (desktop), `MobileMenu` (stacked) et topbar `admin.vue`. Hydratation sûre par construction (SSR rend toujours `elegante`, resync sur `app:mounted` après hydratation, `data-skin` hors arbre Vue). Contraste bouton inactif AA dans les 3 rendus (7.07/7.10/5.74:1). vue-tsc ✅ ESLint ✅ build ✅. **À corriger en US-075 (non bloquant)** : switcher masqué en topbar admin mobile (`hidden sm:flex` → variante icône-seule attendue) + ajouter garde `v-if="!colorMode?.forced"` sur le `<ClientOnly>` jour/nuit.
 
 ### US-070 — Design System v3, fondations — FAIL→fix→PASS — commit [à venir]
 

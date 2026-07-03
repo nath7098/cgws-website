@@ -83,6 +83,10 @@ watch(route, () => {
     </nav>
 
     <div class="flex items-center gap-2">
+      <div class="hidden lg:flex">
+        <ThemeSwitcher />
+      </div>
+
       <a
         href="tel:+33247XXXXXX"
         class="hidden lg:flex items-center justify-center w-9 h-9

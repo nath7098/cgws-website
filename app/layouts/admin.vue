@@ -251,8 +251,12 @@ function navItemClasses(href: string): string {
           <span class="font-serif font-semibold text-base text-cgws-ink">{{ pageTitle }}</span>
         </div>
 
-        <!-- Right: email + avatar -->
-        <div class="flex items-center gap-2">
+        <!-- Right: theme switcher + email + avatar -->
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex">
+            <ThemeSwitcher />
+          </div>
+
           <span
             v-if="user?.email"
             class="hidden sm:block font-sans text-xs text-cgws-ink-soft"
