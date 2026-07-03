@@ -271,10 +271,9 @@ const currentYear = new Date().getFullYear()
         </div>
       </div>
 
-      <!-- Séparateur concho — ring-class adapté au fond sombre -->
-      <ConchoDivider
+      <!-- Séparateur étoile-boussole -->
+      <StarDivider
         bg-class="bg-cgws-ground"
-        ring-class="ring-cgws-ground"
         class="mt-8 mb-6"
       />
 

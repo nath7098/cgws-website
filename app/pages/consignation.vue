@@ -96,9 +96,9 @@ onUnmounted(() => {
     <HowItWorks />
 
     <!-- ====================================================================
-         3 — ConchoDivider (transition parchment → cream)
+         3 — StarDivider (transition parchment → cream)
     ==================================================================== -->
-    <ConchoDivider bg-class="bg-cgws-surface" />
+    <StarDivider bg-class="bg-cgws-surface" />
 
     <!-- ====================================================================
          4 — Conditions de consignation (wanted poster)
@@ -193,9 +193,9 @@ onUnmounted(() => {
     </section>
 
     <!-- ====================================================================
-         5 — ConchoDivider (transition cream → cream)
+         5 — StarDivider (transition cream → cream)
     ==================================================================== -->
-    <ConchoDivider />
+    <StarDivider />
 
     <!-- ====================================================================
          6 — Formulaire de consignation

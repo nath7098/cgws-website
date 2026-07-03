@@ -113,11 +113,11 @@ onUnmounted(() => {
       />
       <div
         v-else
-        class="flex h-full items-center justify-center bg-cgws-hairline"
+        class="flex h-full items-center justify-center bg-cgws-surface-2"
         aria-hidden="true"
       >
         <svg
-          class="w-12 h-12 text-cgws-ink-soft/30"
+          class="w-12 h-12 text-cgws-edge/40"
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -155,7 +155,7 @@ onUnmounted(() => {
 
       <p class="font-sans text-[13px] text-cgws-ink-soft">{{ product.brand }}</p>
 
-      <p class="font-display text-2xl text-cgws-accent text-right mt-auto">
+      <p class="font-display text-2xl tabular-nums text-cgws-accent text-right mt-auto">
         <span class="sr-only">Prix : </span>
         {{ product.price.toFixed(0) }} €
       </p>

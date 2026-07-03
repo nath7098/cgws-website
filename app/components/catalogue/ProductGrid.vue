@@ -2,7 +2,7 @@
 import type { Product } from '~/types'
 import ProductCardSkeleton from '../ui/ProductCardSkeleton.vue'
 import ProductCard from './ProductCard.vue'
-import ConchoDivider from '../ui/ConchoDivider.vue'
+import StarDivider from '../ui/StarDivider.vue'
 import EmptyState from './EmptyState.vue'
 
 interface Props {
@@ -148,7 +148,7 @@ onUnmounted(() => {
           v-if="!hasMore && products.length > 0"
           class="col-span-full text-center py-8"
         >
-          <ConchoDivider />
+          <StarDivider />
           <p class="font-serif italic text-cgws-ink-soft text-sm mt-2">
             Tous les produits ont été chargés · {{ total }} article{{ total !== 1 ? 's' : '' }}
           </p>

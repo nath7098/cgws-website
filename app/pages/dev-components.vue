@@ -179,6 +179,8 @@ const colors: Record<string, string> = {
         <CgwsButton variant="secondary">Service consignation</CgwsButton>
         <CgwsButton variant="secondary" size="sm">Secondary sm</CgwsButton>
         <CgwsButton variant="ghost">En savoir plus</CgwsButton>
+        <CgwsButton variant="destructive">Supprimer</CgwsButton>
+        <CgwsButton variant="destructive" size="sm">Refuser</CgwsButton>
         <CgwsButton variant="primary" loading>Chargement...</CgwsButton>
         <CgwsButton variant="primary" disabled>Désactivé</CgwsButton>
         <CgwsButton variant="secondary" disabled>Désactivé</CgwsButton>
@@ -198,6 +200,7 @@ const colors: Record<string, string> = {
         <CgwsBadge variant="occasion" />
         <CgwsBadge variant="consignment" />
         <CgwsBadge variant="sold" />
+        <CgwsBadge variant="rejected" />
       </div>
     </section>
 
@@ -335,19 +338,46 @@ const colors: Record<string, string> = {
       </div>
     </section>
 
-    <!-- Section: ConchoStat -->
-    <section aria-labelledby="section-concho">
+    <!-- Section: StarDivider (variant stat) -->
+    <section aria-labelledby="section-star-stat">
       <h2
-        id="section-concho"
+        id="section-star-stat"
         class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
-        ConchoStat
+        StarDivider — variant stat
       </h2>
       <div class="flex flex-wrap gap-8">
-        <ConchoStat value="250" suffix="+" label="Articles disponibles" :animate-on-visible="true" />
-        <ConchoStat value="15" suffix="+" label="Marques western" :animate-on-visible="true" />
-        <ConchoStat value="100" suffix="%" label="Passion équestre" :animate-on-visible="true" />
-        <ConchoStat value="Brèches" label="Indre-et-Loire" />
+        <StarDivider variant="stat" :value="250" suffix="+" label="Articles disponibles" :animate-on-visible="true" />
+        <StarDivider variant="stat" :value="15" suffix="+" label="Marques western" :animate-on-visible="true" />
+        <StarDivider variant="stat" :value="100" suffix="%" label="Passion équestre" :animate-on-visible="true" />
+        <StarDivider variant="stat" value="Brèches" label="Indre-et-Loire" />
+      </div>
+    </section>
+
+    <!-- Section: StarDivider (variant divider) -->
+    <section aria-labelledby="section-star-divider">
+      <h2
+        id="section-star-divider"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
+      >
+        StarDivider — variant divider
+      </h2>
+      <StarDivider />
+    </section>
+
+    <!-- Section: FiligreeCorner -->
+    <section aria-labelledby="section-filigree">
+      <h2
+        id="section-filigree"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
+      >
+        FiligreeCorner
+      </h2>
+      <div class="relative h-40 bg-cgws-surface border border-cgws-hairline rounded-[--ui-radius]">
+        <FiligreeCorner class="absolute top-0 left-0" />
+        <FiligreeCorner class="absolute top-0 right-0 -scale-x-100" />
+        <FiligreeCorner class="absolute bottom-0 left-0 -scale-y-100" />
+        <FiligreeCorner class="absolute bottom-0 right-0 -scale-100" />
       </div>
     </section>
   </div>

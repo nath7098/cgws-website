@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline-light'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline-light' | 'destructive'
   size?: 'md' | 'sm'
   disabled?: boolean
   loading?: boolean
@@ -32,11 +32,18 @@ const baseClasses =
 // cgws-denim) : "secondary" devient un outline accent, fonctionnel dans les
 // 3 rendus. Le re-skin définitif du bouton (spacing, motif) est couvert par
 // US-072, pas cette US.
+// Re-skin US-072 §5 : le couple accent/on-accent est conçu AA dans les 3 rendus
+// (doc maître §2.6, 5.6–6.9:1), donc plus de correction ad hoc v2 — hover/active
+// = simples opacités de `accent`. `destructive` (nouveau) = danger/on-danger,
+// AA garanti (§2.6, ≥5.0:1) — réutilisable par toute action irréversible
+// (RejectModal US-075, suppression admin) plutôt que des classes en dur.
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   primary:
-    'bg-cgws-accent text-cgws-on-accent font-display uppercase tracking-widest active:bg-cgws-brand-espresso active:text-cgws-brand-cream hover:bg-cgws-edge focus-visible:ring-cgws-accent',
+    'bg-cgws-accent text-cgws-on-accent font-display uppercase tracking-widest hover:bg-cgws-accent/90 active:bg-cgws-accent/80 focus-visible:ring-cgws-accent',
   secondary:
     'bg-transparent text-cgws-accent border-2 border-cgws-accent font-sans font-semibold uppercase tracking-wide hover:bg-cgws-accent/10 active:bg-cgws-accent/20 focus-visible:ring-cgws-accent',
+  destructive:
+    'bg-cgws-danger text-cgws-on-danger font-sans font-semibold uppercase tracking-wide hover:bg-cgws-danger/90 active:bg-cgws-danger/80 focus-visible:ring-cgws-danger',
   ghost:
     'bg-transparent text-cgws-ink-soft font-sans font-medium underline-offset-4 hover:text-cgws-accent hover:underline focus-visible:ring-cgws-accent px-2 py-1 text-sm',
   'outline-light':

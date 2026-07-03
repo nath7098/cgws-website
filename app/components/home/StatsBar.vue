@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ConchoStat from '../ui/ConchoStat.vue'
+import StarDivider from '../ui/StarDivider.vue'
 
 interface Stat {
   value: number | string
@@ -25,7 +25,7 @@ onMounted(async () => {
   gsap.registerPlugin(ScrollTrigger)
 
   ctx = gsap.context(() => {
-    gsap.from('.concho-stat-root', {
+    gsap.from('.star-stat-root', {
       opacity: 0,
       y: 24,
       scale: 0.85,
@@ -53,14 +53,14 @@ onUnmounted(() => {
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 lg:gap-8">
-        <ConchoStat
+        <StarDivider
           v-for="stat in stats"
           :key="stat.label"
+          variant="stat"
           :value="stat.value"
           :suffix="stat.suffix"
           :label="stat.label"
           :animate-on-visible="stat.animateOnVisible"
-          :on-dark="true"
         />
       </div>
     </div>

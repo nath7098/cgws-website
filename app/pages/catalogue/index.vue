@@ -65,8 +65,8 @@ onMounted(async () => {
       :is-filtered="hasActiveFilters"
     />
 
-    <!-- Concho divider -->
-    <ConchoDivider />
+    <!-- Star divider -->
+    <StarDivider />
 
     <!-- Main content -->
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)] py-8">

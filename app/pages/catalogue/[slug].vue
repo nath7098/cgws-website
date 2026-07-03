@@ -191,8 +191,8 @@ useHead({
       </div>
     </section>
 
-    <!-- ── Diviseur concho ────────────────────────────────────────────────── -->
-    <ConchoDivider />
+    <!-- ── Diviseur étoile-boussole ───────────────────────────────────────── -->
+    <StarDivider />
 
     <!-- ── Produits similaires ───────────────────────────────────────────── -->
     <RelatedProducts

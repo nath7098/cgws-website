@@ -252,7 +252,7 @@ onUnmounted(() => {
     </section>
 
     <!-- Transition divider -->
-    <ConchoDivider bg-class="bg-cgws-ground" />
+    <StarDivider bg-class="bg-cgws-ground" />
 
     <!-- ================================================================
          MAIN SECTION — 2-column layout
@@ -491,7 +491,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Divider between info and map -->
-            <ConchoDivider aria-hidden="true" />
+            <StarDivider aria-hidden="true" />
 
             <!-- OSM Map container -->
             <div

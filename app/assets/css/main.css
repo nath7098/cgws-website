@@ -2,6 +2,13 @@
 @import "@nuxt/ui";
 @import './tokens.css';
 
+/* Variant `rugueux:` — cible tout élément descendant de <html data-skin="rugueux">.
+ * Permet des surcharges chromatiques réservées à la peau Rugueux sans dupliquer
+ * de composant (ex. badge consignation : blush en Élégante, accent/15 en Rugueux —
+ * cf. DESIGN_SYSTEM_v3.md §8.2 et US-072 §6). Syntaxe Tailwind v4 officielle
+ * (cf. `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`). */
+@custom-variant rugueux (&:where([data-skin="rugueux"], [data-skin="rugueux"] *));
+
 @theme static {
   /* CGWS v3 role tokens — enable bg-cgws-*, text-cgws-*, border-cgws-* etc.
    * Indirection to CSS variables defined in tokens.css (:root / [data-skin]) —
