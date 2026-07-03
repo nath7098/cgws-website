@@ -302,7 +302,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Toolbar -->
-    <div class="bg-white border border-cgws-hairline rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
+    <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
       <!-- Search -->
       <div class="relative flex-1 min-w-0">
         <UIcon
@@ -378,7 +378,7 @@ onUnmounted(() => {
         <div
           v-for="i in 5"
           :key="i"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-3 animate-pulse"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 animate-pulse"
         >
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-sm bg-cgws-hairline flex-shrink-0" />
@@ -413,7 +413,7 @@ onUnmounted(() => {
         <div
           v-for="product in products"
           :key="product.id"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-3 flex items-start gap-3"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 flex items-start gap-3"
         >
           <!-- Thumbnail -->
           <div class="w-12 h-12 rounded-sm overflow-hidden bg-cgws-surface border border-cgws-hairline flex-shrink-0">
@@ -493,7 +493,7 @@ onUnmounted(() => {
 
     <!-- Table (sm+) -->
     <div class="hidden sm:block">
-    <div class="bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
+    <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
       <table
         class="w-full text-sm font-sans"
         aria-label="Liste des produits"
@@ -798,7 +798,7 @@ onUnmounted(() => {
           <!-- Modal box -->
           <div
             ref="modalBoxRef"
-            class="relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
+            class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
             tabindex="-1"
             @keydown="handleModalKeydown"
           >
@@ -837,12 +837,12 @@ onUnmounted(() => {
               <button
                 type="button"
                 :disabled="isDeleting"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-brand-espresso transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-danger/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 @click="confirmDelete()"
               >
                 <span
                   v-if="isDeleting"
-                  class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                  class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                   aria-hidden="true"
                 />
                 Supprimer définitivement

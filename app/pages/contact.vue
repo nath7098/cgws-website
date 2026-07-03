@@ -496,7 +496,7 @@ onUnmounted(() => {
             <!-- OSM Map container -->
             <div
               class="contact-map w-full h-[220px] sm:h-[240px] md:h-[200px] lg:h-[280px]
-                     border border-cgws-hairline rounded-[4px] overflow-hidden bg-cgws-surface"
+                     border border-cgws-edge rounded-[4px] overflow-hidden bg-cgws-surface"
             >
               <ClientOnly>
                 <ContactMap />

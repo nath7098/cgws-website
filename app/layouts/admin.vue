@@ -253,6 +253,10 @@ function navItemClasses(href: string): string {
 
         <!-- Right: theme switcher + email + avatar -->
         <div class="flex items-center gap-3">
+          <!-- <640px : variante icône-seule (US-075 §C.2) ; ≥640px : segment complet -->
+          <div class="flex sm:hidden">
+            <ThemeSwitcher layout="compact" />
+          </div>
           <div class="hidden sm:flex">
             <ThemeSwitcher />
           </div>

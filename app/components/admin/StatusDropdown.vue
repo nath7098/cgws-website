@@ -30,9 +30,9 @@ const STATUS_OPTIONS: Array<{
   dotClass: string
 }> = [
   { value: 'active', label: 'Disponible', dotClass: 'bg-cgws-success' },
-  { value: 'reserved', label: 'Réservé', dotClass: 'bg-cgws-accent' },
-  { value: 'sold', label: 'Vendu', dotClass: 'bg-cgws-ink' },
-  { value: 'inactive', label: 'Inactif', dotClass: 'bg-cgws-hairline' },
+  { value: 'reserved', label: 'Réservé', dotClass: 'bg-cgws-ink-soft' },
+  { value: 'sold', label: 'Vendu', dotClass: 'bg-cgws-accent' },
+  { value: 'inactive', label: 'Inactif', dotClass: 'bg-cgws-ink-soft/40' },
 ]
 
 // ─── Pill class (identical to US-032 for consistency) ─────────────────────────
@@ -42,9 +42,9 @@ const BASE_PILL = 'px-2.5 py-0.5 font-sans font-medium text-[11px] uppercase tra
 function statusPillClass(status: ProductStatus): string {
   const map: Record<ProductStatus, string> = {
     active: `${BASE_PILL} bg-cgws-success/15 text-cgws-success border border-cgws-success/40`,
-    reserved: `${BASE_PILL} bg-cgws-accent/15 text-cgws-accent`,
-    sold: `${BASE_PILL} bg-cgws-ink/10 text-cgws-ink`,
-    inactive: `${BASE_PILL} bg-cgws-hairline text-cgws-ink-soft`,
+    reserved: `${BASE_PILL} bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline`,
+    sold: `${BASE_PILL} bg-cgws-accent text-cgws-on-accent`,
+    inactive: `${BASE_PILL} bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline`,
   }
   return map[status]
 }
@@ -183,7 +183,7 @@ async function selectStatus(status: ProductStatus): Promise<void> {
           role="listbox"
           :aria-label="`Options de statut pour ${productTitle}`"
           :style="popoverStyle"
-          class="absolute z-50 bg-white border border-cgws-hairline
+          class="absolute z-50 bg-cgws-surface border border-cgws-hairline
                  rounded-[4px] shadow-lg min-w-[180px] py-1
                  focus:outline-none"
           tabindex="-1"
@@ -233,7 +233,7 @@ async function selectStatus(status: ProductStatus): Promise<void> {
           role="listbox"
           :aria-label="`Options de statut pour ${productTitle}`"
           class="fixed bottom-0 left-0 right-0 z-50
-                 bg-white rounded-t-2xl border-t border-cgws-hairline
+                 bg-cgws-surface rounded-t-2xl border-t border-cgws-hairline
                  shadow-xl pb-safe"
         >
           <!-- Handle décoratif -->

@@ -132,7 +132,7 @@ onUnmounted(() => {
     <template v-if="isVisible">
       <div
         ref="backdropRef"
-        class="fixed inset-0 z-60 bg-cgws-brand-espresso/60 backdrop-blur-sm"
+        class="fixed inset-0 z-60 bg-cgws-ink/60 backdrop-blur-sm"
         aria-hidden="true"
         @click="close"
       />

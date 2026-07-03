@@ -5,11 +5,14 @@ import type { CgwsSkin } from '~/composables/useCgwsSkin'
 const props = withDefaults(defineProps<{
   /**
    * 'inline'  — segment compact + toggle icône, pour AppHeader (desktop) et
-   *             la topbar admin.
+   *             la topbar admin (≥640px).
    * 'stacked' — bloc pleine largeur avec eyebrow + toggle libellé, pour le
    *             menu mobile (MobileMenu).
+   * 'compact' — icône-seule (un bouton bascule de peau + toggle jour/nuit),
+   *             pour la topbar admin en mobile (<640px) où le segment libellé
+   *             ne tient pas. Cf. US-075 §C.2.
    */
-  layout?: 'inline' | 'stacked'
+  layout?: 'inline' | 'stacked' | 'compact'
 }>(), {
   layout: 'inline',
 })
@@ -58,6 +61,17 @@ function selectSkin(value: CgwsSkin) {
   announce()
 }
 
+// Bascule vers l'autre peau (layout="compact" — bouton toggle unique).
+const nextSkin = computed<CgwsSkin>(() => (skin.value === 'elegante' ? 'rugueux' : 'elegante'))
+const compactIcon = computed<string>(() => (skin.value === 'elegante' ? 'i-lucide-compass' : 'i-lucide-circle-dot'))
+const compactLabel = computed<string>(() =>
+  skin.value === 'elegante' ? "Basculer vers l'apparence Rugueux" : "Basculer vers l'apparence Élégante",
+)
+
+function toggleSkin() {
+  selectSkin(nextSkin.value)
+}
+
 function toggleColorMode() {
   isDark.value = !isDark.value
   announce()
@@ -86,7 +100,23 @@ function onSkinKeydown(event: KeyboardEvent, index: number) {
       Apparence
     </span>
 
+    <!-- Compact (topbar admin mobile) : bouton icône-seule qui bascule la peau -->
+    <button
+      v-if="props.layout === 'compact'"
+      type="button"
+      class="inline-flex items-center justify-center w-9 h-9 rounded-full
+             text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-surface-2
+             transition-colors duration-150
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
+      :aria-label="compactLabel"
+      @click="toggleSkin"
+    >
+      <UIcon :name="compactIcon" class="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+    </button>
+
+    <!-- Inline / Stacked : segment radiogroup à 2 boutons libellés -->
     <div
+      v-else
       role="radiogroup"
       aria-label="Choix de l'apparence du site"
       :class="[
@@ -119,7 +149,7 @@ function onSkinKeydown(event: KeyboardEvent, index: number) {
       </button>
     </div>
 
-    <ClientOnly v-if="skin === 'elegante'">
+    <ClientOnly v-if="skin === 'elegante' && !colorMode?.forced">
       <button
         type="button"
         :class="[

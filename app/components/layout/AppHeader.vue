@@ -29,8 +29,8 @@ watch(route, () => {
       'sticky top-0 z-50 h-14 lg:h-16 flex items-center justify-between',
       'border-b transition-all duration-300 ease-in-out',
       isScrolled
-        ? 'bg-cgws-ground/90 backdrop-blur-md border-cgws-hairline shadow-lg shadow-cgws-ink/20'
-        : 'bg-cgws-ground border-cgws-hairline',
+        ? 'bg-cgws-surface/90 backdrop-blur-md border-cgws-hairline shadow-lg shadow-cgws-ink/20'
+        : 'bg-cgws-surface border-cgws-hairline',
     ]"
     style="padding-left: var(--container-px); padding-right: var(--container-px);"
   >

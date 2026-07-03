@@ -167,7 +167,7 @@ function removeItem(itemId: string) {
 <template>
   <section
     aria-label="Gestion des photos du produit"
-    class="bg-white border border-cgws-hairline rounded-[4px] p-4"
+    class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
   >
     <!-- Header -->
     <div class="flex items-center justify-between mb-2">
@@ -295,7 +295,7 @@ function removeItem(itemId: string) {
           type="button"
           :aria-label="`Supprimer la photo ${index + 1}`"
           :disabled="disabled"
-          class="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-cgws-danger text-cgws-on-danger flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-cgws-brand-espresso disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
+          class="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-cgws-danger text-cgws-on-danger flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-cgws-danger/90 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           @click.stop="removeItem(item.id)"
         >
           <UIcon name="i-lucide-x" class="w-3 h-3" aria-hidden="true" />

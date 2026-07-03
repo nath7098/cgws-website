@@ -211,7 +211,7 @@ async function handleUpdate(payload: ProductFormPayload) {
     <section
       v-if="product || !loadError"
       aria-labelledby="status-history-title"
-      class="bg-white border border-cgws-hairline rounded-[4px] p-5"
+      class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
     >
       <h3
         id="status-history-title"

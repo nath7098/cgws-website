@@ -109,7 +109,7 @@ function handleConfirm(): void {
         <!-- Modal box -->
         <div
           ref="rejectModalRef"
-          class="relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md flex flex-col max-h-[90dvh]"
+          class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md flex flex-col max-h-[90dvh]"
           tabindex="-1"
           @keydown="handleRejectModalKeydown"
         >
@@ -202,19 +202,16 @@ function handleConfirm(): void {
             >
               Annuler
             </button>
-            <button
-              type="button"
+            <CgwsButton
+              variant="destructive"
+              size="sm"
+              class="w-full sm:w-auto"
+              :loading="loading"
               :disabled="loading || !rejectForm.reason.trim()"
-              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-brand-espresso transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2 focus-visible:outline-none"
               @click="handleConfirm"
             >
-              <span
-                v-if="loading"
-                class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
-                aria-hidden="true"
-              />
               {{ loading ? 'Envoi…' : 'Confirmer le refus' }}
-            </button>
+            </CgwsButton>
           </div>
         </div>
       </div>

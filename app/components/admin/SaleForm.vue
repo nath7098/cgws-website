@@ -271,7 +271,7 @@ function formatCategory(cat: string): string {
         <!-- Modal box -->
         <div
           ref="modalBoxRef"
-          class="modal-box relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl
+          class="modal-box relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl
                  w-full max-w-lg flex flex-col max-h-[90dvh] sm:max-h-[80vh] overflow-hidden"
           tabindex="-1"
         >
@@ -651,7 +651,7 @@ function formatCategory(cat: string): string {
             >
               <span
                 v-if="isSubmitting"
-                class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                 aria-hidden="true"
               />
               {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer la vente' }}

@@ -49,11 +49,11 @@ interface StatusConfig {
 }
 
 const STATUS_CONFIG: Record<ConsignmentStatus, StatusConfig> = {
-  pending: { classes: 'bg-cgws-accent/15 text-cgws-accent', label: 'En attente' },
+  pending: { classes: 'bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline', label: 'En attente' },
   accepted: { classes: 'bg-cgws-success/15 text-cgws-success border border-cgws-success/40', label: 'Acceptée' },
-  rejected: { classes: 'bg-cgws-danger/15 text-cgws-danger', label: 'Refusée' },
-  sold: { classes: 'bg-cgws-ink/10 text-cgws-ink', label: 'Vendue' },
-  returned: { classes: 'bg-cgws-hairline text-cgws-ink-soft', label: 'Retournée' },
+  rejected: { classes: 'bg-cgws-danger text-cgws-on-danger', label: 'Refusée' },
+  sold: { classes: 'bg-cgws-accent text-cgws-on-accent', label: 'Vendue' },
+  returned: { classes: 'bg-cgws-danger text-cgws-on-danger', label: 'Retournée' },
 }
 
 function statusConfig(status: ConsignmentStatus): StatusConfig {
@@ -95,7 +95,7 @@ function formatPrice(price: number): string {
 </script>
 
 <template>
-  <div class="bg-white border border-cgws-hairline rounded-[4px] shadow-sm p-5">
+  <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] shadow-sm p-5">
     <!-- Section title -->
     <h3 class="font-serif font-semibold text-base text-cgws-ink mb-4">
       {{ sectionTitle }}

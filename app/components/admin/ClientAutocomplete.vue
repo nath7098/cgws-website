@@ -254,7 +254,7 @@ onUnmounted(() => {
         role="listbox"
         aria-label="Suggestions de clients"
         class="absolute top-full left-0 right-0 z-50 mt-1
-               bg-white border border-cgws-hairline rounded-[4px]
+               bg-cgws-surface border border-cgws-hairline rounded-[4px]
                shadow-lg max-h-56 overflow-y-auto"
       >
         <!-- Skeleton rows while loading -->

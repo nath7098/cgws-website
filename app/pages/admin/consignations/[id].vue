@@ -365,7 +365,7 @@ onUnmounted(() => {
       <div class="lg:col-span-1 lg:sticky lg:top-24 order-first lg:order-last">
         <section
           aria-labelledby="photos-heading"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-4"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
         >
           <div class="flex items-center justify-between mb-3">
             <h3
@@ -432,7 +432,7 @@ onUnmounted(() => {
         <!-- Depositor card -->
         <section
           aria-labelledby="depositor-heading"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
         >
           <h3
             id="depositor-heading"
@@ -499,7 +499,7 @@ onUnmounted(() => {
         <!-- Article + form card -->
         <section
           aria-labelledby="item-heading"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-5"
         >
           <h3
             id="item-heading"
@@ -629,7 +629,7 @@ onUnmounted(() => {
         <section
           v-if="consignment.status === 'pending'"
           aria-labelledby="actions-heading"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
         >
           <h3
             id="actions-heading"
@@ -653,7 +653,7 @@ onUnmounted(() => {
             >
               <span
                 v-if="isSubmitting && pendingAction === 'accept'"
-                class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                 aria-hidden="true"
               />
               <UIcon
@@ -692,7 +692,7 @@ onUnmounted(() => {
         <!-- accepted: Info + product link -->
         <section
           v-else-if="consignment.status === 'accepted'"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
         >
           <div class="flex items-start gap-4">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-success/15 flex items-center justify-center">
@@ -800,7 +800,7 @@ onUnmounted(() => {
         <!-- sold: Commission details -->
         <section
           v-else-if="consignment.status === 'sold'"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-4"
         >
           <h3 class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent">
             Détail de la vente

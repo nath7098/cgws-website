@@ -208,7 +208,7 @@ defineExpose({ setServerError })
     <div class="lg:col-span-2 space-y-5">
 
       <!-- Fieldset 1: Informations générales -->
-      <fieldset class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4">
+      <fieldset class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-4">
         <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-1">
           Informations générales
         </legend>
@@ -257,7 +257,7 @@ defineExpose({ setServerError })
       </fieldset>
 
       <!-- Fieldset 2: Prix & Stock -->
-      <fieldset class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4">
+      <fieldset class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-4">
         <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-1">
           Prix &amp; Stock
         </legend>
@@ -311,7 +311,7 @@ defineExpose({ setServerError })
       </fieldset>
 
       <!-- Fieldset 3: Consignation -->
-      <fieldset class="bg-white border border-cgws-hairline rounded-[4px] p-5">
+      <fieldset class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5">
         <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-3">
           Consignation
         </legend>

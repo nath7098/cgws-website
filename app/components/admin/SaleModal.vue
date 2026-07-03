@@ -130,7 +130,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
         <!-- Modal box -->
         <div
           ref="modalBoxRef"
-          class="relative bg-white border-2 border-cgws-ink rounded-sm
+          class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm
                  shadow-xl w-full max-w-lg
                  flex flex-col max-h-[90dvh] sm:max-h-[80vh]"
           tabindex="-1"
@@ -362,7 +362,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
             >
               <span
                 v-if="isSubmitting"
-                class="w-4 h-4 rounded-full border-2 border-white
+                class="w-4 h-4 rounded-full border-2 border-current
                        border-t-transparent animate-spin"
                 aria-hidden="true"
               />

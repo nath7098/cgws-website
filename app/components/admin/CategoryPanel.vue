@@ -175,7 +175,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
           class="relative w-full self-end rounded-t-xl max-h-[85dvh] sm:ml-auto sm:w-96 sm:self-auto sm:rounded-none sm:max-h-full sm:h-full bg-cgws-ground border-t sm:border-t-0 sm:border-l border-cgws-hairline flex flex-col overflow-y-auto shadow-2xl"
         >
           <!-- Panel header -->
-          <div class="flex items-center justify-between px-5 py-4 border-b border-cgws-hairline bg-white flex-shrink-0">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-cgws-hairline bg-cgws-surface flex-shrink-0">
             <div class="flex items-center gap-2">
               <UIcon
                 :name="mode === 'create' ? 'i-lucide-folder-plus' : 'i-lucide-folder-pen'"
@@ -222,7 +222,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
                 required
                 autocomplete="off"
                 placeholder="ex. Selles western"
-                class="w-full px-3 py-2 bg-white border rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft outline-none transition-colors duration-150"
+                class="w-full px-3 py-2 bg-cgws-surface border rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft outline-none transition-colors duration-150"
                 :class="errors.name
                   ? 'border-cgws-danger focus:border-cgws-danger focus:ring-2 focus:ring-cgws-danger/20'
                   : 'border-cgws-hairline focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20'"
@@ -264,7 +264,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
                 required
                 autocomplete="off"
                 placeholder="selles-western"
-                class="w-full px-3 py-2 bg-white border rounded-sm font-mono text-sm text-cgws-ink placeholder:text-cgws-ink-soft/60 outline-none transition-colors duration-150"
+                class="w-full px-3 py-2 bg-cgws-surface border rounded-sm font-mono text-sm text-cgws-ink placeholder:text-cgws-ink-soft/60 outline-none transition-colors duration-150"
                 :class="errors.slug
                   ? 'border-cgws-danger focus:border-cgws-danger focus:ring-2 focus:ring-cgws-danger/20'
                   : 'border-cgws-hairline focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20'"
@@ -299,7 +299,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
               <select
                 id="cat-parent"
                 v-model="form.parentId"
-                class="w-full px-3 py-2 bg-white border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink appearance-none outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 transition-colors duration-150"
+                class="w-full px-3 py-2 bg-cgws-surface border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink appearance-none outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 transition-colors duration-150"
                 aria-describedby="cat-parent-hint"
               >
                 <option :value="null">
@@ -345,7 +345,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
                   @click="form.isActive = !form.isActive"
                 >
                   <span
-                    class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200"
+                    class="inline-block h-4 w-4 transform rounded-full bg-cgws-on-accent shadow transition-transform duration-200"
                     :class="form.isActive ? 'translate-x-6' : 'translate-x-1'"
                     aria-hidden="true"
                   />
@@ -364,7 +364,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
           </form>
 
           <!-- Footer -->
-          <div class="flex items-center justify-between px-5 py-4 border-t border-cgws-hairline bg-white flex-shrink-0">
+          <div class="flex items-center justify-between px-5 py-4 border-t border-cgws-hairline bg-cgws-surface flex-shrink-0">
             <CgwsButton
               variant="ghost"
               type="button"

@@ -29,17 +29,19 @@ onMounted(async () => {
     maxZoom: 19,
   }).addTo(mapInstance)
 
-  // Custom copper-colored teardrop pin marker (no external image assets needed)
+  // Marqueur en goutte, theme-aware via les variables CSS de rôle (§B.2).
+  // Le marqueur est purement décoratif (aucun texte porté) → accent-deco ;
+  // son halo suit le fond de page (ground) ; l'ombre reste neutre.
   const markerIcon = L.divIcon({
     className: '',
     html: `<div style="
       width: 28px;
       height: 28px;
-      background: #B8650A;
-      border: 3px solid #FAF3E3;
+      background: var(--cgws-accent-deco);
+      border: 3px solid var(--cgws-ground);
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
-      box-shadow: 0 3px 10px rgba(61,26,6,0.45);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
     "></div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 28],
@@ -49,8 +51,8 @@ onMounted(async () => {
   L.marker([BRECHES_LAT, BRECHES_LNG], { icon: markerIcon })
     .addTo(mapInstance)
     .bindPopup(
-      '<strong style="font-family:Georgia,serif;color:#1A0B03;">CGWS</strong><br>' +
-      '<span style="font-size:12px;color:#7B3B1C;">Brèches · Indre-et-Loire</span>',
+      '<strong style="font-family:Georgia,serif;color:var(--cgws-ink);">CGWS</strong><br>' +
+      '<span style="font-size:12px;color:var(--cgws-ink-soft);">Brèches · Indre-et-Loire</span>',
     )
 })
 

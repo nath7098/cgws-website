@@ -20,7 +20,7 @@ function formatDate(dateStr: string | null): string {
 <template>
   <NuxtLink
     :to="`/admin/clients/${props.client.id}`"
-    class="client-row block bg-white border border-cgws-hairline rounded-[4px]
+    class="client-row block bg-cgws-surface border border-cgws-hairline rounded-[4px]
            p-4 space-y-0.5 hover:bg-cgws-surface/20 transition-colors"
     :aria-label="`Voir la fiche de ${props.client.name}`"
   >

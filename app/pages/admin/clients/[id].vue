@@ -307,7 +307,7 @@ onUnmounted(() => {
       <!-- Loading: skeleton header -->
       <div
         v-if="isLoading"
-        class="bg-white border border-cgws-hairline rounded-[4px] p-5 mb-4
+        class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 mb-4
                flex flex-col sm:flex-row gap-4 items-start"
       >
         <div class="w-12 h-12 rounded-full bg-cgws-hairline animate-pulse flex-shrink-0" />
@@ -321,7 +321,7 @@ onUnmounted(() => {
       <!-- Client header card -->
       <div
         v-else-if="client"
-        class="bg-white border border-cgws-hairline rounded-[4px] p-5 mb-4
+        class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 mb-4
                flex flex-col sm:flex-row gap-4 items-start"
       >
         <!-- Avatar -->
@@ -410,7 +410,7 @@ onUnmounted(() => {
           <!-- Purchases section -->
           <div
             v-if="!isLoading"
-            class="bg-white border border-cgws-hairline rounded-[4px] overflow-hidden"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden"
           >
             <div
               class="px-4 py-3 border-b border-cgws-hairline bg-cgws-surface/30
@@ -512,7 +512,7 @@ onUnmounted(() => {
           <!-- Consignments section -->
           <div
             v-if="!isLoading && consignments.length > 0"
-            class="bg-white border border-cgws-hairline rounded-[4px] overflow-hidden"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden"
           >
             <div
               class="px-4 py-3 border-b border-cgws-hairline bg-cgws-surface/30
@@ -525,7 +525,7 @@ onUnmounted(() => {
               <div
                 v-for="consignment in consignments"
                 :key="consignment.id"
-                class="bg-white border border-cgws-hairline rounded-[4px] p-3
+                class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3
                        flex items-start justify-between gap-3"
               >
                 <div class="min-w-0 flex-1">
@@ -569,7 +569,7 @@ onUnmounted(() => {
         <div class="mt-4 lg:mt-0 lg:col-span-1">
           <div
             v-if="!isLoading"
-            class="bg-white border border-cgws-hairline rounded-[4px] overflow-hidden"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden"
             aria-label="Notes sur le client"
           >
             <div
@@ -653,7 +653,7 @@ onUnmounted(() => {
                     >
                       <span
                         v-if="isSavingNotes"
-                        class="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"
+                        class="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin"
                         aria-hidden="true"
                       />
                       Sauvegarder
@@ -667,7 +667,7 @@ onUnmounted(() => {
           <!-- Notes skeleton -->
           <div
             v-else
-            class="bg-white border border-cgws-hairline rounded-[4px] p-4"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
           >
             <div class="h-3 w-24 bg-cgws-hairline rounded animate-pulse mb-4" />
             <div class="space-y-2">

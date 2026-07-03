@@ -86,6 +86,17 @@ body {
   opacity: 0;
 }
 
+/* ─── Popup Leaflet — theme-aware (US-075 §B.2) ─────────────
+ * leaflet.css injecte un fond blanc fixe sur .leaflet-popup-content-wrapper /
+ * .leaflet-popup-tip qui n'est couvert par aucune variable --cgws-*, d'où un
+ * "flash blanc" au clic sur le marqueur en Nuit/Rugueux. On aligne le popup
+ * sur le fond de chrome (surface) et le texte fort (ink). */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--cgws-surface);
+  color: var(--cgws-ink);
+}
+
 /* ─── prefers-reduced-motion — global CSS kill-switch ───── */
 @media (prefers-reduced-motion: reduce) {
   /* Désactive toutes les transitions et animations CSS */

@@ -312,7 +312,7 @@ onUnmounted(() => {
 
     <!-- Toolbar -->
     <div
-      class="bg-white border border-cgws-hairline rounded-[4px] p-3
+      class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3
              flex flex-col sm:flex-row gap-3 items-stretch sm:items-center mb-4"
     >
       <!-- Filtre mois -->
@@ -368,7 +368,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Table desktop (sm+) -->
-    <div class="hidden sm:block bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
+    <div class="hidden sm:block bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
       <table
         class="w-full text-sm font-sans"
         aria-label="Liste des ventes"
@@ -537,7 +537,7 @@ onUnmounted(() => {
         <div
           v-for="i in 5"
           :key="i"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-4 animate-pulse"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4 animate-pulse"
         >
           <div class="h-4 w-44 bg-cgws-hairline rounded mb-2" />
           <div class="flex justify-between mb-2">
@@ -592,7 +592,7 @@ onUnmounted(() => {
         v-for="sale in sales"
         v-else
         :key="sale.id"
-        class="sale-row bg-white border border-cgws-hairline rounded-[4px] p-4 space-y-1"
+        class="sale-row bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4 space-y-1"
       >
         <div class="flex items-start justify-between gap-2">
           <p class="font-sans text-sm font-medium text-cgws-ink">

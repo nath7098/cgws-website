@@ -75,7 +75,7 @@ function onSiblingReorder(
 </script>
 
 <template>
-  <div class="bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
+  <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
     <!-- Loading skeleton -->
     <template v-if="loading">
       <div

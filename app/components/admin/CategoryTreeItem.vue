@@ -113,7 +113,7 @@ onUnmounted(() => {
     <div
       class="flex items-center gap-2 px-4 py-3 group transition-colors duration-100"
       :class="level === 1
-        ? 'bg-white hover:bg-cgws-surface/20'
+        ? 'bg-cgws-surface hover:bg-cgws-surface-2/60'
         : 'bg-cgws-ground hover:bg-cgws-surface/30 pl-10'"
     >
       <!-- Drag handle (hidden on mobile) -->
@@ -222,7 +222,7 @@ onUnmounted(() => {
           @click="$emit('toggleActive', { id: category.id, value: !category.isActive })"
         >
           <span
-            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform duration-200"
+            class="inline-block h-3.5 w-3.5 transform rounded-full bg-cgws-on-accent shadow-sm transition-transform duration-200"
             :class="category.isActive ? 'translate-x-4' : 'translate-x-0.5'"
             aria-hidden="true"
           />

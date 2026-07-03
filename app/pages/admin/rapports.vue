@@ -156,7 +156,7 @@ function formatDateFR(dateStr: string): string {
     <!-- ═══════════════════════════════════════════════════════ EXPORT CSV -->
     <section
       aria-labelledby="export-csv-heading"
-      class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4"
+      class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-4"
     >
       <h3
         id="export-csv-heading"
@@ -251,7 +251,7 @@ function formatDateFR(dateStr: string): string {
         >
           <span
             v-if="exportState === 'loading'"
-            class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+            class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
             aria-hidden="true"
           />
           <UIcon
@@ -315,7 +315,7 @@ function formatDateFR(dateStr: string): string {
     <!-- ═══════════════════════════════════════════════ ÉVOLUTION DU CA -->
     <section
       aria-labelledby="ca-chart-heading"
-      class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4"
+      class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-4"
     >
       <h3
         id="ca-chart-heading"

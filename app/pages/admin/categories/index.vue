@@ -334,7 +334,7 @@ onUnmounted(() => {
           <div
             v-if="canDelete"
             ref="deleteModalRef"
-            class="relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
+            class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
           >
             <div class="flex items-start gap-4">
               <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-danger/10 flex items-center justify-center">
@@ -378,12 +378,12 @@ onUnmounted(() => {
               <button
                 type="button"
                 :disabled="isDeleting"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-brand-espresso transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-danger/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 @click="confirmDelete"
               >
                 <span
                   v-if="isDeleting"
-                  class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                  class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                   aria-hidden="true"
                 />
                 Supprimer
@@ -395,7 +395,7 @@ onUnmounted(() => {
           <div
             v-else
             ref="deleteModalRef"
-            class="relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
+            class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
           >
             <div class="flex items-start gap-4">
               <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-hairline flex items-center justify-center">

@@ -16,21 +16,20 @@ const props = withDefaults(defineProps<Props>(), {
 const containerClasses = computed<string>(() => {
   const base = 'rounded-[4px] shadow-sm p-5 flex flex-col gap-1'
   if (props.variant === 'warning') {
-    return `bg-white border border-cgws-hairline border-l-4 border-l-cgws-danger ${base}`
+    // Variante "besoin d'attention" — accent (pas danger, cf. US-075 §C.7) :
+    // une file à traiter n'est ni une erreur ni un état destructif.
+    return `bg-cgws-surface border border-cgws-hairline border-l-4 border-l-cgws-accent ${base}`
   }
-  return `bg-white border border-cgws-hairline ${base}`
+  return `bg-cgws-surface border border-cgws-hairline ${base}`
 })
 
 const valueClasses = computed<string>(() => {
-  const base = 'font-display text-5xl leading-none'
-  if (props.variant === 'warning') return `${base} text-cgws-danger`
+  const base = 'font-display text-5xl leading-none tabular-nums'
+  if (props.variant === 'warning') return `${base} text-cgws-accent`
   return `${base} text-cgws-ink`
 })
 
-const iconClasses = computed<string>(() => {
-  if (props.variant === 'warning') return 'w-5 h-5 text-cgws-danger flex-shrink-0'
-  return 'w-5 h-5 text-cgws-accent flex-shrink-0'
-})
+const iconClasses = computed<string>(() => 'w-5 h-5 text-cgws-accent flex-shrink-0')
 
 const ariaLabel = computed<string>(() => `${props.label} : ${props.value}`)
 </script>

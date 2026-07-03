@@ -227,7 +227,7 @@ onUnmounted(() => {
 
     <template v-else>
       <!-- Table (sm+) -->
-      <div class="hidden sm:block bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
+      <div class="hidden sm:block bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
         <table
           class="w-full text-sm font-sans"
           aria-label="Liste des clients"
@@ -415,7 +415,7 @@ onUnmounted(() => {
           <div
             v-for="i in 5"
             :key="i"
-            class="bg-white border border-cgws-hairline rounded-[4px] p-4 animate-pulse"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4 animate-pulse"
           >
             <div class="h-4 w-32 bg-cgws-hairline rounded mb-2" />
             <div class="h-3 w-48 bg-cgws-hairline rounded mb-2" />

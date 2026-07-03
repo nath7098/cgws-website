@@ -4,7 +4,7 @@ const currentYear = new Date().getFullYear()
 
 <template>
   <footer
-    class="bg-cgws-ground border-t-2 border-cgws-accent"
+    class="bg-cgws-surface border-t-2 border-cgws-accent-deco"
     aria-label="Pied de page CGWS"
   >
     <div
@@ -48,7 +48,7 @@ const currentYear = new Date().getFullYear()
               aria-label="CGWS sur Instagram"
               class="text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
-                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-ground rounded-sm"
+                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-surface rounded-sm"
             >
               <UIcon name="i-lucide-instagram" class="w-5 h-5" aria-hidden="true" />
             </a>
@@ -57,7 +57,7 @@ const currentYear = new Date().getFullYear()
               aria-label="CGWS sur Facebook"
               class="text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
-                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-ground rounded-sm"
+                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-surface rounded-sm"
             >
               <UIcon name="i-lucide-facebook" class="w-5 h-5" aria-hidden="true" />
             </a>
@@ -89,7 +89,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Catalogue
               </NuxtLink>
@@ -102,7 +102,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Consignation
               </NuxtLink>
@@ -115,7 +115,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Contact
               </NuxtLink>
@@ -129,7 +129,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 À propos
               </NuxtLink>
@@ -181,7 +181,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 06 XX XX XX XX
               </a>
@@ -212,7 +212,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 contact@cgws.fr
               </a>
@@ -246,7 +246,7 @@ const currentYear = new Date().getFullYear()
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-ground rounded-sm"
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Mentions légales
               </NuxtLink>
@@ -273,7 +273,7 @@ const currentYear = new Date().getFullYear()
 
       <!-- Séparateur étoile-boussole -->
       <StarDivider
-        bg-class="bg-cgws-ground"
+        bg-class="bg-cgws-surface"
         class="mt-8 mb-6"
       />
 

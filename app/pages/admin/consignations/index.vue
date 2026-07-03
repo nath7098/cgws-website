@@ -42,11 +42,11 @@ const BASE_PILL = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 font-sans font
 
 function consignmentPillClass(status: ConsignmentStatus): string {
   const map: Record<ConsignmentStatus, string> = {
-    pending: `${BASE_PILL} bg-cgws-accent/20 text-cgws-accent`,
+    pending: `${BASE_PILL} bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline`,
     accepted: `${BASE_PILL} bg-cgws-success/15 text-cgws-success border border-cgws-success/40`,
-    rejected: `${BASE_PILL} bg-cgws-danger/15 text-cgws-danger`,
-    sold: `${BASE_PILL} bg-cgws-ink/10 text-cgws-ink`,
-    returned: `${BASE_PILL} bg-cgws-hairline text-cgws-ink-soft`,
+    rejected: `${BASE_PILL} bg-cgws-danger text-cgws-on-danger`,
+    sold: `${BASE_PILL} bg-cgws-accent text-cgws-on-accent`,
+    returned: `${BASE_PILL} bg-cgws-danger text-cgws-on-danger`,
   }
   return map[status]
 }
@@ -193,7 +193,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Toolbar -->
-    <div class="bg-white border border-cgws-hairline rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
+    <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
       <!-- Search -->
       <div class="relative flex-1 min-w-0">
         <UIcon
@@ -250,7 +250,7 @@ onUnmounted(() => {
         <div
           v-for="i in 5"
           :key="i"
-          class="bg-white border border-cgws-hairline rounded-[4px] p-3 animate-pulse"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 animate-pulse"
         >
           <div class="flex items-start justify-between mb-2">
             <div class="h-4 w-32 bg-cgws-hairline rounded" />
@@ -286,7 +286,7 @@ onUnmounted(() => {
         v-for="item in consignments"
         v-else
         :key="item.id"
-        class="bg-white border border-cgws-hairline rounded-[4px] p-4"
+        class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
         :class="item.status === 'pending' ? 'bg-cgws-accent/5 border-cgws-accent/30' : ''"
       >
         <div class="flex items-start justify-between gap-2 mb-2">
@@ -328,7 +328,7 @@ onUnmounted(() => {
 
     <!-- Table (sm+) -->
     <div class="hidden sm:block">
-      <div class="bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
+      <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
         <table
           class="w-full text-sm font-sans"
           aria-label="Liste des consignations"
@@ -388,7 +388,7 @@ onUnmounted(() => {
               <tr
                 v-for="i in 8"
                 :key="i"
-                class="border-b border-cgws-hairline bg-white"
+                class="border-b border-cgws-hairline bg-cgws-surface"
               >
                 <td class="py-3 pl-4 pr-3">
                   <div class="h-4 w-32 bg-cgws-hairline rounded animate-pulse mb-1" />
@@ -450,7 +450,7 @@ onUnmounted(() => {
                 'transition-colors duration-100',
                 item.status === 'pending'
                   ? 'bg-cgws-accent/5 hover:bg-cgws-accent/10'
-                  : 'bg-white hover:bg-cgws-surface/20',
+                  : 'bg-cgws-surface hover:bg-cgws-surface-2/60',
               ]"
             >
               <!-- Déposant -->
