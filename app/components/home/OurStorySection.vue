@@ -62,7 +62,7 @@ onUnmounted(() => {
           <!-- Eyebrow -->
           <p class="inline-flex items-center gap-3 mb-4 md:mb-5">
             <span
-              class="block w-0.5 h-5 bg-cgws-accent flex-shrink-0"
+              class="block w-0.5 h-5 bg-cgws-accent-deco flex-shrink-0"
               aria-hidden="true"
             />
             <span class="font-eyebrow text-[13px] text-cgws-ink-soft uppercase tracking-[0.2em]">
@@ -111,7 +111,21 @@ onUnmounted(() => {
         </div>
 
         <!-- Colonne image — order-1 mobile (en premier), order-2 desktop (à droite) -->
-        <div class="story-image-col order-1 md:order-2">
+        <div class="story-image-col order-1 md:order-2 relative">
+          <!-- Arche fine ornementale en quart d'arc (accent-deco, aria-hidden) -->
+          <svg
+            class="pointer-events-none absolute -top-3 -left-3 z-10 h-16 w-16 md:h-20 md:w-20"
+            viewBox="0 0 80 80"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 40 C4 16 24 4 40 4"
+              stroke="var(--cgws-accent-deco)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
           <div class="overflow-hidden rounded-lg shadow-[0_8px_32px_rgba(61,26,6,0.12)] bg-cgws-surface">
             <!-- Placeholder Unsplash — À remplacer par la vraie photo de Camille -->
             <!-- Photo crédit : Unsplash (placeholder uniquement, supprimer à la mise en ligne) -->

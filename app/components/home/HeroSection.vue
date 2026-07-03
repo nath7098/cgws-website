@@ -154,28 +154,47 @@ onUnmounted(() => {
       class="relative z-[10] h-full flex flex-col justify-end pb-16 md:pb-24 lg:justify-center lg:pb-0
              px-[clamp(1rem,4vw,2rem)] max-w-[1280px] mx-auto w-full"
     >
-      <!-- Eyebrow -->
-      <p
-        class="hero-eyebrow font-eyebrow text-[13px] text-cgws-brand-sand uppercase tracking-[0.2em] mb-4 md:mb-5"
-      >
-        Sellerie Équestre Western · Brèches, 37
-      </p>
-
-      <!-- H1 with per-character spans for GSAP stagger -->
-      <h1
-        class="font-display uppercase leading-none text-cgws-brand-cream
-               text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
-               mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
-        aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
-      >
-        <span
-          v-for="item in titleChars"
-          :key="item.key"
-          class="hero-letter inline-block"
-          :class="item.isSpace ? 'w-[0.25em]' : ''"
+      <!-- Bloc titre (eyebrow + H1) encadré par l'arche fine ornementale -->
+      <div class="hero-title-block relative">
+        <!-- Arche fine décorative (accent-deco ornemental, aria-hidden) -->
+        <svg
+          class="pointer-events-none absolute -top-6 left-0 h-auto w-full
+                 max-w-[420px] sm:max-w-[520px] lg:max-w-[620px]"
+          viewBox="0 0 520 160"
+          fill="none"
           aria-hidden="true"
-        >{{ item.isSpace ? '' : item.char }}</span>
-      </h1>
+        >
+          <path
+            d="M20 160 C20 60 120 8 260 8 C400 8 500 60 500 160"
+            stroke="var(--cgws-accent-deco)"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+
+        <!-- Eyebrow (mt-6 = marge ≥24px sous le trait de l'arche) -->
+        <p
+          class="hero-eyebrow font-eyebrow text-[13px] text-cgws-brand-sand uppercase tracking-[0.2em] mt-6 mb-4 md:mb-5"
+        >
+          Sellerie Équestre Western · Brèches, 37
+        </p>
+
+        <!-- H1 with per-character spans for GSAP stagger -->
+        <h1
+          class="font-display font-bold uppercase leading-none text-cgws-brand-cream
+                 text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
+                 mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
+          aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
+        >
+          <span
+            v-for="item in titleChars"
+            :key="item.key"
+            class="hero-letter inline-block"
+            :class="item.isSpace ? 'w-[0.25em]' : ''"
+            aria-hidden="true"
+          >{{ item.isSpace ? '' : item.char }}</span>
+        </h1>
+      </div>
 
       <!-- Subtitle -->
       <p

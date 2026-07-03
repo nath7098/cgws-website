@@ -52,8 +52,8 @@ onUnmounted(() => {
   >
     <defs>
       <radialGradient id="seat-highlight" cx="50%" cy="40%" r="50%">
-        <stop offset="0%" stop-color="#C8AB82" />
-        <stop offset="100%" stop-color="#7B3B1C" />
+        <stop offset="0%" stop-color="var(--cgws-surface-2)" />
+        <stop offset="100%" stop-color="var(--cgws-edge)" />
       </radialGradient>
     </defs>
 
@@ -73,17 +73,17 @@ onUnmounted(() => {
       />
 
       <!-- Skirt medallion / concho decoration (left skirt) -->
-      <circle cx="105" cy="183" r="14" fill="none" class="stroke-cgws-accent" stroke-width="1" />
-      <circle cx="105" cy="183" r="9" fill="none" class="stroke-cgws-accent" stroke-width="0.5" stroke-dasharray="2 2" />
+      <circle cx="105" cy="183" r="14" fill="none" class="stroke-cgws-accent-deco" stroke-width="1" />
+      <circle cx="105" cy="183" r="9" fill="none" class="stroke-cgws-accent-deco" stroke-width="0.5" stroke-dasharray="2 2" />
       <!-- Tooling dots around medallion -->
-      <circle cx="105" cy="167" r="1.5" class="fill-cgws-accent" />
-      <circle cx="105" cy="199" r="1.5" class="fill-cgws-accent" />
-      <circle cx="89" cy="183" r="1.5" class="fill-cgws-accent" />
-      <circle cx="121" cy="183" r="1.5" class="fill-cgws-accent" />
-      <circle cx="93" cy="171" r="1" class="fill-cgws-accent" />
-      <circle cx="117" cy="171" r="1" class="fill-cgws-accent" />
-      <circle cx="93" cy="195" r="1" class="fill-cgws-accent" />
-      <circle cx="117" cy="195" r="1" class="fill-cgws-accent" />
+      <circle cx="105" cy="167" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="105" cy="199" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="89" cy="183" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="121" cy="183" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="93" cy="171" r="1" class="fill-cgws-accent-deco" />
+      <circle cx="117" cy="171" r="1" class="fill-cgws-accent-deco" />
+      <circle cx="93" cy="195" r="1" class="fill-cgws-accent-deco" />
+      <circle cx="117" cy="195" r="1" class="fill-cgws-accent-deco" />
 
       <!-- Cantle (rear raised back) -->
       <path
@@ -129,7 +129,7 @@ onUnmounted(() => {
           cy="64"
           rx="14"
           ry="8"
-          class="fill-cgws-accent stroke-cgws-ink"
+          class="fill-cgws-accent-deco stroke-cgws-ink"
           stroke-width="1.5"
         />
       </g>
@@ -153,7 +153,7 @@ onUnmounted(() => {
           width="42"
           height="30"
           rx="10"
-          class="fill-cgws-accent stroke-cgws-ink"
+          class="fill-cgws-accent-deco stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Left stirrup inner opening -->
@@ -183,7 +183,7 @@ onUnmounted(() => {
           width="42"
           height="30"
           rx="10"
-          class="fill-cgws-accent stroke-cgws-ink"
+          class="fill-cgws-accent-deco stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Right stirrup inner opening -->

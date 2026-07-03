@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import StarDivider from '../ui/StarDivider.vue'
+import FiligreeCorner from '../ui/FiligreeCorner.vue'
 
 interface Stat {
   value: number | string
@@ -48,10 +49,20 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="bg-cgws-ground py-12 md:py-16"
+    class="relative bg-cgws-ground py-12 md:py-16"
     aria-label="Chiffres clés CGWS"
   >
-    <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
+    <!-- Filigranes discrets — 2 max/viewport, coins diagonalement opposés (US-072 §3) -->
+    <FiligreeCorner
+      class="absolute top-4 left-4 md:top-6 md:left-6 w-12 h-12 md:w-16 md:h-16"
+      :opacity="40"
+    />
+    <FiligreeCorner
+      class="absolute bottom-4 right-4 md:bottom-6 md:right-6 w-12 h-12 md:w-16 md:h-16 rotate-180"
+      :opacity="40"
+    />
+
+    <div class="relative max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 lg:gap-8">
         <StarDivider
           v-for="stat in stats"
