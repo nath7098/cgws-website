@@ -20,7 +20,6 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
-      'Bebas Neue': true,
       'Rye': true,
       'Playfair Display': { wght: [400, 600, 700], ital: [400] },
       'Inter': [400, 500, 700],

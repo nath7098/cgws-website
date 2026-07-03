@@ -259,16 +259,16 @@ onUnmounted(() => {
     <!-- Page header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+        <h2 class="font-serif font-bold text-2xl text-cgws-ink">
           Ventes
         </h2>
         <p
           v-if="isLoading"
-          class="h-3 w-48 bg-cgws-leather/10 rounded animate-pulse mt-1"
+          class="h-3 w-48 bg-cgws-hairline rounded animate-pulse mt-1"
         />
         <p
           v-else
-          class="font-sans text-sm mt-0.5 text-cgws-leather"
+          class="font-sans text-sm mt-0.5 text-cgws-ink-soft"
         >
           {{ summary.salesMonth }} vente{{ summary.salesMonth !== 1 ? 's' : '' }} ce mois
           · CA mensuel : {{ formatPrice(summary.caMonth) }}
@@ -278,10 +278,10 @@ onUnmounted(() => {
       <button
         type="button"
         data-open-sale-form
-        class="px-4 py-2 rounded-sm bg-cgws-copper text-white font-sans text-sm
-               font-semibold inline-flex items-center gap-2 hover:bg-cgws-leather
+        class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent font-sans text-sm
+               font-semibold inline-flex items-center gap-2 hover:bg-cgws-edge
                transition-colors duration-150
-               focus-visible:ring-2 focus-visible:ring-cgws-copper
+               focus-visible:ring-2 focus-visible:ring-cgws-accent
                focus-visible:ring-offset-2 focus-visible:outline-none"
         @click="showSaleForm = true"
       >
@@ -312,7 +312,7 @@ onUnmounted(() => {
 
     <!-- Toolbar -->
     <div
-      class="bg-white border border-cgws-leather/30 rounded-[4px] p-3
+      class="bg-white border border-cgws-hairline rounded-[4px] p-3
              flex flex-col sm:flex-row gap-3 items-stretch sm:items-center mb-4"
     >
       <!-- Filtre mois -->
@@ -321,9 +321,9 @@ onUnmounted(() => {
         v-model="filterMonth"
         type="month"
         aria-label="Filtrer par mois"
-        class="px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-               font-sans text-sm text-cgws-charcoal
-               focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+        class="px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm
+               font-sans text-sm text-cgws-ink
+               focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                focus:outline-none"
       >
 
@@ -331,9 +331,9 @@ onUnmounted(() => {
       <div class="relative min-w-[160px]">
         <select
           v-model="filterType"
-          class="w-full py-2 px-3 pr-9 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                 font-sans text-sm text-cgws-charcoal appearance-none
-                 focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none"
+          class="w-full py-2 px-3 pr-9 bg-cgws-ground border border-cgws-hairline rounded-sm
+                 font-sans text-sm text-cgws-ink appearance-none
+                 focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none"
           aria-label="Filtrer par type de vente"
         >
           <option value="">
@@ -348,7 +348,7 @@ onUnmounted(() => {
         </select>
         <UIcon
           name="i-lucide-chevron-down"
-          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-leather/60"
+          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft/60"
           aria-hidden="true"
         />
       </div>
@@ -357,8 +357,8 @@ onUnmounted(() => {
       <button
         v-if="hasActiveFilters"
         type="button"
-        class="font-sans text-xs text-cgws-copper hover:underline
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper
+        class="font-sans text-xs text-cgws-accent hover:underline
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
                self-start sm:self-center"
         aria-label="Réinitialiser les filtres"
         @click="resetFilters"
@@ -368,7 +368,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Table desktop (sm+) -->
-    <div class="hidden sm:block bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden">
+    <div class="hidden sm:block bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
       <table
         class="w-full text-sm font-sans"
         aria-label="Liste des ventes"
@@ -376,47 +376,47 @@ onUnmounted(() => {
         <caption class="sr-only">
           {{ totalCount }} vente{{ totalCount !== 1 ? 's' : '' }}, triées par date décroissante
         </caption>
-        <thead class="bg-cgws-parchment/40 border-b border-cgws-leather/20">
+        <thead class="bg-cgws-surface/40 border-b border-cgws-hairline">
           <tr>
             <th
               scope="col"
-              class="py-3 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Article
             </th>
             <th
               scope="col"
-              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Date
             </th>
             <th
               scope="col"
-              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Type
             </th>
             <th
               scope="col"
-              class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Prix vente
             </th>
             <th
               scope="col"
-              class="hidden md:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="hidden md:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Paiement
             </th>
             <th
               scope="col"
-              class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Client
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-cgws-leather/10">
+        <tbody class="divide-y divide-cgws-hairline">
           <!-- Skeleton -->
           <template v-if="isLoading">
             <tr
@@ -424,23 +424,23 @@ onUnmounted(() => {
               :key="i"
             >
               <td class="py-3 pl-4 pr-3">
-                <div class="h-4 w-40 bg-cgws-leather/10 rounded animate-pulse mb-1" />
-                <div class="h-3 w-20 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-40 bg-cgws-hairline rounded animate-pulse mb-1" />
+                <div class="h-3 w-20 bg-cgws-hairline rounded animate-pulse" />
               </td>
               <td class="py-3 px-3">
-                <div class="h-4 w-16 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-16 bg-cgws-hairline rounded animate-pulse" />
               </td>
               <td class="py-3 px-3">
-                <div class="h-5 w-20 bg-cgws-leather/10 rounded-full animate-pulse" />
+                <div class="h-5 w-20 bg-cgws-hairline rounded-full animate-pulse" />
               </td>
               <td class="py-3 px-3 text-right">
-                <div class="h-5 w-20 bg-cgws-leather/10 rounded animate-pulse ml-auto" />
+                <div class="h-5 w-20 bg-cgws-hairline rounded animate-pulse ml-auto" />
               </td>
               <td class="hidden md:table-cell py-3 px-3">
-                <div class="h-4 w-14 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-14 bg-cgws-hairline rounded animate-pulse" />
               </td>
               <td class="hidden lg:table-cell py-3 px-3">
-                <div class="h-4 w-24 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-24 bg-cgws-hairline rounded animate-pulse" />
               </td>
             </tr>
           </template>
@@ -453,17 +453,17 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-receipt"
-                class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+                class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
                 aria-hidden="true"
               />
-              <p class="font-sans text-sm text-cgws-leather italic">
+              <p class="font-sans text-sm text-cgws-ink-soft italic">
                 {{ hasActiveFilters ? 'Aucune vente pour cette période.' : 'Aucune vente enregistrée pour l\'instant.' }}
               </p>
               <button
                 v-if="hasActiveFilters"
                 type="button"
-                class="mt-3 font-sans text-xs text-cgws-copper hover:underline
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                class="mt-3 font-sans text-xs text-cgws-accent hover:underline
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 @click="resetFilters"
               >
                 Réinitialiser les filtres
@@ -471,10 +471,10 @@ onUnmounted(() => {
               <button
                 v-else
                 type="button"
-                class="mt-3 px-4 py-2 rounded-sm bg-cgws-copper text-white
+                class="mt-3 px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                        font-sans text-sm font-semibold inline-flex items-center gap-2
-                       hover:bg-cgws-leather transition-colors
-                       focus-visible:ring-2 focus-visible:ring-cgws-copper
+                       hover:bg-cgws-edge transition-colors
+                       focus-visible:ring-2 focus-visible:ring-cgws-accent
                        focus-visible:ring-offset-2 focus-visible:outline-none"
                 @click="showSaleForm = true"
               >
@@ -493,17 +493,17 @@ onUnmounted(() => {
             v-for="sale in sales"
             v-else
             :key="sale.id"
-            class="sale-row transition-colors duration-100 hover:bg-cgws-parchment/20"
+            class="sale-row transition-colors duration-100 hover:bg-cgws-surface/20"
           >
             <td class="py-3 pl-4 pr-3 max-w-[240px]">
-              <span class="font-sans text-sm font-medium text-cgws-charcoal block truncate">
+              <span class="font-sans text-sm font-medium text-cgws-ink block truncate">
                 {{ sale.productTitle }}
               </span>
-              <span class="font-sans text-xs text-cgws-leather/70">
+              <span class="font-sans text-xs text-cgws-ink-soft/70">
                 {{ sale.productBrand }}
               </span>
             </td>
-            <td class="py-3 px-3 text-sm text-cgws-leather whitespace-nowrap">
+            <td class="py-3 px-3 text-sm text-cgws-ink-soft whitespace-nowrap">
               {{ formatDate(sale.saleDate) }}
             </td>
             <td class="py-3 px-3">
@@ -511,19 +511,19 @@ onUnmounted(() => {
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full
                        font-sans font-medium text-[11px] uppercase tracking-wider"
                 :class="sale.isConsignment
-                  ? 'bg-cgws-copper/20 text-cgws-copper'
-                  : 'bg-cgws-denim/15 text-cgws-denim'"
+                  ? 'bg-cgws-accent/20 text-cgws-accent'
+                  : 'bg-cgws-success/15 text-cgws-success'"
               >
                 {{ sale.isConsignment ? 'Consignation' : 'Propre' }}
               </span>
             </td>
-            <td class="py-3 px-3 text-right font-display text-base text-cgws-copper whitespace-nowrap">
+            <td class="py-3 px-3 text-right font-display text-base text-cgws-accent whitespace-nowrap">
               {{ formatPrice(sale.salePrice) }}
             </td>
-            <td class="hidden md:table-cell py-3 px-3 text-sm text-cgws-leather">
+            <td class="hidden md:table-cell py-3 px-3 text-sm text-cgws-ink-soft">
               {{ paymentLabel(sale.paymentMethod) }}
             </td>
-            <td class="hidden lg:table-cell py-3 px-3 text-sm text-cgws-leather">
+            <td class="hidden lg:table-cell py-3 px-3 text-sm text-cgws-ink-soft">
               {{ sale.clientName ?? '—' }}
             </td>
           </tr>
@@ -537,14 +537,14 @@ onUnmounted(() => {
         <div
           v-for="i in 5"
           :key="i"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-4 animate-pulse"
+          class="bg-white border border-cgws-hairline rounded-[4px] p-4 animate-pulse"
         >
-          <div class="h-4 w-44 bg-cgws-leather/10 rounded mb-2" />
+          <div class="h-4 w-44 bg-cgws-hairline rounded mb-2" />
           <div class="flex justify-between mb-2">
-            <div class="h-3 w-16 bg-cgws-leather/10 rounded" />
-            <div class="h-5 w-20 bg-cgws-leather/10 rounded-full" />
+            <div class="h-3 w-16 bg-cgws-hairline rounded" />
+            <div class="h-5 w-20 bg-cgws-hairline rounded-full" />
           </div>
-          <div class="h-5 w-24 bg-cgws-leather/10 rounded" />
+          <div class="h-5 w-24 bg-cgws-hairline rounded" />
         </div>
       </template>
 
@@ -554,17 +554,17 @@ onUnmounted(() => {
       >
         <UIcon
           name="i-lucide-receipt"
-          class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+          class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
           aria-hidden="true"
         />
-        <p class="font-sans text-sm text-cgws-leather italic">
+        <p class="font-sans text-sm text-cgws-ink-soft italic">
           {{ hasActiveFilters ? 'Aucune vente pour cette période.' : 'Aucune vente enregistrée pour l\'instant.' }}
         </p>
         <button
           v-if="hasActiveFilters"
           type="button"
-          class="mt-3 font-sans text-xs text-cgws-copper hover:underline
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="mt-3 font-sans text-xs text-cgws-accent hover:underline
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           @click="resetFilters"
         >
           Réinitialiser les filtres
@@ -572,10 +572,10 @@ onUnmounted(() => {
         <button
           v-else
           type="button"
-          class="mt-3 px-4 py-2 rounded-sm bg-cgws-copper text-white
+          class="mt-3 px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                  font-sans text-sm font-semibold inline-flex items-center gap-2
-                 hover:bg-cgws-leather transition-colors
-                 focus-visible:ring-2 focus-visible:ring-cgws-copper
+                 hover:bg-cgws-edge transition-colors
+                 focus-visible:ring-2 focus-visible:ring-cgws-accent
                  focus-visible:ring-offset-2 focus-visible:outline-none"
           @click="showSaleForm = true"
         >
@@ -592,34 +592,34 @@ onUnmounted(() => {
         v-for="sale in sales"
         v-else
         :key="sale.id"
-        class="sale-row bg-white border border-cgws-leather/30 rounded-[4px] p-4 space-y-1"
+        class="sale-row bg-white border border-cgws-hairline rounded-[4px] p-4 space-y-1"
       >
         <div class="flex items-start justify-between gap-2">
-          <p class="font-sans text-sm font-medium text-cgws-charcoal">
+          <p class="font-sans text-sm font-medium text-cgws-ink">
             {{ sale.productTitle }}
           </p>
           <span
             class="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full
                    font-sans font-medium text-[11px] uppercase tracking-wider"
             :class="sale.isConsignment
-              ? 'bg-cgws-copper/20 text-cgws-copper'
-              : 'bg-cgws-denim/15 text-cgws-denim'"
+              ? 'bg-cgws-accent/20 text-cgws-accent'
+              : 'bg-cgws-success/15 text-cgws-success'"
           >
             {{ sale.isConsignment ? 'Consignation' : 'Propre' }}
           </span>
         </div>
-        <p class="font-sans text-xs text-cgws-leather">
+        <p class="font-sans text-xs text-cgws-ink-soft">
           {{ formatDate(sale.saleDate) }}
         </p>
-        <p class="font-display text-base text-cgws-copper">
+        <p class="font-display text-base text-cgws-accent">
           {{ formatPrice(sale.salePrice) }}
         </p>
-        <p class="font-sans text-xs text-cgws-leather">
+        <p class="font-sans text-xs text-cgws-ink-soft">
           {{ paymentLabel(sale.paymentMethod) }}
         </p>
         <p
           v-if="sale.clientName"
-          class="font-sans text-xs text-cgws-leather italic"
+          class="font-sans text-xs text-cgws-ink-soft italic"
         >
           Client : {{ sale.clientName }}
         </p>
@@ -631,7 +631,7 @@ onUnmounted(() => {
       v-if="!isLoading && totalPages > 1"
       class="flex items-center justify-between mt-4 flex-wrap gap-3"
     >
-      <p class="font-sans text-xs text-cgws-leather">
+      <p class="font-sans text-xs text-cgws-ink-soft">
         {{ totalCount }} vente{{ totalCount !== 1 ? 's' : '' }} au total · page {{ currentPage }} de {{ totalPages }}
       </p>
       <nav
@@ -641,9 +641,9 @@ onUnmounted(() => {
         <button
           type="button"
           :disabled="currentPage === 1"
-          class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30
-                 hover:bg-cgws-leather/10 transition-colors
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30
+                 hover:bg-cgws-hairline transition-colors
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           aria-label="Page précédente"
           @click="goToPage(currentPage - 1)"
         >
@@ -659,10 +659,10 @@ onUnmounted(() => {
           type="button"
           :aria-current="p === currentPage ? 'page' : undefined"
           :class="[
-            'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper',
+            'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent',
             p === currentPage
-              ? 'bg-cgws-copper text-cgws-charcoal font-semibold'
-              : 'text-cgws-leather hover:bg-cgws-leather/10',
+              ? 'bg-cgws-accent text-cgws-on-accent font-semibold'
+              : 'text-cgws-ink-soft hover:bg-cgws-hairline',
           ]"
           @click="goToPage(p)"
         >
@@ -672,9 +672,9 @@ onUnmounted(() => {
         <button
           type="button"
           :disabled="currentPage === totalPages"
-          class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30
-                 hover:bg-cgws-leather/10 transition-colors
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30
+                 hover:bg-cgws-hairline transition-colors
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           aria-label="Page suivante"
           @click="goToPage(currentPage + 1)"
         >
@@ -700,14 +700,14 @@ onUnmounted(() => {
           v-if="toast"
           :role="toast.type === 'error' ? 'alert' : 'status'"
           :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
-          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-tack text-cgws-rope
+          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-brand-espresso text-cgws-brand-cream
                  px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
-          :class="toast.type === 'error' ? 'border-cgws-rust' : 'border-cgws-copper'"
+          :class="toast.type === 'error' ? 'border-cgws-danger' : 'border-cgws-accent'"
         >
           <UIcon
             :name="toast.type === 'error' ? 'i-lucide-x-circle' : 'i-lucide-check-circle'"
             class="w-5 h-5 flex-shrink-0"
-            :class="toast.type === 'error' ? 'text-cgws-rust' : 'text-cgws-copper'"
+            :class="toast.type === 'error' ? 'text-cgws-danger' : 'text-cgws-accent'"
             aria-hidden="true"
           />
           <p class="font-sans text-sm">

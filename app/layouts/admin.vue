@@ -96,35 +96,35 @@ function isLinkActive(href: string): boolean {
 function navItemClasses(href: string): string {
   const base = 'flex items-center gap-3 px-4 py-2.5 rounded-sm w-full font-sans text-sm font-medium transition-colors duration-150 text-left'
   if (isLinkActive(href)) {
-    return `${base} bg-cgws-copper/15 text-cgws-copper border-l-2 border-cgws-copper`
+    return `${base} bg-cgws-accent/15 text-cgws-accent border-l-2 border-cgws-accent`
   }
-  return `${base} text-cgws-rope/70 hover:bg-cgws-leather/20 hover:text-cgws-rope`
+  return `${base} text-cgws-ink-soft/70 hover:bg-cgws-hairline hover:text-cgws-ink-soft`
 }
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-cgws-cream">
+  <div class="flex min-h-screen bg-cgws-ground">
     <!-- Skip link for keyboard users -->
     <a
       href="#admin-content"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-cgws-copper focus:text-cgws-charcoal focus:rounded-sm focus:font-sans focus:text-sm focus:font-medium"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-cgws-accent focus:text-cgws-on-accent focus:rounded-sm focus:font-sans focus:text-sm focus:font-medium"
     >
       Aller au contenu
     </a>
 
     <!-- ═══════════════════════════════════════════════════════ SIDEBAR DESKTOP -->
     <aside
-      class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-cgws-tack overflow-y-auto"
+      class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-cgws-ground border-r border-cgws-hairline overflow-y-auto"
       aria-label="Navigation administration"
     >
       <!-- Wordmark -->
       <div class="px-4 pt-5 pb-4 flex-shrink-0">
-        <span class="font-display text-2xl text-cgws-copper tracking-wider">CGWS</span>
-        <span class="block font-sans text-xs text-cgws-rope uppercase tracking-widest mt-0.5">Admin</span>
+        <span class="font-display text-2xl text-cgws-accent tracking-wider">CGWS</span>
+        <span class="block font-sans text-xs text-cgws-ink-soft uppercase tracking-widest mt-0.5">Admin</span>
       </div>
 
       <!-- Separator -->
-      <div class="border-t border-cgws-leather/30 mx-4 mb-3" aria-hidden="true" />
+      <div class="border-t border-cgws-hairline mx-4 mb-3" aria-hidden="true" />
 
       <!-- Nav links -->
       <nav aria-label="Navigation administration" class="flex-1 px-2 space-y-0.5">
@@ -142,10 +142,10 @@ function navItemClasses(href: string): string {
 
       <!-- Logout -->
       <div class="flex-shrink-0 px-2 pb-5 mt-auto">
-        <div class="border-t border-cgws-leather/30 mb-3" aria-hidden="true" />
+        <div class="border-t border-cgws-hairline mb-3" aria-hidden="true" />
         <button
           type="button"
-          class="flex items-center gap-3 px-4 py-2.5 rounded-sm w-full font-sans text-sm font-medium transition-colors duration-150 text-cgws-rope/50 hover:bg-cgws-rust/10 hover:text-cgws-rust"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-sm w-full font-sans text-sm font-medium transition-colors duration-150 text-cgws-ink-soft/50 hover:bg-cgws-danger/10 hover:text-cgws-danger"
           aria-label="Se déconnecter du backoffice"
           @click="logout()"
         >
@@ -159,7 +159,7 @@ function navItemClasses(href: string): string {
     <Transition name="backdrop">
       <div
         v-if="isSidebarOpen"
-        class="fixed inset-0 bg-cgws-charcoal/50 z-30 lg:hidden"
+        class="fixed inset-0 bg-cgws-ink/50 z-30 lg:hidden"
         aria-hidden="true"
         @click="closeSidebar()"
       />
@@ -174,7 +174,7 @@ function navItemClasses(href: string): string {
       aria-label="Menu de navigation"
       :aria-hidden="!isSidebarOpen"
       :class="[
-        'fixed left-0 top-0 h-full w-72 bg-cgws-tack z-40 flex flex-col lg:hidden',
+        'fixed left-0 top-0 h-full w-72 bg-cgws-ground z-40 flex flex-col lg:hidden',
         'transform transition-transform duration-300 ease-in-out overflow-y-auto',
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
       ]"
@@ -183,12 +183,12 @@ function navItemClasses(href: string): string {
       <!-- Drawer header -->
       <div class="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0">
         <div>
-          <span class="font-display text-2xl text-cgws-copper tracking-wider">CGWS</span>
-          <span class="block font-sans text-xs text-cgws-rope uppercase tracking-widest mt-0.5">Admin</span>
+          <span class="font-display text-2xl text-cgws-accent tracking-wider">CGWS</span>
+          <span class="block font-sans text-xs text-cgws-ink-soft uppercase tracking-widest mt-0.5">Admin</span>
         </div>
         <button
           type="button"
-          class="p-1.5 rounded-sm text-cgws-rope/70 hover:text-cgws-rope hover:bg-cgws-leather/20 transition-colors duration-150"
+          class="p-1.5 rounded-sm text-cgws-ink-soft/70 hover:text-cgws-ink-soft hover:bg-cgws-hairline transition-colors duration-150"
           aria-label="Fermer le menu"
           @click="closeSidebar()"
         >
@@ -197,7 +197,7 @@ function navItemClasses(href: string): string {
       </div>
 
       <!-- Separator -->
-      <div class="border-t border-cgws-leather/30 mx-4 mb-3" aria-hidden="true" />
+      <div class="border-t border-cgws-hairline mx-4 mb-3" aria-hidden="true" />
 
       <!-- Nav links -->
       <nav aria-label="Navigation administration" class="flex-1 px-2 space-y-0.5">
@@ -215,10 +215,10 @@ function navItemClasses(href: string): string {
 
       <!-- Logout in drawer -->
       <div class="flex-shrink-0 px-2 pb-5 mt-auto">
-        <div class="border-t border-cgws-leather/30 mb-3" aria-hidden="true" />
+        <div class="border-t border-cgws-hairline mb-3" aria-hidden="true" />
         <button
           type="button"
-          class="flex items-center gap-3 px-4 py-2.5 rounded-sm w-full font-sans text-sm font-medium transition-colors duration-150 text-cgws-rope/50 hover:bg-cgws-rust/10 hover:text-cgws-rust"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-sm w-full font-sans text-sm font-medium transition-colors duration-150 text-cgws-ink-soft/50 hover:bg-cgws-danger/10 hover:text-cgws-danger"
           aria-label="Se déconnecter du backoffice"
           @click="logout()"
         >
@@ -233,14 +233,14 @@ function navItemClasses(href: string): string {
       <!-- Topbar -->
       <header
         role="banner"
-        class="h-14 bg-cgws-parchment border-b border-cgws-leather/40 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20"
+        class="h-14 bg-cgws-surface border-b border-cgws-hairline flex items-center justify-between px-4 md:px-6 sticky top-0 z-20"
       >
         <!-- Left: hamburger (mobile) + page title -->
         <div class="flex items-center gap-3">
           <button
             ref="hamburgerRef"
             type="button"
-            class="lg:hidden p-1.5 rounded-sm text-cgws-tack hover:bg-cgws-leather/10 transition-colors duration-150"
+            class="lg:hidden p-1.5 rounded-sm text-cgws-ink hover:bg-cgws-hairline transition-colors duration-150"
             :aria-expanded="isSidebarOpen"
             aria-controls="admin-sidebar"
             aria-label="Ouvrir le menu"
@@ -248,22 +248,22 @@ function navItemClasses(href: string): string {
           >
             <UIcon name="i-lucide-menu" class="w-5 h-5" aria-hidden="true" />
           </button>
-          <span class="font-serif font-semibold text-base text-cgws-charcoal">{{ pageTitle }}</span>
+          <span class="font-serif font-semibold text-base text-cgws-ink">{{ pageTitle }}</span>
         </div>
 
         <!-- Right: email + avatar -->
         <div class="flex items-center gap-2">
           <span
             v-if="user?.email"
-            class="hidden sm:block font-sans text-xs text-cgws-leather"
+            class="hidden sm:block font-sans text-xs text-cgws-ink-soft"
           >
             {{ user.email }}
           </span>
           <div
-            class="w-8 h-8 rounded-full bg-cgws-copper flex items-center justify-center flex-shrink-0"
+            class="w-8 h-8 rounded-full bg-cgws-accent flex items-center justify-center flex-shrink-0"
             aria-hidden="true"
           >
-            <span class="font-display text-sm text-cgws-charcoal leading-none">{{ userInitials }}</span>
+            <span class="font-display text-sm text-cgws-on-accent leading-none">{{ userInitials }}</span>
           </div>
         </div>
       </header>

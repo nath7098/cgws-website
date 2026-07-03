@@ -48,7 +48,7 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="bg-cgws-tack py-12 md:py-16"
+    class="bg-cgws-ground py-12 md:py-16"
     aria-label="Chiffres clés CGWS"
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">

@@ -51,11 +51,11 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cgws-tack flex items-center justify-center p-4">
+  <div class="min-h-screen bg-cgws-ground flex items-center justify-center p-4">
     <!-- Login card — CSS entrance animation -->
     <div
       :class="[
-        'bg-cgws-parchment border-2 border-cgws-leather rounded-sm shadow-2xl',
+        'bg-cgws-surface border-2 border-cgws-edge rounded-sm shadow-2xl',
         'w-full max-w-[343px] sm:max-w-sm p-6 sm:p-8',
         'transition-[opacity,transform] duration-400 ease-out',
         cardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
@@ -63,20 +63,20 @@ async function handleSubmit() {
     >
       <!-- Wordmark -->
       <div>
-        <span class="font-display text-3xl text-cgws-copper tracking-wider">CGWS</span>
-        <span class="block font-sans text-[11px] text-cgws-leather uppercase tracking-widest mt-0.5">
+        <span class="font-display text-3xl text-cgws-accent tracking-wider">CGWS</span>
+        <span class="block font-sans text-[11px] text-cgws-ink-soft uppercase tracking-widest mt-0.5">
           Camille Guignon Western Shop
         </span>
       </div>
 
       <!-- Mini separator -->
-      <div class="border-t border-cgws-leather/40 my-5" aria-hidden="true" />
+      <div class="border-t border-cgws-hairline my-5" aria-hidden="true" />
 
       <!-- Form header -->
-      <p class="font-eyebrow text-[11px] text-cgws-rope uppercase tracking-widest mt-5">
+      <p class="font-eyebrow text-[11px] text-cgws-ink-soft uppercase tracking-widest mt-5">
         Administration
       </p>
-      <h1 class="font-serif font-bold text-xl text-cgws-charcoal mt-1 mb-6">
+      <h1 class="font-serif font-bold text-xl text-cgws-ink mt-1 mb-6">
         Connexion
       </h1>
 
@@ -86,7 +86,7 @@ async function handleSubmit() {
         <div class="mb-4">
           <label
             for="admin-email"
-            class="block font-sans font-medium text-sm text-cgws-charcoal mb-1.5"
+            class="block font-sans font-medium text-sm text-cgws-ink mb-1.5"
           >
             Adresse e-mail
           </label>
@@ -102,7 +102,7 @@ async function handleSubmit() {
             :aria-required="true"
             :aria-describedby="authError ? 'login-error' : undefined"
             :aria-invalid="authError ? true : undefined"
-            class="w-full bg-cgws-cream text-cgws-charcoal border border-cgws-leather rounded-sm px-3 py-2.5 font-sans text-sm placeholder:text-cgws-rope placeholder:font-normal transition-shadow transition-colors duration-150 outline-none focus:ring-3 focus:border-cgws-copper focus:ring-cgws-copper/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full bg-cgws-ground text-cgws-ink border border-cgws-edge rounded-sm px-3 py-2.5 font-sans text-sm placeholder:text-cgws-ink-soft placeholder:font-normal transition-shadow transition-colors duration-150 outline-none focus:ring-3 focus:border-cgws-accent focus:ring-cgws-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="votre@email.fr"
           >
         </div>
@@ -111,7 +111,7 @@ async function handleSubmit() {
         <div class="mb-5">
           <label
             for="admin-password"
-            class="block font-sans font-medium text-sm text-cgws-charcoal mb-1.5"
+            class="block font-sans font-medium text-sm text-cgws-ink mb-1.5"
           >
             Mot de passe
           </label>
@@ -124,7 +124,7 @@ async function handleSubmit() {
             required
             :disabled="isLoading"
             :aria-required="true"
-            class="w-full bg-cgws-cream text-cgws-charcoal border border-cgws-leather rounded-sm px-3 py-2.5 font-sans text-sm placeholder:text-cgws-rope placeholder:font-normal transition-shadow transition-colors duration-150 outline-none focus:ring-3 focus:border-cgws-copper focus:ring-cgws-copper/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full bg-cgws-ground text-cgws-ink border border-cgws-edge rounded-sm px-3 py-2.5 font-sans text-sm placeholder:text-cgws-ink-soft placeholder:font-normal transition-shadow transition-colors duration-150 outline-none focus:ring-3 focus:border-cgws-accent focus:ring-cgws-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="••••••••"
           >
         </div>
@@ -136,8 +136,8 @@ async function handleSubmit() {
           role="alert"
           aria-live="assertive"
           :class="[
-            'flex items-start gap-2 bg-cgws-rust/10 border-l-4 border-cgws-rust rounded-sm p-3 mb-4',
-            'text-cgws-rust font-sans text-[13px] font-medium',
+            'flex items-start gap-2 bg-cgws-danger/10 border-l-4 border-cgws-danger rounded-sm p-3 mb-4',
+            'text-cgws-danger font-sans text-[13px] font-medium',
             isShaking ? 'animate-shake' : '',
           ]"
         >
@@ -162,7 +162,7 @@ async function handleSubmit() {
       </form>
 
       <!-- Footer -->
-      <p class="text-center font-sans text-[11px] text-cgws-rope mt-6">
+      <p class="text-center font-sans text-[11px] text-cgws-ink-soft mt-6">
         cgws.fr — Sellerie équestre western
       </p>
     </div>

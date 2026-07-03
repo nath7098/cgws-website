@@ -9,17 +9,17 @@ const props = defineProps<Props>()
 
 <template>
   <section
-    class="bg-cgws-cream py-8 md:py-14"
+    class="bg-cgws-ground py-8 md:py-14"
     role="region"
     aria-label="En-tête du catalogue"
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
-      <p class="font-eyebrow text-[12px] text-cgws-copper uppercase tracking-[0.2em] mb-2">
+      <p class="font-eyebrow text-[12px] text-cgws-accent uppercase tracking-[0.2em] mb-2">
         Sellerie de Brèches
       </p>
 
       <h1
-        class="font-display text-[56px] md:text-[64px] text-cgws-charcoal leading-none tracking-wide uppercase mb-3"
+        class="font-display text-[56px] md:text-[64px] text-cgws-ink leading-none tracking-wide uppercase mb-3"
       >
         Catalogue
       </h1>
@@ -28,7 +28,7 @@ const props = defineProps<Props>()
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        class="font-sans font-medium text-sm text-cgws-leather"
+        class="font-sans font-medium text-sm text-cgws-ink-soft"
       >
         {{ props.totalCount }}
         {{ props.totalCount !== 1 ? 'produits' : 'produit' }}

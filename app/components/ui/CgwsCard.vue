@@ -19,12 +19,12 @@ const paddingClasses = {
 <template>
   <div
     :class="[
-      'bg-cgws-cream border border-cgws-leather/30 rounded-[4px] shadow-sm',
+      'bg-cgws-ground border border-cgws-hairline rounded-[4px] shadow-sm',
       paddingClasses[padding ?? 'md'],
     ]"
   >
     <template v-if="title">
-      <h3 class="font-serif font-semibold text-xl text-cgws-charcoal pb-3 mb-4 border-b border-cgws-leather/20">
+      <h3 class="font-serif font-semibold text-xl text-cgws-ink pb-3 mb-4 border-b border-cgws-hairline">
         {{ title }}
       </h3>
     </template>

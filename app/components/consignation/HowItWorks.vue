@@ -63,17 +63,17 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="how-it-works-section bg-cgws-parchment py-10 md:py-14 lg:py-16"
+    class="how-it-works-section bg-cgws-surface py-10 md:py-14 lg:py-16"
     aria-label="Fonctionnement du service de consignation en 3 étapes"
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
 
       <!-- En-tête section -->
       <div class="text-center mb-12 md:mb-14">
-        <p class="font-eyebrow text-cgws-copper text-sm tracking-widest uppercase mb-2">
+        <p class="font-eyebrow text-cgws-accent text-sm tracking-widest uppercase mb-2">
           COMMENT ÇA MARCHE
         </p>
-        <p class="font-serif italic text-cgws-charcoal/70 text-xl">
+        <p class="font-serif italic text-cgws-ink/70 text-xl">
           Votre matériel mérite un nouveau propriétaire
         </p>
       </div>
@@ -84,14 +84,14 @@ onUnmounted(() => {
         <template v-for="(step, index) in steps" :key="step.number">
           <!-- Carte étape -->
           <div
-            class="how-it-works-card bg-cgws-parchment border-2 border-cgws-charcoal
+            class="how-it-works-card bg-cgws-surface border-2 border-cgws-ink
                    rounded-sm p-8 text-center relative pt-12"
           >
             <!-- Cercle numéro -->
             <div
               class="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full
-                     bg-cgws-copper text-cgws-charcoal font-display text-2xl
-                     flex items-center justify-center border-2 border-cgws-charcoal"
+                     bg-cgws-accent text-cgws-on-accent font-display text-2xl
+                     flex items-center justify-center border-2 border-cgws-ink"
               aria-hidden="true"
             >
               {{ step.number }}
@@ -100,17 +100,17 @@ onUnmounted(() => {
             <!-- Icône -->
             <UIcon
               :name="step.icon"
-              class="w-8 h-8 text-cgws-leather mx-auto mb-3"
+              class="w-8 h-8 text-cgws-ink-soft mx-auto mb-3"
               aria-hidden="true"
             />
 
             <!-- Titre -->
-            <p class="font-eyebrow text-cgws-charcoal text-base uppercase tracking-wider mb-3">
+            <p class="font-eyebrow text-cgws-ink text-base uppercase tracking-wider mb-3">
               {{ step.title }}
             </p>
 
             <!-- Corps -->
-            <p class="font-sans text-sm text-cgws-charcoal/75 leading-relaxed">
+            <p class="font-sans text-sm text-cgws-ink/75 leading-relaxed">
               {{ step.body }}
             </p>
           </div>
@@ -119,12 +119,12 @@ onUnmounted(() => {
           <template v-if="index < steps.length - 1">
             <!-- Flèche horizontale — desktop/tablet -->
             <div class="hidden md:flex items-center justify-center" aria-hidden="true">
-              <UIcon name="i-lucide-arrow-right" class="w-5 h-5 text-cgws-copper" />
+              <UIcon name="i-lucide-arrow-right" class="w-5 h-5 text-cgws-accent" />
             </div>
 
             <!-- Flèche verticale — mobile -->
             <div class="flex md:hidden items-center justify-center py-1" aria-hidden="true">
-              <UIcon name="i-lucide-arrow-down" class="w-5 h-5 text-cgws-copper" />
+              <UIcon name="i-lucide-arrow-down" class="w-5 h-5 text-cgws-accent" />
             </div>
           </template>
         </template>

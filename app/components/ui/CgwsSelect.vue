@@ -48,10 +48,10 @@ const describedBy = computed(() => {
   <div class="flex flex-col gap-1">
     <label
       :for="selectId"
-      class="block font-sans font-medium text-sm text-cgws-charcoal mb-1.5"
+      class="block font-sans font-medium text-sm text-cgws-ink mb-1.5"
     >
       {{ label }}
-      <span v-if="required" class="text-cgws-rust ml-0.5" aria-hidden="true">*</span>
+      <span v-if="required" class="text-cgws-danger ml-0.5" aria-hidden="true">*</span>
     </label>
 
     <div class="relative">
@@ -65,14 +65,14 @@ const describedBy = computed(() => {
         :aria-invalid="error ? 'true' : undefined"
         :aria-describedby="describedBy"
         :class="[
-          'w-full bg-cgws-cream border rounded-sm px-3 py-2.5 pr-10',
+          'w-full bg-cgws-ground border rounded-sm px-3 py-2.5 pr-10',
           'font-sans text-sm appearance-none',
           'transition-shadow transition-colors duration-150 outline-none',
-          'focus:ring-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cgws-parchment/50',
+          'focus:ring-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cgws-surface/50',
           error
-            ? 'border-cgws-rust focus:border-cgws-rust focus:ring-cgws-rust/20'
-            : 'border-cgws-leather focus:border-cgws-copper focus:ring-cgws-copper/20',
-          !modelValue ? 'text-cgws-rope' : 'text-cgws-charcoal',
+            ? 'border-cgws-danger focus:border-cgws-danger focus:ring-cgws-danger/20'
+            : 'border-cgws-edge focus:border-cgws-accent focus:ring-cgws-accent/20',
+          !modelValue ? 'text-cgws-ink-soft' : 'text-cgws-ink',
         ]"
         v-bind="$attrs"
         @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
@@ -90,17 +90,17 @@ const describedBy = computed(() => {
 
       <!-- Custom dropdown arrow -->
       <div
-        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-cgws-leather"
+        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-cgws-ink-soft"
         aria-hidden="true"
       >
         <UIcon name="i-lucide-chevron-down" class="w-4 h-4" />
       </div>
     </div>
 
-    <p v-if="hint && !error" :id="hintId" class="mt-1 font-sans text-xs text-cgws-leather">
+    <p v-if="hint && !error" :id="hintId" class="mt-1 font-sans text-xs text-cgws-ink-soft">
       {{ hint }}
     </p>
-    <p v-if="error" :id="errorId" class="mt-1 font-sans text-xs text-cgws-rust" role="alert">
+    <p v-if="error" :id="errorId" class="mt-1 font-sans text-xs text-cgws-danger" role="alert">
       {{ error }}
     </p>
   </div>

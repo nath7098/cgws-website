@@ -62,9 +62,9 @@ onUnmounted(() => {
     <!-- Medallion -->
     <div class="relative inline-flex items-center justify-center w-20 h-20 md:w-[100px] md:h-[100px]">
       <!-- Outer ring -->
-      <div class="absolute inset-0 rounded-full border-2 border-cgws-copper" />
+      <div class="absolute inset-0 rounded-full border-2 border-cgws-accent" />
       <!-- Inner dashed ring -->
-      <div class="absolute inset-[6px] rounded-full border border-dashed border-cgws-copper/50" />
+      <div class="absolute inset-[6px] rounded-full border border-dashed border-cgws-accent-deco/50" />
 
       <!-- Cardinal points SVG -->
       <svg
@@ -75,18 +75,18 @@ onUnmounted(() => {
         aria-hidden="true"
       >
         <!-- North -->
-        <polygon points="50,-4 54,8 46,8" class="fill-cgws-copper" />
+        <polygon points="50,-4 54,8 46,8" class="fill-cgws-accent" />
         <!-- South -->
-        <polygon points="50,104 54,92 46,92" class="fill-cgws-copper" />
+        <polygon points="50,104 54,92 46,92" class="fill-cgws-accent" />
         <!-- West -->
-        <polygon points="-4,50 8,54 8,46" class="fill-cgws-copper" />
+        <polygon points="-4,50 8,54 8,46" class="fill-cgws-accent" />
         <!-- East -->
-        <polygon points="104,50 92,54 92,46" class="fill-cgws-copper" />
+        <polygon points="104,50 92,54 92,46" class="fill-cgws-accent" />
       </svg>
 
       <!-- Center content -->
       <div class="relative z-10 flex flex-col items-center justify-center" aria-hidden="true">
-        <span class="font-display text-3xl md:text-[32px] text-cgws-copper leading-none">
+        <span class="font-display text-3xl md:text-[32px] text-cgws-accent leading-none">
           {{ displayValue }}{{ suffix ?? '' }}
         </span>
       </div>
@@ -96,7 +96,7 @@ onUnmounted(() => {
     <span
       :class="[
         'font-eyebrow text-[10px] md:text-[11px] uppercase tracking-wider leading-tight text-center',
-        onDark ? 'text-cgws-rope' : 'text-cgws-leather',
+        onDark ? 'text-cgws-ink-soft' : 'text-cgws-ink-soft',
       ]"
       aria-hidden="true"
     >

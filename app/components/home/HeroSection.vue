@@ -111,7 +111,7 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-tack"
+    class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-ground"
     aria-label="Accueil CGWS — Sellerie équestre western"
   >
     <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
@@ -133,7 +133,7 @@ onUnmounted(() => {
 
     <!-- Gradient overlay -->
     <div
-      class="absolute inset-0 z-[1] bg-gradient-to-t from-cgws-tack/90 via-cgws-tack/40 to-cgws-tack/10"
+      class="absolute inset-0 z-[1] bg-gradient-to-t from-cgws-brand-espresso/90 via-cgws-brand-espresso/40 to-cgws-brand-espresso/10"
       aria-hidden="true"
     />
 
@@ -156,14 +156,14 @@ onUnmounted(() => {
     >
       <!-- Eyebrow -->
       <p
-        class="hero-eyebrow font-eyebrow text-[13px] text-cgws-rope uppercase tracking-[0.2em] mb-4 md:mb-5"
+        class="hero-eyebrow font-eyebrow text-[13px] text-cgws-brand-sand uppercase tracking-[0.2em] mb-4 md:mb-5"
       >
         Sellerie Équestre Western · Brèches, 37
       </p>
 
       <!-- H1 with per-character spans for GSAP stagger -->
       <h1
-        class="font-display uppercase leading-none text-cgws-cream
+        class="font-display uppercase leading-none text-cgws-brand-cream
                text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
                mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
         aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
@@ -179,7 +179,7 @@ onUnmounted(() => {
 
       <!-- Subtitle -->
       <p
-        class="hero-subtitle font-serif italic text-cgws-rope
+        class="hero-subtitle font-serif italic text-cgws-brand-sand
                text-[17px] md:text-[19px] lg:text-[21px]
                leading-relaxed mb-8 md:mb-10 max-w-[45ch] md:max-w-[38ch]"
       >
@@ -218,7 +218,7 @@ onUnmounted(() => {
       role="presentation"
       aria-label="Défiler vers le bas"
     >
-      <span class="font-eyebrow text-[10px] text-cgws-rope/60 uppercase tracking-widest">
+      <span class="font-eyebrow text-[10px] text-cgws-brand-sand/60 uppercase tracking-widest">
         Découvrir
       </span>
       <svg
@@ -227,7 +227,7 @@ onUnmounted(() => {
         viewBox="0 0 16 24"
         fill="none"
         aria-hidden="true"
-        class="text-cgws-rope"
+        class="text-cgws-brand-sand"
       >
         <path d="M2 8 L8 14 L14 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
         <path d="M2 14 L8 20 L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />

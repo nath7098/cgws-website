@@ -106,7 +106,7 @@ useHead({
     <!-- ── Breadcrumb ───────────────────────────────────────────────────────── -->
     <nav
       aria-label="Fil d'Ariane"
-      class="bg-cgws-cream border-b border-cgws-leather/10"
+      class="bg-cgws-ground border-b border-cgws-hairline"
     >
       <ol
         class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)] py-3 flex items-center gap-2 flex-wrap"
@@ -123,12 +123,12 @@ useHead({
           <NuxtLink
             itemprop="item"
             to="/"
-            class="font-sans text-xs text-cgws-leather/70 hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-copper rounded-sm"
+            class="font-sans text-xs text-cgws-ink-soft/70 hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-accent rounded-sm"
           >
             <span itemprop="name">Accueil</span>
           </NuxtLink>
           <meta itemprop="position" content="1">
-          <span class="font-sans text-xs text-cgws-leather/40 select-none" aria-hidden="true">›</span>
+          <span class="font-sans text-xs text-cgws-ink-soft/40 select-none" aria-hidden="true">›</span>
         </li>
 
         <!-- Catalogue -->
@@ -141,12 +141,12 @@ useHead({
           <NuxtLink
             itemprop="item"
             to="/catalogue"
-            class="font-sans text-xs text-cgws-leather/70 hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-copper rounded-sm"
+            class="font-sans text-xs text-cgws-ink-soft/70 hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-accent rounded-sm"
           >
             <span itemprop="name">Catalogue</span>
           </NuxtLink>
           <meta itemprop="position" content="2">
-          <span class="font-sans text-xs text-cgws-leather/40 select-none" aria-hidden="true">›</span>
+          <span class="font-sans text-xs text-cgws-ink-soft/40 select-none" aria-hidden="true">›</span>
         </li>
 
         <!-- Produit courant -->
@@ -157,7 +157,7 @@ useHead({
         >
           <span
             itemprop="name"
-            class="font-sans text-xs text-cgws-leather truncate max-w-[200px] sm:max-w-none"
+            class="font-sans text-xs text-cgws-ink-soft truncate max-w-[200px] sm:max-w-none"
             aria-current="page"
           >
             {{ product!.title }}
@@ -169,7 +169,7 @@ useHead({
 
     <!-- ── Section principale ─────────────────────────────────────────────── -->
     <section
-      class="bg-cgws-cream py-8 md:py-12"
+      class="bg-cgws-ground py-8 md:py-12"
       aria-label="Détail du produit"
     >
       <div

@@ -51,18 +51,18 @@ onUnmounted(() => {
     <!-- ====================================================================
          1 — Page Hero
     ==================================================================== -->
-    <section class="bg-cgws-tack py-12 md:py-16 lg:py-20 text-center" aria-labelledby="consignation-heading">
+    <section class="bg-cgws-ground py-12 md:py-16 lg:py-20 text-center" aria-labelledby="consignation-heading">
       <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
 
         <!-- Eyebrow -->
-        <p class="font-eyebrow text-cgws-copper text-sm tracking-widest uppercase mb-4">
+        <p class="font-eyebrow text-cgws-accent text-sm tracking-widest uppercase mb-4">
           CONSIGNATION
         </p>
 
         <!-- Main heading -->
         <h1
           id="consignation-heading"
-          class="font-display uppercase text-cgws-cream leading-none
+          class="font-display uppercase text-cgws-ink leading-none
                  text-[48px] md:text-[56px] lg:text-[72px]
                  mb-4 md:mb-6"
         >
@@ -71,7 +71,7 @@ onUnmounted(() => {
         </h1>
 
         <!-- Tagline -->
-        <p class="font-serif italic text-cgws-rope text-base md:text-lg max-w-2xl mx-auto mt-4 mb-8 md:mb-10">
+        <p class="font-serif italic text-cgws-ink-soft text-base md:text-lg max-w-2xl mx-auto mt-4 mb-8 md:mb-10">
           « Confiez-nous votre selle, votre bride ou vos bottes —
           nous les exposons, nous les vendons pour vous. »
         </p>
@@ -98,16 +98,16 @@ onUnmounted(() => {
     <!-- ====================================================================
          3 — ConchoDivider (transition parchment → cream)
     ==================================================================== -->
-    <ConchoDivider bg-class="bg-cgws-parchment" />
+    <ConchoDivider bg-class="bg-cgws-surface" />
 
     <!-- ====================================================================
          4 — Conditions de consignation (wanted poster)
     ==================================================================== -->
-    <section class="conditions-section bg-cgws-cream py-10 md:py-14 lg:py-16">
+    <section class="conditions-section bg-cgws-ground py-10 md:py-14 lg:py-16">
       <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
 
         <!-- Eyebrow -->
-        <p class="font-eyebrow text-cgws-copper text-sm tracking-widest uppercase text-center mb-8">
+        <p class="font-eyebrow text-cgws-accent text-sm tracking-widest uppercase text-center mb-8">
           NOS CONDITIONS
         </p>
 
@@ -115,17 +115,17 @@ onUnmounted(() => {
         <div class="conditions-poster mx-auto max-w-2xl">
 
           <!-- Bordure externe (3px charcoal) -->
-          <div class="border-[3px] border-cgws-charcoal bg-cgws-parchment p-1.5">
+          <div class="border-[3px] border-cgws-ink bg-cgws-surface p-1.5">
 
             <!-- Bordure interne (1px charcoal) -->
-            <div class="border border-cgws-charcoal p-6 md:p-8">
+            <div class="border border-cgws-ink p-6 md:p-8">
 
               <!-- Header poster -->
-              <p class="font-eyebrow text-cgws-charcoal text-xs tracking-[0.2em] uppercase text-center mb-6">
+              <p class="font-eyebrow text-cgws-ink text-xs tracking-[0.2em] uppercase text-center mb-6">
                 DÉPÔT-VENTE CGWS · BRÈCHES · INDRE-ET-LOIRE
               </p>
 
-              <div class="border-t border-cgws-charcoal/40 mb-6" />
+              <div class="border-t border-cgws-ink/40 mb-6" />
 
               <!-- 3 conditions -->
               <!-- TODO: confirmer avec Camille les valeurs réelles (commission et durée) -->
@@ -133,45 +133,45 @@ onUnmounted(() => {
 
                 <!-- Commission -->
                 <div class="flex-1">
-                  <p class="font-eyebrow text-cgws-charcoal/60 text-[11px] uppercase tracking-widest mb-1">
+                  <p class="font-eyebrow text-cgws-ink/60 text-[11px] uppercase tracking-widest mb-1">
                     COMMISSION
                   </p>
-                  <p class="font-display text-5xl text-cgws-copper leading-none">
+                  <p class="font-display text-5xl text-cgws-accent leading-none">
                     20&nbsp;%
                   </p>
-                  <p class="font-sans text-xs text-cgws-charcoal/60 mt-1">
+                  <p class="font-sans text-xs text-cgws-ink/60 mt-1">
                     sur le prix de vente
                   </p>
                 </div>
 
                 <!-- Séparateur vertical -->
-                <div class="hidden sm:block w-px bg-cgws-charcoal/20 self-stretch" aria-hidden="true" />
+                <div class="hidden sm:block w-px bg-cgws-ink/20 self-stretch" aria-hidden="true" />
 
                 <!-- Durée -->
                 <div class="flex-1">
-                  <p class="font-eyebrow text-cgws-charcoal/60 text-[11px] uppercase tracking-widest mb-1">
+                  <p class="font-eyebrow text-cgws-ink/60 text-[11px] uppercase tracking-widest mb-1">
                     DURÉE
                   </p>
-                  <p class="font-display text-5xl text-cgws-copper leading-none">
+                  <p class="font-display text-5xl text-cgws-accent leading-none">
                     3 MOIS
                   </p>
-                  <p class="font-sans text-xs text-cgws-charcoal/60 mt-1">
+                  <p class="font-sans text-xs text-cgws-ink/60 mt-1">
                     renouvelable par accord
                   </p>
                 </div>
 
                 <!-- Séparateur vertical -->
-                <div class="hidden sm:block w-px bg-cgws-charcoal/20 self-stretch" aria-hidden="true" />
+                <div class="hidden sm:block w-px bg-cgws-ink/20 self-stretch" aria-hidden="true" />
 
                 <!-- État requis -->
                 <div class="flex-1">
-                  <p class="font-eyebrow text-cgws-charcoal/60 text-[11px] uppercase tracking-widest mb-1">
+                  <p class="font-eyebrow text-cgws-ink/60 text-[11px] uppercase tracking-widest mb-1">
                     ÉTAT REQUIS
                   </p>
-                  <p class="font-display text-3xl text-cgws-copper leading-none">
+                  <p class="font-display text-3xl text-cgws-accent leading-none">
                     EXCELLENT<br>À BON
                   </p>
-                  <p class="font-sans text-xs text-cgws-charcoal/60 mt-1">
+                  <p class="font-sans text-xs text-cgws-ink/60 mt-1">
                     état minimum accepté
                   </p>
                 </div>
@@ -179,8 +179,8 @@ onUnmounted(() => {
               </div>
 
               <!-- Note bas de poster -->
-              <div class="border-t border-cgws-charcoal/40 mt-6 pt-4">
-                <p class="font-sans text-sm text-cgws-charcoal/60 text-center italic">
+              <div class="border-t border-cgws-ink/40 mt-6 pt-4">
+                <p class="font-sans text-sm text-cgws-ink/60 text-center italic">
                   Le prix de mise en vente est défini en accord avec vous.
                 </p>
               </div>

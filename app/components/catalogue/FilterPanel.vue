@@ -79,15 +79,15 @@ function availabilityActiveCount(): number {
 <template>
   <aside
     aria-label="Filtres du catalogue"
-    class="hidden lg:flex lg:flex-col w-[260px] flex-shrink-0 bg-cgws-cream border border-cgws-leather/20 rounded-[4px] sticky top-[calc(4rem+1px)] max-h-[calc(100vh-5rem)] overflow-y-auto"
+    class="hidden lg:flex lg:flex-col w-[260px] flex-shrink-0 bg-cgws-ground border border-cgws-hairline rounded-[4px] sticky top-[calc(4rem+1px)] max-h-[calc(100vh-5rem)] overflow-y-auto"
   >
     <!-- Sidebar header -->
-    <div class="flex items-center justify-between px-4 py-3 border-b border-cgws-leather/20">
-      <span class="font-eyebrow text-[11px] text-cgws-leather uppercase tracking-[0.2em]">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-cgws-hairline">
+      <span class="font-eyebrow text-[11px] text-cgws-ink-soft uppercase tracking-[0.2em]">
         Filtres
       </span>
       <button
-        class="font-sans text-xs text-cgws-copper hover:text-cgws-leather transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-1 disabled:opacity-30 disabled:cursor-not-allowed"
+        class="font-sans text-xs text-cgws-accent hover:text-cgws-ink-soft transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-1 disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="!hasActiveFilters"
         @click="resetFilters()"
       >
@@ -96,9 +96,9 @@ function availabilityActiveCount(): number {
     </div>
 
     <!-- Section: Catégorie -->
-    <div class="border-b border-cgws-leather/10">
+    <div class="border-b border-cgws-hairline">
       <button
-        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-expanded="openSections.categories"
         aria-controls="filter-section-categories"
         @click="openSections.categories = !openSections.categories"
@@ -107,13 +107,13 @@ function availabilityActiveCount(): number {
         <span class="flex items-center gap-2">
           <span
             v-if="categoryActiveCount() > 0"
-            class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+            class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
           >
             {{ categoryActiveCount() }}
           </span>
           <UIcon
             name="i-lucide-chevron-down"
-            class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+            class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
             :class="{ 'rotate-180': openSections.categories }"
           />
         </span>
@@ -135,16 +135,16 @@ function availabilityActiveCount(): number {
           <label
             v-for="cat in ALL_CATEGORIES"
             :key="cat"
-            class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150"
+            class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150"
           >
             <input
               type="checkbox"
               :checked="filters.categories.includes(cat)"
-              class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+              class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
               :aria-label="CATEGORY_LABELS[cat]"
               @change="toggleCategory(cat)"
             >
-            <span class="font-sans text-sm text-cgws-charcoal flex-1">
+            <span class="font-sans text-sm text-cgws-ink flex-1">
               {{ CATEGORY_LABELS[cat] }}
             </span>
           </label>
@@ -153,9 +153,9 @@ function availabilityActiveCount(): number {
     </div>
 
     <!-- Section: État -->
-    <div class="border-b border-cgws-leather/10">
+    <div class="border-b border-cgws-hairline">
       <button
-        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-expanded="openSections.conditions"
         aria-controls="filter-section-conditions"
         @click="openSections.conditions = !openSections.conditions"
@@ -164,13 +164,13 @@ function availabilityActiveCount(): number {
         <span class="flex items-center gap-2">
           <span
             v-if="conditionActiveCount() > 0"
-            class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+            class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
           >
             {{ conditionActiveCount() }}
           </span>
           <UIcon
             name="i-lucide-chevron-down"
-            class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+            class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
             :class="{ 'rotate-180': openSections.conditions }"
           />
         </span>
@@ -189,25 +189,25 @@ function availabilityActiveCount(): number {
           role="region"
           class="px-4 pb-3 space-y-2"
         >
-          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
             <input
               type="checkbox"
               :checked="filters.conditions.includes('new')"
-              class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+              class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
               aria-label="Neuf"
               @change="toggleCondition('new')"
             >
-            <span class="font-sans text-sm text-cgws-charcoal flex-1">Neuf</span>
+            <span class="font-sans text-sm text-cgws-ink flex-1">Neuf</span>
           </label>
-          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
             <input
               type="checkbox"
               :checked="filters.conditions.includes('occasion')"
-              class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+              class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
               aria-label="Occasion"
               @change="toggleCondition('occasion')"
             >
-            <span class="font-sans text-sm text-cgws-charcoal flex-1">Occasion</span>
+            <span class="font-sans text-sm text-cgws-ink flex-1">Occasion</span>
           </label>
         </div>
       </Transition>
@@ -216,10 +216,10 @@ function availabilityActiveCount(): number {
     <!-- Section: Marque -->
     <div
       v-if="availableBrands.length > 0"
-      class="border-b border-cgws-leather/10"
+      class="border-b border-cgws-hairline"
     >
       <button
-        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-expanded="openSections.brands"
         aria-controls="filter-section-brands"
         @click="openSections.brands = !openSections.brands"
@@ -228,13 +228,13 @@ function availabilityActiveCount(): number {
         <span class="flex items-center gap-2">
           <span
             v-if="brandActiveCount() > 0"
-            class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+            class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
           >
             {{ brandActiveCount() }}
           </span>
           <UIcon
             name="i-lucide-chevron-down"
-            class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+            class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
             :class="{ 'rotate-180': openSections.brands }"
           />
         </span>
@@ -256,20 +256,20 @@ function availabilityActiveCount(): number {
           <label
             v-for="brand in visibleBrands"
             :key="brand"
-            class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150"
+            class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150"
           >
             <input
               type="checkbox"
               :checked="filters.brands.includes(brand)"
-              class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+              class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
               :aria-label="brand"
               @change="toggleBrand(brand)"
             >
-            <span class="font-sans text-sm text-cgws-charcoal flex-1">{{ brand }}</span>
+            <span class="font-sans text-sm text-cgws-ink flex-1">{{ brand }}</span>
           </label>
           <button
             v-if="availableBrands.length > BRAND_LIMIT"
-            class="font-sans text-xs text-cgws-copper hover:underline cursor-pointer mt-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-copper"
+            class="font-sans text-xs text-cgws-accent hover:underline cursor-pointer mt-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-accent"
             @click="showAllBrands = !showAllBrands"
           >
             {{ showAllBrands ? 'Voir moins' : `Voir ${availableBrands.length - BRAND_LIMIT} de plus` }}
@@ -279,9 +279,9 @@ function availabilityActiveCount(): number {
     </div>
 
     <!-- Section: Prix -->
-    <div class="border-b border-cgws-leather/10">
+    <div class="border-b border-cgws-hairline">
       <button
-        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-expanded="openSections.price"
         aria-controls="filter-section-price"
         @click="openSections.price = !openSections.price"
@@ -289,7 +289,7 @@ function availabilityActiveCount(): number {
         <span>Prix</span>
         <UIcon
           name="i-lucide-chevron-down"
-          class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+          class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
           :class="{ 'rotate-180': openSections.price }"
         />
       </button>
@@ -318,7 +318,7 @@ function availabilityActiveCount(): number {
           />
           <div class="flex gap-2">
             <div class="flex-1">
-              <label for="price-min-panel" class="font-sans text-[11px] text-cgws-leather/70 block mb-1">
+              <label for="price-min-panel" class="font-sans text-[11px] text-cgws-ink-soft/70 block mb-1">
                 Min (€)
               </label>
               <input
@@ -327,12 +327,12 @@ function availabilityActiveCount(): number {
                 :value="filters.priceMin"
                 :min="0"
                 :max="filters.priceMax"
-                class="w-full bg-cgws-cream border border-cgws-leather/40 rounded-sm px-2 py-1 font-sans text-sm text-cgws-charcoal text-right focus:outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20"
+                class="w-full bg-cgws-ground border border-cgws-hairline rounded-sm px-2 py-1 font-sans text-sm text-cgws-ink text-right focus:outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20"
                 @change="(e) => { const v = Number((e.target as HTMLInputElement).value); filters.priceMin = Math.max(0, Math.min(v, filters.priceMax - 10)) }"
               >
             </div>
             <div class="flex-1">
-              <label for="price-max-panel" class="font-sans text-[11px] text-cgws-leather/70 block mb-1">
+              <label for="price-max-panel" class="font-sans text-[11px] text-cgws-ink-soft/70 block mb-1">
                 Max (€)
               </label>
               <input
@@ -341,7 +341,7 @@ function availabilityActiveCount(): number {
                 :value="filters.priceMax"
                 :min="filters.priceMin"
                 :max="maxPrice"
-                class="w-full bg-cgws-cream border border-cgws-leather/40 rounded-sm px-2 py-1 font-sans text-sm text-cgws-charcoal text-right focus:outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20"
+                class="w-full bg-cgws-ground border border-cgws-hairline rounded-sm px-2 py-1 font-sans text-sm text-cgws-ink text-right focus:outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20"
                 @change="(e) => { const v = Number((e.target as HTMLInputElement).value); filters.priceMax = Math.min(maxPrice, Math.max(v, filters.priceMin + 10)) }"
               >
             </div>
@@ -353,7 +353,7 @@ function availabilityActiveCount(): number {
     <!-- Section: Disponibilité -->
     <div class="last:border-b-0">
       <button
-        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-expanded="openSections.availability"
         aria-controls="filter-section-availability"
         @click="openSections.availability = !openSections.availability"
@@ -362,13 +362,13 @@ function availabilityActiveCount(): number {
         <span class="flex items-center gap-2">
           <span
             v-if="availabilityActiveCount() > 0"
-            class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+            class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
           >
             {{ availabilityActiveCount() }}
           </span>
           <UIcon
             name="i-lucide-chevron-down"
-            class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+            class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
             :class="{ 'rotate-180': openSections.availability }"
           />
         </span>
@@ -387,25 +387,25 @@ function availabilityActiveCount(): number {
           role="region"
           class="px-4 pb-3 space-y-2"
         >
-          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
             <input
               type="checkbox"
               :checked="filters.includeReserved"
-              class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+              class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
               aria-label="Inclure les réservés"
               @change="filters.includeReserved = !filters.includeReserved"
             >
-            <span class="font-sans text-sm text-cgws-charcoal flex-1">Inclure les réservés</span>
+            <span class="font-sans text-sm text-cgws-ink flex-1">Inclure les réservés</span>
           </label>
-          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+          <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
             <input
               type="checkbox"
               :checked="filters.isConsignment === true"
-              class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+              class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
               aria-label="Articles en consignation uniquement"
               @change="filters.isConsignment = filters.isConsignment === true ? null : true"
             >
-            <span class="font-sans text-sm text-cgws-charcoal flex-1">Articles en consignation</span>
+            <span class="font-sans text-sm text-cgws-ink flex-1">Articles en consignation</span>
           </label>
         </div>
       </Transition>

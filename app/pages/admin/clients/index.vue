@@ -144,16 +144,16 @@ onUnmounted(() => {
     <!-- Page header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+        <h2 class="font-serif font-bold text-2xl text-cgws-ink">
           Clients
         </h2>
         <p
           v-if="isLoading"
-          class="h-3 w-24 bg-cgws-leather/10 rounded animate-pulse mt-1"
+          class="h-3 w-24 bg-cgws-hairline rounded animate-pulse mt-1"
         />
         <p
           v-else
-          class="font-sans text-sm mt-0.5 text-cgws-leather"
+          class="font-sans text-sm mt-0.5 text-cgws-ink-soft"
         >
           {{ totalCount }} client{{ totalCount !== 1 ? 's' : '' }}
         </p>
@@ -161,10 +161,10 @@ onUnmounted(() => {
 
       <NuxtLink
         to="/admin/clients/nouveau"
-        class="px-4 py-2 rounded-sm bg-cgws-copper text-white font-sans text-sm
-               font-semibold inline-flex items-center gap-2 hover:bg-cgws-leather
+        class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent font-sans text-sm
+               font-semibold inline-flex items-center gap-2 hover:bg-cgws-edge
                transition-colors duration-150
-               focus-visible:ring-2 focus-visible:ring-cgws-copper
+               focus-visible:ring-2 focus-visible:ring-cgws-accent
                focus-visible:ring-offset-2 focus-visible:outline-none"
         aria-label="Créer un nouveau client"
       >
@@ -182,7 +182,7 @@ onUnmounted(() => {
     <div class="relative mb-4">
       <UIcon
         name="i-lucide-search"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-leather/50 pointer-events-none"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft/50 pointer-events-none"
         aria-hidden="true"
       />
       <input
@@ -191,10 +191,10 @@ onUnmounted(() => {
         role="searchbox"
         aria-label="Rechercher un client par nom ou email"
         placeholder="Rechercher un client (nom ou email)…"
-        class="w-full pl-9 pr-3 py-2 bg-cgws-cream border border-cgws-leather/40
-               rounded-sm font-sans text-sm text-cgws-charcoal
-               placeholder:text-cgws-rope
-               focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+        class="w-full pl-9 pr-3 py-2 bg-cgws-ground border border-cgws-hairline
+               rounded-sm font-sans text-sm text-cgws-ink
+               placeholder:text-cgws-ink-soft
+               focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                focus:outline-none"
       >
     </div>
@@ -206,18 +206,18 @@ onUnmounted(() => {
     >
       <UIcon
         name="i-lucide-alert-triangle"
-        class="w-10 h-10 mx-auto mb-3 text-cgws-rust"
+        class="w-10 h-10 mx-auto mb-3 text-cgws-danger"
         aria-hidden="true"
       />
-      <p class="font-sans text-sm text-cgws-leather italic mb-4">
+      <p class="font-sans text-sm text-cgws-ink-soft italic mb-4">
         Erreur lors du chargement des clients.
       </p>
       <button
         type="button"
-        class="px-4 py-2 rounded-sm bg-cgws-copper text-white
+        class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                font-sans text-sm font-semibold inline-flex items-center gap-2
-               hover:bg-cgws-leather transition-colors
-               focus-visible:ring-2 focus-visible:ring-cgws-copper
+               hover:bg-cgws-edge transition-colors
+               focus-visible:ring-2 focus-visible:ring-cgws-accent
                focus-visible:ring-offset-2 focus-visible:outline-none"
         @click="fetchClients"
       >
@@ -227,7 +227,7 @@ onUnmounted(() => {
 
     <template v-else>
       <!-- Table (sm+) -->
-      <div class="hidden sm:block bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden">
+      <div class="hidden sm:block bg-white border border-cgws-hairline rounded-[4px] overflow-hidden">
         <table
           class="w-full text-sm font-sans"
           aria-label="Liste des clients"
@@ -235,47 +235,47 @@ onUnmounted(() => {
           <caption class="sr-only">
             {{ totalCount }} client{{ totalCount !== 1 ? 's' : '' }}, triés par date de dernier achat décroissante
           </caption>
-          <thead class="bg-cgws-parchment/40 border-b border-cgws-leather/20">
+          <thead class="bg-cgws-surface/40 border-b border-cgws-hairline">
             <tr>
               <th
                 scope="col"
-                class="py-3 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Nom
               </th>
               <th
                 scope="col"
-                class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Email
               </th>
               <th
                 scope="col"
-                class="hidden md:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="hidden md:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Tél.
               </th>
               <th
                 scope="col"
-                class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Achats
               </th>
               <th
                 scope="col"
-                class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Dernier achat
               </th>
               <th
                 scope="col"
-                class="py-3 px-3 text-right pr-4 font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 px-3 text-right pr-4 font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Voir
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-cgws-leather/10">
+          <tbody class="divide-y divide-cgws-hairline">
             <!-- Skeleton -->
             <template v-if="isLoading">
               <tr
@@ -283,22 +283,22 @@ onUnmounted(() => {
                 :key="i"
               >
                 <td class="py-3 pl-4 pr-3">
-                  <div class="h-4 bg-cgws-leather/10 rounded animate-pulse w-32" />
+                  <div class="h-4 bg-cgws-hairline rounded animate-pulse w-32" />
                 </td>
                 <td class="py-3 px-3">
-                  <div class="h-4 bg-cgws-leather/10 rounded animate-pulse w-40" />
+                  <div class="h-4 bg-cgws-hairline rounded animate-pulse w-40" />
                 </td>
                 <td class="hidden md:table-cell py-3 px-3">
-                  <div class="h-4 bg-cgws-leather/10 rounded animate-pulse w-24" />
+                  <div class="h-4 bg-cgws-hairline rounded animate-pulse w-24" />
                 </td>
                 <td class="py-3 px-3 text-right">
-                  <div class="h-4 bg-cgws-leather/10 rounded animate-pulse w-8 ml-auto" />
+                  <div class="h-4 bg-cgws-hairline rounded animate-pulse w-8 ml-auto" />
                 </td>
                 <td class="hidden lg:table-cell py-3 px-3">
-                  <div class="h-4 bg-cgws-leather/10 rounded animate-pulse w-20" />
+                  <div class="h-4 bg-cgws-hairline rounded animate-pulse w-20" />
                 </td>
                 <td class="py-3 px-3 pr-4 text-right">
-                  <div class="h-4 bg-cgws-leather/10 rounded animate-pulse w-6 ml-auto" />
+                  <div class="h-4 bg-cgws-hairline rounded animate-pulse w-6 ml-auto" />
                 </td>
               </tr>
             </template>
@@ -311,16 +311,16 @@ onUnmounted(() => {
               >
                 <UIcon
                   name="i-lucide-users"
-                  class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+                  class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
                   aria-hidden="true"
                 />
-                <p class="font-sans text-sm text-cgws-leather italic">
+                <p class="font-sans text-sm text-cgws-ink-soft italic">
                   Aucun client ne correspond à «&nbsp;{{ searchQuery }}&nbsp;».
                 </p>
                 <button
                   type="button"
-                  class="mt-2 font-sans text-xs text-cgws-copper hover:underline
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="mt-2 font-sans text-xs text-cgws-accent hover:underline
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   @click="searchInput = ''"
                 >
                   Effacer la recherche
@@ -336,18 +336,18 @@ onUnmounted(() => {
               >
                 <UIcon
                   name="i-lucide-users"
-                  class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+                  class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
                   aria-hidden="true"
                 />
-                <p class="font-sans text-sm text-cgws-leather italic mb-4">
+                <p class="font-sans text-sm text-cgws-ink-soft italic mb-4">
                   Aucun client enregistré.
                 </p>
                 <NuxtLink
                   to="/admin/clients/nouveau"
-                  class="px-4 py-2 rounded-sm bg-cgws-copper text-white
+                  class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                          font-sans text-sm font-semibold inline-flex items-center gap-2
-                         hover:bg-cgws-leather transition-colors
-                         focus-visible:ring-2 focus-visible:ring-cgws-copper
+                         hover:bg-cgws-edge transition-colors
+                         focus-visible:ring-2 focus-visible:ring-cgws-accent
                          focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                   <UIcon
@@ -365,35 +365,35 @@ onUnmounted(() => {
               v-for="client in clients"
               v-else
               :key="client.id"
-              class="client-row transition-colors duration-100 hover:bg-cgws-parchment/20"
+              class="client-row transition-colors duration-100 hover:bg-cgws-surface/20"
             >
               <td class="py-3 pl-4 pr-3 max-w-[200px]">
                 <NuxtLink
                   :to="`/admin/clients/${client.id}`"
-                  class="font-sans text-sm font-medium text-cgws-charcoal hover:text-cgws-copper
+                  class="font-sans text-sm font-medium text-cgws-ink hover:text-cgws-accent
                          transition-colors truncate block
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 >
                   {{ client.name }}
                 </NuxtLink>
               </td>
-              <td class="py-3 px-3 text-sm text-cgws-leather">
+              <td class="py-3 px-3 text-sm text-cgws-ink-soft">
                 {{ client.email ?? '—' }}
               </td>
-              <td class="hidden md:table-cell py-3 px-3 text-sm text-cgws-leather whitespace-nowrap">
+              <td class="hidden md:table-cell py-3 px-3 text-sm text-cgws-ink-soft whitespace-nowrap">
                 {{ client.phone ?? '—' }}
               </td>
-              <td class="py-3 px-3 text-right font-display text-base text-cgws-copper">
+              <td class="py-3 px-3 text-right font-display text-base text-cgws-accent">
                 {{ client.purchaseCount }}
               </td>
-              <td class="hidden lg:table-cell py-3 px-3 text-sm text-cgws-leather whitespace-nowrap">
+              <td class="hidden lg:table-cell py-3 px-3 text-sm text-cgws-ink-soft whitespace-nowrap">
                 {{ formatDate(client.lastPurchaseDate) }}
               </td>
               <td class="py-3 px-3 pr-4 text-right">
                 <NuxtLink
                   :to="`/admin/clients/${client.id}`"
-                  class="text-cgws-copper hover:text-cgws-leather transition-colors inline-block
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="text-cgws-accent hover:text-cgws-ink-soft transition-colors inline-block
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   :aria-label="`Voir la fiche de ${client.name}`"
                   tabindex="-1"
                 >
@@ -415,11 +415,11 @@ onUnmounted(() => {
           <div
             v-for="i in 5"
             :key="i"
-            class="bg-white border border-cgws-leather/30 rounded-[4px] p-4 animate-pulse"
+            class="bg-white border border-cgws-hairline rounded-[4px] p-4 animate-pulse"
           >
-            <div class="h-4 w-32 bg-cgws-leather/10 rounded mb-2" />
-            <div class="h-3 w-48 bg-cgws-leather/10 rounded mb-2" />
-            <div class="h-3 w-20 bg-cgws-leather/10 rounded" />
+            <div class="h-4 w-32 bg-cgws-hairline rounded mb-2" />
+            <div class="h-3 w-48 bg-cgws-hairline rounded mb-2" />
+            <div class="h-3 w-20 bg-cgws-hairline rounded" />
           </div>
         </template>
 
@@ -429,16 +429,16 @@ onUnmounted(() => {
         >
           <UIcon
             name="i-lucide-users"
-            class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+            class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
             aria-hidden="true"
           />
-          <p class="font-sans text-sm text-cgws-leather italic">
+          <p class="font-sans text-sm text-cgws-ink-soft italic">
             Aucun client ne correspond à «&nbsp;{{ searchQuery }}&nbsp;».
           </p>
           <button
             type="button"
-            class="mt-2 font-sans text-xs text-cgws-copper hover:underline
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="mt-2 font-sans text-xs text-cgws-accent hover:underline
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
             @click="searchInput = ''"
           >
             Effacer la recherche
@@ -451,18 +451,18 @@ onUnmounted(() => {
         >
           <UIcon
             name="i-lucide-users"
-            class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+            class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
             aria-hidden="true"
           />
-          <p class="font-sans text-sm text-cgws-leather italic mb-4">
+          <p class="font-sans text-sm text-cgws-ink-soft italic mb-4">
             Aucun client enregistré.
           </p>
           <NuxtLink
             to="/admin/clients/nouveau"
-            class="px-4 py-2 rounded-sm bg-cgws-copper text-white
+            class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                    font-sans text-sm font-semibold inline-flex items-center gap-2
-                   hover:bg-cgws-leather transition-colors
-                   focus-visible:ring-2 focus-visible:ring-cgws-copper
+                   hover:bg-cgws-edge transition-colors
+                   focus-visible:ring-2 focus-visible:ring-cgws-accent
                    focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             + Nouveau client
@@ -482,7 +482,7 @@ onUnmounted(() => {
         v-if="!isLoading && totalPages > 1"
         class="flex items-center justify-between mt-4 flex-wrap gap-3"
       >
-        <p class="font-sans text-xs text-cgws-leather">
+        <p class="font-sans text-xs text-cgws-ink-soft">
           {{ totalCount }} client{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} de {{ totalPages }}
         </p>
         <nav
@@ -492,9 +492,9 @@ onUnmounted(() => {
           <button
             type="button"
             :disabled="currentPage === 1"
-            class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30
-                   hover:bg-cgws-leather/10 transition-colors
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30
+                   hover:bg-cgws-hairline transition-colors
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
             aria-label="Page précédente"
             @click="goToPage(currentPage - 1)"
           >
@@ -510,10 +510,10 @@ onUnmounted(() => {
             type="button"
             :aria-current="p === currentPage ? 'page' : undefined"
             :class="[
-              'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper',
+              'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent',
               p === currentPage
-                ? 'bg-cgws-copper text-white font-semibold'
-                : 'text-cgws-leather hover:bg-cgws-leather/10',
+                ? 'bg-cgws-accent text-cgws-on-accent font-semibold'
+                : 'text-cgws-ink-soft hover:bg-cgws-hairline',
             ]"
             @click="goToPage(p)"
           >
@@ -523,9 +523,9 @@ onUnmounted(() => {
           <button
             type="button"
             :disabled="currentPage === totalPages"
-            class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30
-                   hover:bg-cgws-leather/10 transition-colors
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30
+                   hover:bg-cgws-hairline transition-colors
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
             aria-label="Page suivante"
             @click="goToPage(currentPage + 1)"
           >

@@ -135,10 +135,10 @@ onUnmounted(() => {
           aria-live="polite"
         >
           <div
-            class="w-8 h-8 rounded-full border-2 border-cgws-copper border-t-transparent animate-spin"
+            class="w-8 h-8 rounded-full border-2 border-cgws-accent border-t-transparent animate-spin"
             aria-hidden="true"
           />
-          <span class="font-sans text-sm text-cgws-leather">
+          <span class="font-sans text-sm text-cgws-ink-soft">
             Chargement des articles...
           </span>
         </div>
@@ -149,7 +149,7 @@ onUnmounted(() => {
           class="col-span-full text-center py-8"
         >
           <ConchoDivider />
-          <p class="font-serif italic text-cgws-leather text-sm mt-2">
+          <p class="font-serif italic text-cgws-ink-soft text-sm mt-2">
             Tous les produits ont été chargés · {{ total }} article{{ total !== 1 ? 's' : '' }}
           </p>
         </div>

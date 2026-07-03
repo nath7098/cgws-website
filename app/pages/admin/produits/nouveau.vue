@@ -73,7 +73,7 @@ async function handleCreate(payload: ProductFormPayload) {
     <div class="flex items-center gap-3">
       <NuxtLink
         to="/admin/produits"
-        class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         aria-label="Retour à la liste des produits"
       >
         <UIcon
@@ -82,7 +82,7 @@ async function handleCreate(payload: ProductFormPayload) {
           aria-hidden="true"
         />
       </NuxtLink>
-      <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+      <h2 class="font-serif font-bold text-2xl text-cgws-ink">
         Nouveau produit
       </h2>
     </div>

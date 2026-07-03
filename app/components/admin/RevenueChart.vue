@@ -48,7 +48,7 @@ const chartData = computed<ChartData<'bar'>>(() => ({
     {
       label: 'CA propre',
       data: effectiveData.value.map(d => d.ownRevenue),
-      backgroundColor: '#B8650A', // cgws-copper
+      backgroundColor: '#8C4A56', // cgws-accent (Élégante Jour — valeur par défaut statique, Chart.js ne lit pas les CSS vars)
       borderRadius: 3,
       borderSkipped: false,
       stack: 'revenue',
@@ -56,7 +56,7 @@ const chartData = computed<ChartData<'bar'>>(() => ({
     {
       label: 'CA consignation',
       data: effectiveData.value.map(d => d.consignmentRevenue),
-      backgroundColor: '#2C4A72', // cgws-denim
+      backgroundColor: '#B76E79', // cgws-accent-deco (Élégante Jour) — cgws-denim n'existe qu'en peau Rugueux, non réutilisable ici
       borderRadius: 3,
       borderSkipped: false,
       stack: 'revenue',
@@ -90,16 +90,16 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
       grid: { display: false },
       ticks: {
         font: { family: 'Inter', size: 11 },
-        color: '#7B3B1C', // cgws-leather
+        color: '#5B4436', // cgws-ink-soft (Élégante Jour)
       },
     },
     y: {
       stacked: true,
-      grid: { color: '#F0DDB8' }, // cgws-parchment
+      grid: { color: '#EFE1CC' }, // cgws-surface (Élégante Jour)
       border: { dash: [4, 4] },
       ticks: {
         font: { family: 'Inter', size: 11 },
-        color: '#7B3B1C', // cgws-leather
+        color: '#5B4436', // cgws-ink-soft (Élégante Jour)
         callback: (value) => `${Number(value).toLocaleString('fr-FR')} €`,
       },
     },
@@ -141,7 +141,7 @@ onMounted(() => {
     <div
       v-if="effectiveLoading"
       :style="{ height: `${height}px` }"
-      class="animate-pulse bg-cgws-leather/10 rounded w-full"
+      class="animate-pulse bg-cgws-hairline rounded w-full"
       aria-busy="true"
       aria-label="Chargement du graphique…"
     />
@@ -153,7 +153,7 @@ onMounted(() => {
       class="flex items-center justify-center"
       role="alert"
     >
-      <p class="font-sans text-xs text-cgws-rust text-center">
+      <p class="font-sans text-xs text-cgws-danger text-center">
         Impossible de charger les données. Actualisez la page.
       </p>
     </div>
@@ -180,12 +180,12 @@ onMounted(() => {
         aria-hidden="true"
       >
         <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-sm bg-cgws-copper inline-block flex-shrink-0" />
-          <span class="font-sans text-xs text-cgws-leather">CA propre</span>
+          <span class="w-3 h-3 rounded-sm bg-cgws-accent inline-block flex-shrink-0" />
+          <span class="font-sans text-xs text-cgws-ink-soft">CA propre</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-sm bg-cgws-denim inline-block flex-shrink-0" />
-          <span class="font-sans text-xs text-cgws-leather">CA consignation</span>
+          <span class="w-3 h-3 rounded-sm bg-cgws-accent-deco inline-block flex-shrink-0" />
+          <span class="font-sans text-xs text-cgws-ink-soft">CA consignation</span>
         </div>
       </div>
     </template>

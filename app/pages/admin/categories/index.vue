@@ -267,10 +267,10 @@ onUnmounted(() => {
     <!-- Page header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+        <h2 class="font-serif font-bold text-2xl text-cgws-ink">
           Catégories
         </h2>
-        <p class="font-sans text-sm text-cgws-leather mt-0.5">
+        <p class="font-sans text-sm text-cgws-ink-soft mt-0.5">
           {{ rootCount }} catégorie{{ rootCount !== 1 ? 's' : '' }} · 2 niveaux maximum
         </p>
       </div>
@@ -325,7 +325,7 @@ onUnmounted(() => {
         >
           <!-- Backdrop -->
           <div
-            class="absolute inset-0 bg-cgws-charcoal/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-cgws-ink/60 backdrop-blur-sm"
             aria-hidden="true"
             @click="!isDeleting && closeDeleteModal()"
           />
@@ -334,27 +334,27 @@ onUnmounted(() => {
           <div
             v-if="canDelete"
             ref="deleteModalRef"
-            class="relative bg-white border-2 border-cgws-charcoal rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
+            class="relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
           >
             <div class="flex items-start gap-4">
-              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-rust/10 flex items-center justify-center">
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-danger/10 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-triangle-alert"
-                  class="w-5 h-5 text-cgws-rust"
+                  class="w-5 h-5 text-cgws-danger"
                   aria-hidden="true"
                 />
               </div>
               <div>
                 <h3
                   id="delete-modal-title"
-                  class="font-serif font-bold text-lg text-cgws-charcoal"
+                  class="font-serif font-bold text-lg text-cgws-ink"
                 >
                   Supprimer « {{ deleteTarget.name }} » ?
                 </h3>
-                <p class="font-sans text-sm text-cgws-leather mt-1">
+                <p class="font-sans text-sm text-cgws-ink-soft mt-1">
                   <template v-if="deleteTarget.children.length > 0">
                     Cette catégorie et ses
-                    <strong class="text-cgws-charcoal">{{ deleteTarget.children.length }} sous-catégorie{{ deleteTarget.children.length !== 1 ? 's' : '' }}</strong>
+                    <strong class="text-cgws-ink">{{ deleteTarget.children.length }} sous-catégorie{{ deleteTarget.children.length !== 1 ? 's' : '' }}</strong>
                     seront définitivement supprimées.
                   </template>
                   <template v-else>
@@ -378,7 +378,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 :disabled="isDeleting"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-rust text-white font-sans text-sm font-semibold hover:bg-cgws-charcoal transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-brand-espresso transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 @click="confirmDelete"
               >
                 <span
@@ -395,32 +395,32 @@ onUnmounted(() => {
           <div
             v-else
             ref="deleteModalRef"
-            class="relative bg-white border-2 border-cgws-charcoal rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
+            class="relative bg-white border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
           >
             <div class="flex items-start gap-4">
-              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-leather/10 flex items-center justify-center">
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-hairline flex items-center justify-center">
                 <UIcon
                   name="i-lucide-shield-alert"
-                  class="w-5 h-5 text-cgws-leather"
+                  class="w-5 h-5 text-cgws-ink-soft"
                   aria-hidden="true"
                 />
               </div>
               <div>
                 <h3
                   id="delete-modal-title"
-                  class="font-serif font-bold text-lg text-cgws-charcoal"
+                  class="font-serif font-bold text-lg text-cgws-ink"
                 >
                   Suppression impossible
                 </h3>
-                <p class="font-sans text-sm text-cgws-leather mt-1">
-                  <strong class="text-cgws-charcoal">{{ deleteTarget.name }}</strong>
+                <p class="font-sans text-sm text-cgws-ink-soft mt-1">
+                  <strong class="text-cgws-ink">{{ deleteTarget.name }}</strong>
                   contient
-                  <strong class="text-cgws-charcoal">{{ guardProductCount }} produit{{ guardProductCount !== 1 ? 's' : '' }}</strong>.
+                  <strong class="text-cgws-ink">{{ guardProductCount }} produit{{ guardProductCount !== 1 ? 's' : '' }}</strong>.
                   Réaffectez ou supprimez ces produits avant de supprimer la catégorie.
                 </p>
                 <NuxtLink
                   to="/admin/produits"
-                  class="inline-flex items-center gap-1 mt-3 font-sans text-xs text-cgws-copper hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="inline-flex items-center gap-1 mt-3 font-sans text-xs text-cgws-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 >
                   <UIcon
                     name="i-lucide-external-link"
@@ -454,13 +454,13 @@ onUnmounted(() => {
           v-if="toast"
           :role="toast.type === 'error' ? 'alert' : 'status'"
           :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
-          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-tack text-cgws-rope px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
-          :class="toast.type === 'error' ? 'border-cgws-rust' : 'border-cgws-copper'"
+          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-brand-espresso text-cgws-brand-cream px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
+          :class="toast.type === 'error' ? 'border-cgws-danger' : 'border-cgws-accent'"
         >
           <UIcon
             :name="toast.type === 'error' ? 'i-lucide-x-circle' : 'i-lucide-check-circle'"
             class="w-5 h-5 flex-shrink-0"
-            :class="toast.type === 'error' ? 'text-cgws-rust' : 'text-cgws-copper'"
+            :class="toast.type === 'error' ? 'text-cgws-danger' : 'text-cgws-accent'"
             aria-hidden="true"
           />
           <p class="font-sans text-sm">

@@ -208,8 +208,8 @@ defineExpose({ setServerError })
     <div class="lg:col-span-2 space-y-5">
 
       <!-- Fieldset 1: Informations générales -->
-      <fieldset class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 space-y-4">
-        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper px-1 mb-1">
+      <fieldset class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4">
+        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-1">
           Informations générales
         </legend>
 
@@ -223,9 +223,9 @@ defineExpose({ setServerError })
           @blur="validateField('title')"
         />
 
-        <p class="font-sans text-xs text-cgws-leather -mt-2">
+        <p class="font-sans text-xs text-cgws-ink-soft -mt-2">
           URL :
-          <code class="text-cgws-copper font-mono">/catalogue/{{ slugPreview || '…' }}</code>
+          <code class="text-cgws-accent font-mono">/catalogue/{{ slugPreview || '…' }}</code>
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -257,8 +257,8 @@ defineExpose({ setServerError })
       </fieldset>
 
       <!-- Fieldset 2: Prix & Stock -->
-      <fieldset class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 space-y-4">
-        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper px-1 mb-1">
+      <fieldset class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4">
+        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-1">
           Prix &amp; Stock
         </legend>
 
@@ -311,8 +311,8 @@ defineExpose({ setServerError })
       </fieldset>
 
       <!-- Fieldset 3: Consignation -->
-      <fieldset class="bg-white border border-cgws-leather/30 rounded-[4px] p-5">
-        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper px-1 mb-3">
+      <fieldset class="bg-white border border-cgws-hairline rounded-[4px] p-5">
+        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-3">
           Consignation
         </legend>
 
@@ -324,13 +324,13 @@ defineExpose({ setServerError })
             id="field-is-consignment"
             v-model="form.isConsignment"
             type="checkbox"
-            class="w-4 h-4 rounded-sm border-cgws-leather accent-cgws-copper focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2"
+            class="w-4 h-4 rounded-sm border-cgws-edge accent-cgws-accent focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
           >
-          <span class="font-sans text-sm font-medium text-cgws-charcoal group-hover:text-cgws-copper transition-colors">
+          <span class="font-sans text-sm font-medium text-cgws-ink group-hover:text-cgws-accent transition-colors">
             Article en consignation
           </span>
         </label>
-        <p class="font-sans text-xs text-cgws-leather mt-1 ml-7">
+        <p class="font-sans text-xs text-cgws-ink-soft mt-1 ml-7">
           Cochez si cet article a été déposé par un particulier via le service de consignation.
         </p>
 
@@ -357,20 +357,20 @@ defineExpose({ setServerError })
       <div
         v-if="serverError"
         role="alert"
-        class="bg-cgws-rust/10 border border-cgws-rust rounded-sm p-4 flex items-start gap-3"
+        class="bg-cgws-danger/10 border border-cgws-danger rounded-sm p-4 flex items-start gap-3"
       >
         <UIcon
           name="i-lucide-alert-circle"
-          class="w-5 h-5 text-cgws-rust flex-shrink-0 mt-0.5"
+          class="w-5 h-5 text-cgws-danger flex-shrink-0 mt-0.5"
           aria-hidden="true"
         />
-        <p class="font-sans text-sm text-cgws-rust">
+        <p class="font-sans text-sm text-cgws-danger">
           {{ serverError }}
         </p>
       </div>
 
       <!-- Footer buttons -->
-      <div class="flex items-center justify-between pt-4 border-t border-cgws-leather/20">
+      <div class="flex items-center justify-between pt-4 border-t border-cgws-hairline">
         <CgwsButton
           variant="ghost"
           type="button"

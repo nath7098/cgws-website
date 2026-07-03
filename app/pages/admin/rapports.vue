@@ -141,12 +141,12 @@ function formatDateFR(dateStr: string): string {
   <div class="space-y-8">
     <!-- Page header -->
     <div class="flex items-baseline justify-between flex-wrap gap-2">
-      <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+      <h2 class="font-serif font-bold text-2xl text-cgws-ink">
         Rapports &amp; Exports
       </h2>
       <span
         v-if="todayLabel"
-        class="font-sans text-xs text-cgws-leather"
+        class="font-sans text-xs text-cgws-ink-soft"
         aria-label="Date du jour"
       >
         {{ todayLabel }}
@@ -156,11 +156,11 @@ function formatDateFR(dateStr: string): string {
     <!-- ═══════════════════════════════════════════════════════ EXPORT CSV -->
     <section
       aria-labelledby="export-csv-heading"
-      class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 space-y-4"
+      class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4"
     >
       <h3
         id="export-csv-heading"
-        class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper"
+        class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent"
       >
         Export Ventes CSV
       </h3>
@@ -171,7 +171,7 @@ function formatDateFR(dateStr: string): string {
         <div class="flex-1">
           <label
             for="export-from"
-            class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+            class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
           >
             Du
           </label>
@@ -181,12 +181,12 @@ function formatDateFR(dateStr: string): string {
             type="date"
             :max="exportTo || undefined"
             :disabled="exportState === 'loading'"
-            class="w-full bg-cgws-cream text-cgws-charcoal border rounded-sm px-3 py-2 font-sans text-sm
+            class="w-full bg-cgws-ground text-cgws-ink border rounded-sm px-3 py-2 font-sans text-sm
                    transition-shadow transition-colors duration-150 outline-none
-                   focus:ring-2 focus:ring-cgws-copper/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                   focus:ring-2 focus:ring-cgws-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="fromError
-              ? 'border-cgws-rust focus:border-cgws-rust'
-              : 'border-cgws-leather focus:border-cgws-copper'"
+              ? 'border-cgws-danger focus:border-cgws-danger'
+              : 'border-cgws-edge focus:border-cgws-accent'"
             aria-required="true"
             :aria-describedby="fromError ? 'export-from-error' : undefined"
             @change="fromError = ''"
@@ -195,7 +195,7 @@ function formatDateFR(dateStr: string): string {
             v-if="fromError"
             id="export-from-error"
             role="alert"
-            class="mt-1 font-sans text-xs text-cgws-rust"
+            class="mt-1 font-sans text-xs text-cgws-danger"
           >
             {{ fromError }}
           </p>
@@ -205,7 +205,7 @@ function formatDateFR(dateStr: string): string {
         <div class="flex-1">
           <label
             for="export-to"
-            class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+            class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
           >
             Au
           </label>
@@ -215,12 +215,12 @@ function formatDateFR(dateStr: string): string {
             type="date"
             :min="exportFrom || undefined"
             :disabled="exportState === 'loading'"
-            class="w-full bg-cgws-cream text-cgws-charcoal border rounded-sm px-3 py-2 font-sans text-sm
+            class="w-full bg-cgws-ground text-cgws-ink border rounded-sm px-3 py-2 font-sans text-sm
                    transition-shadow transition-colors duration-150 outline-none
-                   focus:ring-2 focus:ring-cgws-copper/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                   focus:ring-2 focus:ring-cgws-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="toError
-              ? 'border-cgws-rust focus:border-cgws-rust'
-              : 'border-cgws-leather focus:border-cgws-copper'"
+              ? 'border-cgws-danger focus:border-cgws-danger'
+              : 'border-cgws-edge focus:border-cgws-accent'"
             aria-required="true"
             :aria-describedby="toError ? 'export-to-error' : undefined"
             @change="toError = ''"
@@ -229,7 +229,7 @@ function formatDateFR(dateStr: string): string {
             v-if="toError"
             id="export-to-error"
             role="alert"
-            class="mt-1 font-sans text-xs text-cgws-rust"
+            class="mt-1 font-sans text-xs text-cgws-danger"
           >
             {{ toError }}
           </p>
@@ -241,10 +241,10 @@ function formatDateFR(dateStr: string): string {
           :disabled="exportState === 'loading'"
           :aria-busy="exportState === 'loading' ? 'true' : undefined"
           class="sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 rounded-sm
-                 bg-cgws-copper text-white font-sans text-sm font-semibold
-                 hover:bg-cgws-leather transition-colors duration-150
+                 bg-cgws-accent text-cgws-on-accent font-sans text-sm font-semibold
+                 hover:bg-cgws-edge transition-colors duration-150
                  disabled:opacity-40 disabled:cursor-not-allowed
-                 focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2 focus-visible:outline-none
+                 focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2 focus-visible:outline-none
                  whitespace-nowrap"
           aria-label="Exporter les ventes au format CSV"
           @click="handleExport"
@@ -274,7 +274,7 @@ function formatDateFR(dateStr: string): string {
         <!-- Loading -->
         <p
           v-if="exportState === 'loading'"
-          class="font-sans text-xs text-cgws-leather"
+          class="font-sans text-xs text-cgws-ink-soft"
         >
           Génération en cours…
         </p>
@@ -282,7 +282,7 @@ function formatDateFR(dateStr: string): string {
         <!-- Success -->
         <span
           v-else-if="exportState === 'success'"
-          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-green-100 text-green-700 font-sans text-xs"
+          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-cgws-success/15 text-cgws-success font-sans text-xs"
         >
           <UIcon
             name="i-lucide-check"
@@ -296,7 +296,7 @@ function formatDateFR(dateStr: string): string {
         <!-- Empty -->
         <p
           v-else-if="exportState === 'empty'"
-          class="font-sans text-xs text-cgws-leather/70"
+          class="font-sans text-xs text-cgws-ink-soft/70"
         >
           Aucune vente sur cette période.
         </p>
@@ -305,7 +305,7 @@ function formatDateFR(dateStr: string): string {
         <p
           v-else-if="exportState === 'error'"
           role="alert"
-          class="font-sans text-xs text-cgws-rust"
+          class="font-sans text-xs text-cgws-danger"
         >
           Erreur lors de l'export. Vérifiez la période sélectionnée.
         </p>
@@ -315,11 +315,11 @@ function formatDateFR(dateStr: string): string {
     <!-- ═══════════════════════════════════════════════ ÉVOLUTION DU CA -->
     <section
       aria-labelledby="ca-chart-heading"
-      class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 space-y-4"
+      class="bg-white border border-cgws-hairline rounded-[4px] p-5 space-y-4"
     >
       <h3
         id="ca-chart-heading"
-        class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper"
+        class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent"
       >
         Évolution du Chiffre d'Affaires — 12 derniers mois
       </h3>
@@ -331,7 +331,7 @@ function formatDateFR(dateStr: string): string {
         <template #fallback>
           <!-- SSR fallback: skeleton -->
           <div
-            class="animate-pulse bg-cgws-leather/10 rounded h-[280px] w-full"
+            class="animate-pulse bg-cgws-hairline rounded h-[280px] w-full"
             aria-label="Chargement du graphique…"
           />
         </template>

@@ -10,11 +10,14 @@ const labels: Record<BadgeVariant, string> = {
   sold: 'Vendu',
 }
 
+// Mapping conforme à DESIGN_SYSTEM_v3.md §4 "Badge statut v3" :
+// Neuf = outline ink · Occasion = neutre surface-2 · Consignation = accent
+// signature (fond brand-blush + bordure accent-deco) · Vendu = accent plein.
 const variantClasses: Record<BadgeVariant, string> = {
-  new: 'bg-cgws-denim text-white',
-  occasion: 'bg-cgws-rust text-white',
-  consignment: 'bg-cgws-copper text-cgws-charcoal',
-  sold: 'bg-cgws-charcoal text-cgws-rope',
+  new: 'bg-transparent border border-cgws-ink text-cgws-ink',
+  occasion: 'bg-cgws-surface-2 text-cgws-ink-soft',
+  consignment: 'bg-cgws-brand-blush text-cgws-accent border border-cgws-accent-deco',
+  sold: 'bg-cgws-accent text-cgws-on-accent',
 }
 </script>
 

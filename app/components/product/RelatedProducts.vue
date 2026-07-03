@@ -50,19 +50,19 @@ onUnmounted(() => {
 <template>
   <section
     v-if="shouldShow"
-    class="bg-cgws-cream py-12 md:py-16"
+    class="bg-cgws-ground py-12 md:py-16"
     aria-labelledby="related-products-heading"
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
       <!-- Eyebrow -->
-      <p class="font-eyebrow text-[12px] text-cgws-copper uppercase tracking-[0.2em] mb-2">
+      <p class="font-eyebrow text-[12px] text-cgws-accent uppercase tracking-[0.2em] mb-2">
         Vous pourriez aussi aimer
       </p>
 
       <!-- Titre -->
       <h2
         id="related-products-heading"
-        class="font-serif font-bold text-[28px] md:text-[32px] text-cgws-charcoal leading-tight mb-8"
+        class="font-serif font-bold text-[28px] md:text-[32px] text-cgws-ink leading-tight mb-8"
       >
         Articles similaires
       </h2>

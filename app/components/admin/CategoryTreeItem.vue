@@ -79,7 +79,7 @@ watch([isExpanded, childSortableRef], async ([expanded, el]) => {
     animation: 150,
     handle: '[data-drag-handle]',
     ghostClass: 'opacity-40',
-    chosenClass: 'ring-1 ring-cgws-copper ring-inset',
+    chosenClass: 'ring-1 ring-cgws-accent ring-inset',
     group: { name: `children-${props.category.id}`, pull: false, put: false },
     onEnd(evt) {
       if (evt.oldIndex === undefined || evt.newIndex === undefined) return
@@ -113,14 +113,14 @@ onUnmounted(() => {
     <div
       class="flex items-center gap-2 px-4 py-3 group transition-colors duration-100"
       :class="level === 1
-        ? 'bg-white hover:bg-cgws-parchment/20'
-        : 'bg-cgws-cream hover:bg-cgws-parchment/30 pl-10'"
+        ? 'bg-white hover:bg-cgws-surface/20'
+        : 'bg-cgws-ground hover:bg-cgws-surface/30 pl-10'"
     >
       <!-- Drag handle (hidden on mobile) -->
       <button
         type="button"
         data-drag-handle
-        class="hidden sm:flex flex-shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded-sm text-cgws-leather/40 hover:text-cgws-leather opacity-0 group-hover:opacity-100 transition-opacity duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="hidden sm:flex flex-shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded-sm text-cgws-ink-soft/40 hover:text-cgws-ink-soft opacity-0 group-hover:opacity-100 transition-opacity duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-label="`Réordonner : ${category.name}`"
         tabindex="-1"
         aria-hidden="true"
@@ -132,7 +132,7 @@ onUnmounted(() => {
       <button
         v-if="level === 1"
         type="button"
-        class="flex-shrink-0 p-0.5 rounded-sm text-cgws-leather/60 hover:text-cgws-leather transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="flex-shrink-0 p-0.5 rounded-sm text-cgws-ink-soft/60 hover:text-cgws-ink-soft transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :aria-label="isExpanded ? `Réduire ${category.name}` : `Développer ${category.name}`"
         :aria-controls="`children-${category.id}`"
         :aria-expanded="isExpanded"
@@ -148,7 +148,7 @@ onUnmounted(() => {
       <!-- Level 2 depth indicator -->
       <span
         v-if="level === 2"
-        class="flex-shrink-0 w-4 text-cgws-leather/30 font-sans text-sm select-none"
+        class="flex-shrink-0 w-4 text-cgws-ink-soft/30 font-sans text-sm select-none"
         aria-hidden="true"
       >└</span>
 
@@ -156,22 +156,22 @@ onUnmounted(() => {
       <span
         class="flex-1 min-w-0 font-sans text-sm truncate"
         :class="[
-          level === 1 ? 'font-semibold text-cgws-charcoal' : 'font-medium text-cgws-leather',
-          !category.isActive && 'line-through decoration-cgws-leather/50',
+          level === 1 ? 'font-semibold text-cgws-ink' : 'font-medium text-cgws-ink-soft',
+          !category.isActive && 'line-through decoration-cgws-hairline',
         ]"
       >
         {{ category.name }}
       </span>
 
       <!-- Slug preview (level 1, desktop only) -->
-      <span class="hidden lg:inline font-mono text-[11px] text-cgws-leather/50 flex-shrink-0 mr-2">
+      <span class="hidden lg:inline font-mono text-[11px] text-cgws-ink-soft/50 flex-shrink-0 mr-2">
         /{{ category.slug }}
       </span>
 
       <!-- Sub-category badge (level 1, tablet+) -->
       <span
         v-if="level === 1"
-        class="hidden sm:inline-flex items-center gap-1 bg-cgws-parchment border border-cgws-leather/20 rounded-full px-2 py-0.5 font-sans text-[10px] text-cgws-leather flex-shrink-0"
+        class="hidden sm:inline-flex items-center gap-1 bg-cgws-surface border border-cgws-hairline rounded-full px-2 py-0.5 font-sans text-[10px] text-cgws-ink-soft flex-shrink-0"
         :aria-label="`${category.children.length} sous-catégorie${category.children.length !== 1 ? 's' : ''}`"
       >
         <UIcon name="i-lucide-folder" class="w-3 h-3" aria-hidden="true" />
@@ -181,7 +181,7 @@ onUnmounted(() => {
       <!-- Product count badge (tablet+) -->
       <span
         v-if="category.productCount > 0"
-        class="hidden sm:inline-flex bg-cgws-copper/10 text-cgws-copper rounded-full px-2 py-0.5 font-sans text-[10px] font-medium flex-shrink-0"
+        class="hidden sm:inline-flex bg-cgws-accent/10 text-cgws-accent rounded-full px-2 py-0.5 font-sans text-[10px] font-medium flex-shrink-0"
         :aria-label="`${category.productCount} produit${category.productCount !== 1 ? 's' : ''}`"
       >
         {{ category.productCount }} produit{{ category.productCount !== 1 ? 's' : '' }}
@@ -191,7 +191,7 @@ onUnmounted(() => {
       <div class="sr-only focus-within:not-sr-only flex gap-1 flex-shrink-0">
         <button
           type="button"
-          class="p-1 text-xs bg-cgws-parchment border border-cgws-leather/30 rounded-sm focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+          class="p-1 text-xs bg-cgws-surface border border-cgws-hairline rounded-sm focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
           :aria-label="`Déplacer ${category.name} vers le haut`"
           :disabled="isFirst"
           @click="moveUp"
@@ -200,7 +200,7 @@ onUnmounted(() => {
         </button>
         <button
           type="button"
-          class="p-1 text-xs bg-cgws-parchment border border-cgws-leather/30 rounded-sm focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+          class="p-1 text-xs bg-cgws-surface border border-cgws-hairline rounded-sm focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
           :aria-label="`Déplacer ${category.name} vers le bas`"
           :disabled="isLast"
           @click="moveDown"
@@ -217,8 +217,8 @@ onUnmounted(() => {
           role="switch"
           :aria-checked="category.isActive"
           :aria-label="category.isActive ? `Désactiver ${category.name}` : `Activer ${category.name}`"
-          class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2"
-          :class="category.isActive ? 'bg-cgws-copper' : 'bg-cgws-leather/30'"
+          class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
+          :class="category.isActive ? 'bg-cgws-accent' : 'bg-cgws-hairline'"
           @click="$emit('toggleActive', { id: category.id, value: !category.isActive })"
         >
           <span
@@ -231,7 +231,7 @@ onUnmounted(() => {
         <!-- Edit button -->
         <button
           type="button"
-          class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           :aria-label="`Modifier ${category.name}`"
           @click="$emit('edit', category)"
         >
@@ -241,7 +241,7 @@ onUnmounted(() => {
         <!-- Delete button -->
         <button
           type="button"
-          class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-rust hover:bg-cgws-rust/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-danger hover:bg-cgws-danger/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           :aria-label="`Supprimer ${category.name}`"
           @click="$emit('delete', category)"
         >
@@ -257,7 +257,7 @@ onUnmounted(() => {
         :id="`children-${category.id}`"
         ref="childSortableRef"
         role="group"
-        class="border-t border-cgws-leather/10 divide-y divide-cgws-leather/10 bg-cgws-cream/60"
+        class="border-t border-cgws-hairline divide-y divide-cgws-hairline bg-cgws-ground/60"
       >
         <CategoryTreeItem
           v-for="child in category.children"

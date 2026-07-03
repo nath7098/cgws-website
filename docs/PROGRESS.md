@@ -14,6 +14,7 @@
 | Sprint 3 | Terminé ✅ | 5/5 | 26/26 |
 | Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
 | Sprint 5 | Terminé ✅ | 4/4 | 21/21 |
+| Sprint 6 | En cours 🔨 | 1/6 | 8/~31 |
 
 ---
 
@@ -22,6 +23,17 @@
 > Format ajouté par l'orchestrateur à chaque US :
 > `### US-XXX — [titre] — [PASS/FAIL→fix→PASS] — commit [hash court]`
 > suivi d'une ligne de résumé QA et d'un éventuel point de blocage signalé à Nathan.
+
+---
+
+## Sprint 6 — Refonte identité « CGWS v3 — Cowgirl élégante » (en cours)
+
+**Objectif** : rebranding bi-thème (peaux **Élégante** rose/crème + **Rugueux** cuir/laiton, switcher public), dérivé du nouveau logo (cavalière de reining). Typo Playfair/Rye, motifs étoile-boussole. Décidé avec Nathan de faire la refonte identité en Sprint 6, puis les features (espace déposant + import CSV) en Sprint 7.
+**Specs** : `docs/design-specs/DESIGN_SYSTEM_v3.md` (doc maître) + US-070/071/072 + outline pages, produits par `ux-designer`.
+
+### US-070 — Design System v3, fondations — FAIL→fix→PASS — commit [à venir]
+
+QA FAIL au 1er passage (statuts admin positifs `accepted`/`active` en `bg-green-*` codés en dur = non theme-aware, + `bg-cgws-heading/15` improvisé non validé AA) → PASS au 2e après ajout d'un token sémantique `success` (3 rendus, contrastes **calculés sur fond composité `/15`** : #3D5A28 Jour ajusté car la valeur claire échouait à 4.28:1, #9FC178 Nuit, #8FA85A Rugueux) + taxonomie de statuts admin figée (§4.1 du doc maître). Livré : `tokens.css` bi-peaux (rôles theme-aware `:root`/`[data-skin="elegante"].dark`/`[data-skin="rugueux"]` pour les 3 rendus), `@theme` Tailwind v4, `app.config.ts` (@nuxt/ui neutral stone), fonts (Rye + Playfair, Bebas retiré), tokens sur-mesure `danger` (#A23A47/#E0808C/#D66F3E) et `success` — tous AA-validés. Migration contextuelle de 64 fichiers (copper→`accent` texte / `accent-deco` déco selon contexte, rust→`danger`, denim→Rugueux only). vue-tsc ✅ ESLint ✅ build ✅ (EXIT 0). Périmètre respecté : switcher runtime (US-071) et re-design des composants signature (US-072) exclus. **Reste à traiter (non bloquant, repoussé US-072/075)** : aligner `reserved`/`sold` de `StatusDropdown.vue` sur la taxonomie §4.1 (aujourd'hui reserved→accent, sold→ink, hors périmètre du FAIL).
 
 ---
 

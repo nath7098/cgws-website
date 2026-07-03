@@ -233,18 +233,18 @@ onUnmounted(() => {
     <!-- ================================================================
          HERO
     ================================================================ -->
-    <section class="bg-cgws-tack py-10 md:py-16 text-center" aria-labelledby="contact-page-heading">
+    <section class="bg-cgws-ground py-10 md:py-16 text-center" aria-labelledby="contact-page-heading">
       <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
-        <p class="contact-hero-eyebrow font-eyebrow text-cgws-copper text-[12px] uppercase tracking-[0.2em] mb-3">
+        <p class="contact-hero-eyebrow font-eyebrow text-cgws-accent text-[12px] uppercase tracking-[0.2em] mb-3">
           Sellerie de Brèches
         </p>
         <h1
           id="contact-page-heading"
-          class="contact-hero-h1 font-display text-[48px] sm:text-[56px] md:text-[64px] text-cgws-cream leading-none uppercase mb-4"
+          class="contact-hero-h1 font-display text-[48px] sm:text-[56px] md:text-[64px] text-cgws-ink leading-none uppercase mb-4"
         >
           Contactez-nous
         </h1>
-        <p class="contact-hero-tagline font-serif italic text-cgws-rope text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+        <p class="contact-hero-tagline font-serif italic text-cgws-ink-soft text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
           Une question sur un article, un rendez-vous en boutique,
           un projet de consignation — nous sommes à votre écoute.
         </p>
@@ -252,12 +252,12 @@ onUnmounted(() => {
     </section>
 
     <!-- Transition divider -->
-    <ConchoDivider bg-class="bg-cgws-cream" />
+    <ConchoDivider bg-class="bg-cgws-ground" />
 
     <!-- ================================================================
          MAIN SECTION — 2-column layout
     ================================================================ -->
-    <section class="contact-section bg-cgws-cream py-10 md:py-16">
+    <section class="contact-section bg-cgws-ground py-10 md:py-16">
       <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
         <div class="flex flex-col md:flex-row gap-10 md:gap-8 lg:gap-12 items-start">
 
@@ -265,10 +265,10 @@ onUnmounted(() => {
                LEFT COLUMN — Contact form
           ============================================================ -->
           <div class="contact-form-col flex-1 min-w-0">
-            <p class="font-eyebrow text-cgws-copper text-[11px] uppercase tracking-[0.2em] mb-2">
+            <p class="font-eyebrow text-cgws-accent text-[11px] uppercase tracking-[0.2em] mb-2">
               Nous écrire
             </p>
-            <h2 class="font-serif font-bold text-[24px] md:text-[28px] text-cgws-charcoal leading-snug mb-8">
+            <h2 class="font-serif font-bold text-[24px] md:text-[28px] text-cgws-ink leading-snug mb-8">
               Envoyez-nous un message
             </h2>
 
@@ -345,9 +345,9 @@ onUnmounted(() => {
                   <div
                     v-if="serverError"
                     role="alert"
-                    class="bg-cgws-rust/10 border border-cgws-rust rounded-sm p-4"
+                    class="bg-cgws-danger/10 border border-cgws-danger rounded-sm p-4"
                   >
-                    <p class="font-sans text-sm text-cgws-rust font-medium">
+                    <p class="font-sans text-sm text-cgws-danger font-medium">
                       {{ serverError }}
                     </p>
                   </div>
@@ -371,20 +371,20 @@ onUnmounted(() => {
                 role="status"
                 aria-live="polite"
                 aria-atomic="true"
-                class="bg-cgws-parchment border-2 border-cgws-leather/40 rounded-[4px] p-8 text-center"
+                class="bg-cgws-surface border-2 border-cgws-hairline rounded-[4px] p-8 text-center"
               >
                 <UIcon
                   name="i-lucide-check-circle"
-                  class="w-10 h-10 text-cgws-copper mx-auto mb-4"
+                  class="w-10 h-10 text-cgws-accent mx-auto mb-4"
                   aria-hidden="true"
                 />
-                <p class="font-display text-3xl text-cgws-charcoal tracking-wide mb-2 uppercase">
+                <p class="font-display text-3xl text-cgws-ink tracking-wide mb-2 uppercase">
                   Message envoyé
                 </p>
-                <p class="font-serif font-semibold text-xl text-cgws-charcoal mb-3">
+                <p class="font-serif font-semibold text-xl text-cgws-ink mb-3">
                   Merci, {{ submittedName }}&nbsp;!
                 </p>
-                <p class="font-sans text-sm text-cgws-charcoal/70 leading-relaxed mb-6">
+                <p class="font-sans text-sm text-cgws-ink/70 leading-relaxed mb-6">
                   Camille vous répondra dans les meilleurs délais.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 justify-center mt-6">
@@ -403,26 +403,26 @@ onUnmounted(() => {
                RIGHT COLUMN — Info block + Map
           ============================================================ -->
           <div class="contact-info-col w-full md:w-[280px] lg:w-[400px] flex-shrink-0">
-            <p class="font-eyebrow text-cgws-copper text-[11px] uppercase tracking-[0.2em] mb-4">
+            <p class="font-eyebrow text-cgws-accent text-[11px] uppercase tracking-[0.2em] mb-4">
               Nous trouver
             </p>
 
             <!-- Info block -->
             <!-- TODO: confirmer adresse exacte, téléphone, horaires et email avec Camille avant mise en ligne -->
-            <div class="bg-cgws-parchment border-2 border-cgws-leather/40 rounded-[4px] p-6 mb-6">
+            <div class="bg-cgws-surface border-2 border-cgws-hairline rounded-[4px] p-6 mb-6">
 
               <!-- Address -->
               <div class="flex items-start gap-3 mb-5">
                 <UIcon
                   name="i-lucide-map-pin"
-                  class="w-5 h-5 text-cgws-copper flex-shrink-0 mt-0.5"
+                  class="w-5 h-5 text-cgws-accent flex-shrink-0 mt-0.5"
                   aria-hidden="true"
                 />
                 <div>
-                  <p class="font-sans font-semibold text-[13px] text-cgws-leather uppercase tracking-wide mb-0.5">
+                  <p class="font-sans font-semibold text-[13px] text-cgws-ink-soft uppercase tracking-wide mb-0.5">
                     Adresse
                   </p>
-                  <p class="font-sans text-sm text-cgws-charcoal leading-relaxed">
+                  <p class="font-sans text-sm text-cgws-ink leading-relaxed">
                     CGWS<br>
                     Brèches<br>
                     37320 Indre-et-Loire
@@ -434,16 +434,16 @@ onUnmounted(() => {
               <div class="flex items-start gap-3 mb-5">
                 <UIcon
                   name="i-lucide-phone"
-                  class="w-5 h-5 text-cgws-copper flex-shrink-0 mt-0.5"
+                  class="w-5 h-5 text-cgws-accent flex-shrink-0 mt-0.5"
                   aria-hidden="true"
                 />
                 <div>
-                  <p class="font-sans font-semibold text-[13px] text-cgws-leather uppercase tracking-wide mb-0.5">
+                  <p class="font-sans font-semibold text-[13px] text-cgws-ink-soft uppercase tracking-wide mb-0.5">
                     Téléphone
                   </p>
                   <a
                     href="tel:+33600000000"
-                    class="font-sans text-sm text-cgws-copper hover:underline transition-colors duration-150"
+                    class="font-sans text-sm text-cgws-accent hover:underline transition-colors duration-150"
                   >
                     06 XX XX XX XX
                   </a>
@@ -454,14 +454,14 @@ onUnmounted(() => {
               <div class="flex items-start gap-3 mb-5">
                 <UIcon
                   name="i-lucide-clock"
-                  class="w-5 h-5 text-cgws-copper flex-shrink-0 mt-0.5"
+                  class="w-5 h-5 text-cgws-accent flex-shrink-0 mt-0.5"
                   aria-hidden="true"
                 />
                 <div>
-                  <p class="font-sans font-semibold text-[13px] text-cgws-leather uppercase tracking-wide mb-0.5">
+                  <p class="font-sans font-semibold text-[13px] text-cgws-ink-soft uppercase tracking-wide mb-0.5">
                     Horaires
                   </p>
-                  <p class="font-sans text-sm text-cgws-charcoal leading-relaxed">
+                  <p class="font-sans text-sm text-cgws-ink leading-relaxed">
                     Mardi – Vendredi&ensp;10h – 18h<br>
                     Samedi&ensp;9h – 17h<br>
                     Dimanche – Lundi&ensp;Fermé
@@ -473,16 +473,16 @@ onUnmounted(() => {
               <div class="flex items-start gap-3">
                 <UIcon
                   name="i-lucide-mail"
-                  class="w-5 h-5 text-cgws-copper flex-shrink-0 mt-0.5"
+                  class="w-5 h-5 text-cgws-accent flex-shrink-0 mt-0.5"
                   aria-hidden="true"
                 />
                 <div>
-                  <p class="font-sans font-semibold text-[13px] text-cgws-leather uppercase tracking-wide mb-0.5">
+                  <p class="font-sans font-semibold text-[13px] text-cgws-ink-soft uppercase tracking-wide mb-0.5">
                     Email
                   </p>
                   <a
                     href="mailto:contact@cgws.fr"
-                    class="font-sans text-sm text-cgws-copper hover:underline transition-colors duration-150"
+                    class="font-sans text-sm text-cgws-accent hover:underline transition-colors duration-150"
                   >
                     contact@cgws.fr
                   </a>
@@ -496,15 +496,15 @@ onUnmounted(() => {
             <!-- OSM Map container -->
             <div
               class="contact-map w-full h-[220px] sm:h-[240px] md:h-[200px] lg:h-[280px]
-                     border border-cgws-leather/40 rounded-[4px] overflow-hidden bg-cgws-parchment"
+                     border border-cgws-hairline rounded-[4px] overflow-hidden bg-cgws-surface"
             >
               <ClientOnly>
                 <ContactMap />
                 <template #fallback>
-                  <div class="w-full h-full bg-cgws-parchment animate-pulse flex items-center justify-center">
+                  <div class="w-full h-full bg-cgws-surface animate-pulse flex items-center justify-center">
                     <UIcon
                       name="i-lucide-map"
-                      class="w-8 h-8 text-cgws-leather/30"
+                      class="w-8 h-8 text-cgws-ink-soft/30"
                       aria-hidden="true"
                     />
                   </div>
@@ -517,7 +517,7 @@ onUnmounted(() => {
               href="https://www.openstreetmap.org/?mlat=47.4833&mlon=0.5167#map=14/47.4833/0.5167"
               target="_blank"
               rel="noopener noreferrer"
-              class="font-sans text-xs text-cgws-copper hover:underline mt-2 inline-block"
+              class="font-sans text-xs text-cgws-accent hover:underline mt-2 inline-block"
             >
               Ouvrir dans OpenStreetMap
               <span class="sr-only">(ouvre un nouvel onglet)</span>

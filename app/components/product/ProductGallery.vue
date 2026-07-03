@@ -104,7 +104,7 @@ onUnmounted(() => {
   <div class="group relative w-full">
     <!-- Main gallery container -->
     <div
-      class="product-gallery-main relative overflow-hidden rounded-[6px] bg-cgws-leather/10 aspect-[4/3]"
+      class="product-gallery-main relative overflow-hidden rounded-[6px] bg-cgws-hairline aspect-[4/3]"
       :class="sold ? 'grayscale' : ''"
       role="region"
       :aria-label="`Galerie photos : ${alt}`"
@@ -159,7 +159,7 @@ onUnmounted(() => {
         aria-label="Aucune photo disponible"
       >
         <svg
-          class="w-20 h-20 text-cgws-leather/20"
+          class="w-20 h-20 text-cgws-ink-soft/20"
           viewBox="0 0 48 48"
           fill="currentColor"
           aria-hidden="true"
@@ -174,12 +174,12 @@ onUnmounted(() => {
       <!-- Sold overlay -->
       <div
         v-if="sold"
-        class="absolute inset-0 bg-cgws-charcoal/30 flex items-center justify-center pointer-events-none z-10"
+        class="absolute inset-0 bg-cgws-brand-espresso/40 flex items-center justify-center pointer-events-none z-10"
         role="img"
         aria-label="Produit vendu"
       >
         <span
-          class="font-display text-[40px] md:text-[56px] text-cgws-rope uppercase tracking-[0.15em] border-4 border-cgws-rope/60 px-6 py-2 rotate-[-8deg]"
+          class="font-display text-[40px] md:text-[56px] text-cgws-brand-cream uppercase tracking-[0.15em] border-4 border-cgws-brand-cream/60 px-6 py-2 rotate-[-8deg]"
           aria-hidden="true"
         >
           VENDU
@@ -189,7 +189,7 @@ onUnmounted(() => {
       <!-- Image counter badge -->
       <span
         v-if="hasMultipleImages"
-        class="absolute bottom-3 right-3 z-20 bg-cgws-charcoal/60 backdrop-blur-sm font-sans text-xs text-cgws-rope px-2.5 py-1 rounded-sm"
+        class="absolute bottom-3 right-3 z-20 bg-cgws-brand-espresso/60 backdrop-blur-sm font-sans text-xs text-cgws-brand-cream px-2.5 py-1 rounded-sm"
         aria-hidden="true"
       >
         {{ currentIndex + 1 }} / {{ images.length }}
@@ -199,22 +199,22 @@ onUnmounted(() => {
       <button
         v-if="hasMultipleImages"
         type="button"
-        class="absolute top-1/2 -translate-y-1/2 left-3 z-20 w-10 h-10 rounded-full bg-cgws-tack/60 backdrop-blur-sm hover:bg-cgws-copper/80 flex items-center justify-center transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="absolute top-1/2 -translate-y-1/2 left-3 z-20 w-10 h-10 rounded-full bg-cgws-brand-espresso/60 backdrop-blur-sm hover:bg-cgws-accent/80 flex items-center justify-center transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         aria-label="Photo précédente"
         @click="goPrev"
       >
-        <UIcon name="i-lucide-chevron-left" class="w-5 h-5 text-cgws-rope" aria-hidden="true" />
+        <UIcon name="i-lucide-chevron-left" class="w-5 h-5 text-cgws-brand-cream" aria-hidden="true" />
       </button>
 
       <!-- Next button -->
       <button
         v-if="hasMultipleImages"
         type="button"
-        class="absolute top-1/2 -translate-y-1/2 right-3 z-20 w-10 h-10 rounded-full bg-cgws-tack/60 backdrop-blur-sm hover:bg-cgws-copper/80 flex items-center justify-center transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="absolute top-1/2 -translate-y-1/2 right-3 z-20 w-10 h-10 rounded-full bg-cgws-brand-espresso/60 backdrop-blur-sm hover:bg-cgws-accent/80 flex items-center justify-center transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         aria-label="Photo suivante"
         @click="goNext"
       >
-        <UIcon name="i-lucide-chevron-right" class="w-5 h-5 text-cgws-rope" aria-hidden="true" />
+        <UIcon name="i-lucide-chevron-right" class="w-5 h-5 text-cgws-brand-cream" aria-hidden="true" />
       </button>
     </div>
 
@@ -233,10 +233,10 @@ onUnmounted(() => {
         v-for="(img, idx) in images"
         :key="`thumb-${img}-${idx}`"
         type="button"
-        class="product-gallery-thumb flex-shrink-0 snap-start w-[72px] h-[54px] md:w-[80px] md:h-[60px] rounded-[4px] overflow-hidden cursor-pointer border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="product-gallery-thumb flex-shrink-0 snap-start w-[72px] h-[54px] md:w-[80px] md:h-[60px] rounded-[4px] overflow-hidden cursor-pointer border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         :class="currentIndex === idx
-          ? 'border-cgws-copper ring-1 ring-cgws-copper/30 opacity-100'
-          : 'border-transparent opacity-60 hover:opacity-90 hover:border-cgws-leather/50'"
+          ? 'border-cgws-accent ring-1 ring-cgws-accent/30 opacity-100'
+          : 'border-transparent opacity-60 hover:opacity-90 hover:border-cgws-hairline'"
         :aria-label="`Voir photo ${idx + 1}`"
         :aria-pressed="currentIndex === idx"
         @click="goToSlide(idx)"

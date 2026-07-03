@@ -122,7 +122,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
       >
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-cgws-charcoal/60 backdrop-blur-sm"
+          class="absolute inset-0 bg-cgws-ink/60 backdrop-blur-sm"
           aria-hidden="true"
           @click="$emit('close')"
         />
@@ -130,32 +130,32 @@ function handleModalKeydown(event: KeyboardEvent): void {
         <!-- Modal box -->
         <div
           ref="modalBoxRef"
-          class="relative bg-white border-2 border-cgws-charcoal rounded-sm
+          class="relative bg-white border-2 border-cgws-ink rounded-sm
                  shadow-xl w-full max-w-lg
                  flex flex-col max-h-[90dvh] sm:max-h-[80vh]"
           tabindex="-1"
           @keydown="handleModalKeydown"
         >
           <!-- Header -->
-          <div class="flex items-start gap-3 p-5 border-b border-cgws-leather/20 flex-shrink-0">
+          <div class="flex items-start gap-3 p-5 border-b border-cgws-hairline flex-shrink-0">
             <div
-              class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-copper/10
+              class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-accent/10
                      flex items-center justify-center"
               aria-hidden="true"
             >
               <UIcon
                 name="i-lucide-receipt"
-                class="w-5 h-5 text-cgws-copper"
+                class="w-5 h-5 text-cgws-accent"
               />
             </div>
             <div class="flex-1 min-w-0">
               <h3
                 id="sale-modal-title"
-                class="font-serif font-bold text-lg text-cgws-charcoal"
+                class="font-serif font-bold text-lg text-cgws-ink"
               >
                 Enregistrer la vente
               </h3>
-              <p class="font-sans text-sm text-cgws-leather mt-0.5 truncate">
+              <p class="font-sans text-sm text-cgws-ink-soft mt-0.5 truncate">
                 {{ product.title }}
               </p>
             </div>
@@ -163,8 +163,8 @@ function handleModalKeydown(event: KeyboardEvent): void {
             <button
               type="button"
               class="flex-shrink-0 p-1.5 -mr-1.5 -mt-1.5 rounded-sm
-                     text-cgws-leather hover:text-cgws-charcoal hover:bg-cgws-parchment/40
-                     transition-colors focus-visible:ring-2 focus-visible:ring-cgws-copper
+                     text-cgws-ink-soft hover:text-cgws-ink hover:bg-cgws-surface/40
+                     transition-colors focus-visible:ring-2 focus-visible:ring-cgws-accent
                      focus-visible:outline-none"
               aria-label="Fermer sans enregistrer"
               @click="$emit('close')"
@@ -186,7 +186,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
                 <label
                   for="sale-date"
                   class="block font-sans text-xs font-semibold uppercase
-                         tracking-wider text-cgws-leather mb-1.5"
+                         tracking-wider text-cgws-ink-soft mb-1.5"
                 >
                   Date de vente
                 </label>
@@ -196,9 +196,9 @@ function handleModalKeydown(event: KeyboardEvent): void {
                   type="date"
                   required
                   :disabled="isSubmitting"
-                  class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40
-                         rounded-sm font-sans text-sm text-cgws-charcoal
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+                  class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline
+                         rounded-sm font-sans text-sm text-cgws-ink
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                          focus:outline-none disabled:opacity-50"
                   aria-required="true"
                 >
@@ -209,7 +209,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
                 <label
                   for="sale-price"
                   class="block font-sans text-xs font-semibold uppercase
-                         tracking-wider text-cgws-leather mb-1.5"
+                         tracking-wider text-cgws-ink-soft mb-1.5"
                 >
                   Prix de vente (€)
                 </label>
@@ -221,11 +221,11 @@ function handleModalKeydown(event: KeyboardEvent): void {
                   step="0.01"
                   required
                   :disabled="isSubmitting"
-                  class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40
-                         rounded-sm font-display text-base text-cgws-copper
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+                  class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline
+                         rounded-sm font-display text-base text-cgws-accent
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                          focus:outline-none disabled:opacity-50"
-                  :class="errors.salePrice ? 'border-cgws-rust' : ''"
+                  :class="errors.salePrice ? 'border-cgws-danger' : ''"
                   aria-required="true"
                   :aria-describedby="errors.salePrice ? 'sale-price-error' : undefined"
                 >
@@ -233,7 +233,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
                   v-if="errors.salePrice"
                   id="sale-price-error"
                   role="alert"
-                  class="mt-1 font-sans text-xs text-cgws-rust"
+                  class="mt-1 font-sans text-xs text-cgws-danger"
                 >
                   {{ errors.salePrice }}
                 </p>
@@ -245,7 +245,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
               <label
                 for="payment-method"
                 class="block font-sans text-xs font-semibold uppercase
-                       tracking-wider text-cgws-leather mb-1.5"
+                       tracking-wider text-cgws-ink-soft mb-1.5"
               >
                 Moyen de paiement
               </label>
@@ -255,9 +255,9 @@ function handleModalKeydown(event: KeyboardEvent): void {
                   v-model="form.paymentMethod"
                   required
                   :disabled="isSubmitting"
-                  class="w-full px-3 py-2 pr-9 bg-cgws-cream border border-cgws-leather/40
-                         rounded-sm font-sans text-sm text-cgws-charcoal appearance-none
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+                  class="w-full px-3 py-2 pr-9 bg-cgws-ground border border-cgws-hairline
+                         rounded-sm font-sans text-sm text-cgws-ink appearance-none
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                          focus:outline-none disabled:opacity-50"
                   aria-required="true"
                 >
@@ -269,7 +269,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
                 <UIcon
                   name="i-lucide-chevron-down"
                   class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2
-                         w-4 h-4 text-cgws-leather/60"
+                         w-4 h-4 text-cgws-ink-soft/60"
                   aria-hidden="true"
                 />
               </div>
@@ -280,10 +280,10 @@ function handleModalKeydown(event: KeyboardEvent): void {
               <label
                 for="sale-client"
                 class="block font-sans text-xs font-semibold uppercase
-                       tracking-wider text-cgws-leather mb-1.5"
+                       tracking-wider text-cgws-ink-soft mb-1.5"
               >
                 Client
-                <span class="font-normal normal-case tracking-normal text-cgws-leather/70">
+                <span class="font-normal normal-case tracking-normal text-cgws-ink-soft/70">
                   (optionnel)
                 </span>
               </label>
@@ -293,10 +293,10 @@ function handleModalKeydown(event: KeyboardEvent): void {
                 type="text"
                 placeholder="Nom du client…"
                 :disabled="isSubmitting"
-                class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40
-                       rounded-sm font-sans text-sm text-cgws-charcoal
-                       placeholder:text-cgws-rope
-                       focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+                class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline
+                       rounded-sm font-sans text-sm text-cgws-ink
+                       placeholder:text-cgws-ink-soft
+                       focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                        focus:outline-none disabled:opacity-50"
               >
             </div>
@@ -306,10 +306,10 @@ function handleModalKeydown(event: KeyboardEvent): void {
               <label
                 for="sale-notes"
                 class="block font-sans text-xs font-semibold uppercase
-                       tracking-wider text-cgws-leather mb-1.5"
+                       tracking-wider text-cgws-ink-soft mb-1.5"
               >
                 Notes internes
-                <span class="font-normal normal-case tracking-normal text-cgws-leather/70">
+                <span class="font-normal normal-case tracking-normal text-cgws-ink-soft/70">
                   (optionnel)
                 </span>
               </label>
@@ -319,10 +319,10 @@ function handleModalKeydown(event: KeyboardEvent): void {
                 :rows="2"
                 placeholder="Observations, conditions particulières…"
                 :disabled="isSubmitting"
-                class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40
-                       rounded-sm font-sans text-sm text-cgws-charcoal
-                       placeholder:text-cgws-rope resize-none
-                       focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+                class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline
+                       rounded-sm font-sans text-sm text-cgws-ink
+                       placeholder:text-cgws-ink-soft resize-none
+                       focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                        focus:outline-none disabled:opacity-50"
               />
             </div>
@@ -331,16 +331,16 @@ function handleModalKeydown(event: KeyboardEvent): void {
           <!-- Footer -->
           <div
             class="flex flex-col-reverse sm:flex-row items-center justify-between
-                   gap-3 p-5 border-t border-cgws-leather/20 flex-shrink-0"
+                   gap-3 p-5 border-t border-cgws-hairline flex-shrink-0"
           >
             <!-- Ignorer -->
             <button
               type="button"
               :disabled="isSubmitting"
-              class="w-full sm:w-auto px-4 py-2 rounded-sm border border-cgws-leather/40
-                     font-sans text-sm font-medium text-cgws-leather
-                     hover:bg-cgws-parchment/40 hover:text-cgws-charcoal transition-colors
-                     focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none
+              class="w-full sm:w-auto px-4 py-2 rounded-sm border border-cgws-hairline
+                     font-sans text-sm font-medium text-cgws-ink-soft
+                     hover:bg-cgws-surface/40 hover:text-cgws-ink transition-colors
+                     focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none
                      disabled:opacity-40 disabled:cursor-not-allowed"
               @click="$emit('close')"
             >
@@ -352,11 +352,11 @@ function handleModalKeydown(event: KeyboardEvent): void {
               type="button"
               :disabled="isSubmitting"
               class="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                     px-5 py-2 rounded-sm bg-cgws-copper text-white
+                     px-5 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                      font-sans text-sm font-semibold
-                     hover:bg-cgws-leather transition-colors
+                     hover:bg-cgws-edge transition-colors
                      disabled:opacity-40 disabled:cursor-not-allowed
-                     focus-visible:ring-2 focus-visible:ring-cgws-copper
+                     focus-visible:ring-2 focus-visible:ring-cgws-accent
                      focus-visible:ring-offset-2 focus-visible:outline-none"
               @click="submitSale"
             >

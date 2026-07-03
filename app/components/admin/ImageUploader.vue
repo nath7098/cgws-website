@@ -52,7 +52,7 @@ onMounted(() => {
     sortableInstance = Sortable.create(sortableContainer.value, {
       animation: 150,
       ghostClass: 'opacity-40',
-      chosenClass: 'ring-2 ring-cgws-copper ring-offset-1',
+      chosenClass: 'ring-2 ring-cgws-accent ring-offset-1',
       onEnd(evt) {
         if (evt.oldIndex === undefined || evt.newIndex === undefined) return
         const items = [...displayItems.value]
@@ -167,19 +167,19 @@ function removeItem(itemId: string) {
 <template>
   <section
     aria-label="Gestion des photos du produit"
-    class="bg-white border border-cgws-leather/30 rounded-[4px] p-4"
+    class="bg-white border border-cgws-hairline rounded-[4px] p-4"
   >
     <!-- Header -->
     <div class="flex items-center justify-between mb-2">
-      <p class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper">
+      <p class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent">
         Photos
       </p>
-      <span class="font-sans text-xs text-cgws-leather">
+      <span class="font-sans text-xs text-cgws-ink-soft">
         {{ displayItems.length }} / {{ maxImages }}
       </span>
     </div>
-    <p class="font-sans text-xs text-cgws-leather mb-3">
-      La <strong class="font-medium text-cgws-charcoal">première photo</strong> sera l'image principale.
+    <p class="font-sans text-xs text-cgws-ink-soft mb-3">
+      La <strong class="font-medium text-cgws-ink">première photo</strong> sera l'image principale.
       Réorganisez par glisser-déposer.
     </p>
 
@@ -193,8 +193,8 @@ function removeItem(itemId: string) {
         'border-2 border-dashed rounded-sm p-6 text-center mb-4',
         'transition-colors duration-200 cursor-pointer',
         isDragOver
-          ? 'border-cgws-copper bg-cgws-parchment border-solid'
-          : 'border-cgws-copper/40 hover:border-cgws-copper hover:bg-cgws-parchment/30',
+          ? 'border-cgws-accent bg-cgws-surface border-solid'
+          : 'border-cgws-accent/40 hover:border-cgws-accent hover:bg-cgws-surface/30',
         disabled ? 'opacity-50 cursor-not-allowed' : '',
       ]"
       @click="openFilePicker()"
@@ -207,10 +207,10 @@ function removeItem(itemId: string) {
     >
       <UIcon
         name="i-lucide-cloud-upload"
-        class="w-7 h-7 mx-auto mb-2 text-cgws-copper/50"
+        class="w-7 h-7 mx-auto mb-2 text-cgws-accent/50"
         aria-hidden="true"
       />
-      <p class="font-sans text-sm font-medium text-cgws-charcoal mb-2">
+      <p class="font-sans text-sm font-medium text-cgws-ink mb-2">
         Glissez vos photos ici
       </p>
       <CgwsButton
@@ -222,7 +222,7 @@ function removeItem(itemId: string) {
       >
         + Ajouter des photos
       </CgwsButton>
-      <p class="font-sans text-xs text-cgws-rope mt-2">
+      <p class="font-sans text-xs text-cgws-ink-soft mt-2">
         JPEG · PNG · WEBP &nbsp;·&nbsp; {{ maxImages }} max &nbsp;·&nbsp; {{ maxSizeMb }} MB / fichier
       </p>
     </div>
@@ -243,7 +243,7 @@ function removeItem(itemId: string) {
     <p
       v-if="uploadError"
       role="alert"
-      class="font-sans text-xs text-cgws-rust mb-3"
+      class="font-sans text-xs text-cgws-danger mb-3"
     >
       {{ uploadError }}
     </p>
@@ -258,7 +258,7 @@ function removeItem(itemId: string) {
       <div
         v-for="(item, index) in displayItems"
         :key="item.id"
-        class="relative aspect-square rounded-sm overflow-hidden bg-cgws-parchment border border-cgws-leather/20 group cursor-grab active:cursor-grabbing select-none"
+        class="relative aspect-square rounded-sm overflow-hidden bg-cgws-surface border border-cgws-hairline group cursor-grab active:cursor-grabbing select-none"
         :data-id="item.id"
       >
         <!-- Drag handle indicator -->
@@ -268,7 +268,7 @@ function removeItem(itemId: string) {
         >
           <UIcon
             name="i-lucide-grip-vertical"
-            class="w-4 h-4 text-white drop-shadow-sm"
+            class="w-4 h-4 text-cgws-brand-cream drop-shadow-sm"
             aria-hidden="true"
           />
         </div>
@@ -284,7 +284,7 @@ function removeItem(itemId: string) {
         <!-- Principal badge (first item only) -->
         <div
           v-if="index === 0"
-          class="absolute bottom-0 left-0 right-0 bg-cgws-copper/90 text-cgws-charcoal font-sans font-semibold text-[9px] uppercase tracking-wider py-0.5 text-center"
+          class="absolute bottom-0 left-0 right-0 bg-cgws-accent/90 text-cgws-on-accent font-sans font-semibold text-[9px] uppercase tracking-wider py-0.5 text-center"
           aria-hidden="true"
         >
           Principal
@@ -295,7 +295,7 @@ function removeItem(itemId: string) {
           type="button"
           :aria-label="`Supprimer la photo ${index + 1}`"
           :disabled="disabled"
-          class="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-cgws-rust text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-cgws-charcoal disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-cgws-danger text-cgws-on-danger flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-cgws-brand-espresso disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           @click.stop="removeItem(item.id)"
         >
           <UIcon name="i-lucide-x" class="w-3 h-3" aria-hidden="true" />
@@ -309,14 +309,14 @@ function removeItem(itemId: string) {
       class="mt-3"
     >
       <div class="flex items-center justify-between mb-1">
-        <p class="font-sans text-xs text-cgws-leather">
+        <p class="font-sans text-xs text-cgws-ink-soft">
           {{ uploadProgressLabel || 'Envoi en cours…' }}
         </p>
-        <span class="font-sans text-xs font-semibold text-cgws-copper">{{ uploadProgress }}%</span>
+        <span class="font-sans text-xs font-semibold text-cgws-accent">{{ uploadProgress }}%</span>
       </div>
-      <div class="w-full h-1.5 bg-cgws-leather/20 rounded-full overflow-hidden">
+      <div class="w-full h-1.5 bg-cgws-hairline rounded-full overflow-hidden">
         <div
-          class="h-full bg-cgws-copper rounded-full transition-all duration-300 ease-out"
+          class="h-full bg-cgws-accent rounded-full transition-all duration-300 ease-out"
           :style="{ width: `${uploadProgress}%` }"
           role="progressbar"
           :aria-valuenow="uploadProgress"

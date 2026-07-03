@@ -221,12 +221,12 @@ onMounted(() => {
   <div class="space-y-8">
     <!-- Page header -->
     <div class="flex items-baseline justify-between">
-      <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+      <h2 class="font-serif font-bold text-2xl text-cgws-ink">
         Tableau de bord
       </h2>
       <span
         v-if="dateLabel"
-        class="font-sans text-xs text-cgws-leather capitalize"
+        class="font-sans text-xs text-cgws-ink-soft capitalize"
       >
         {{ dateLabel }}
       </span>
@@ -265,7 +265,7 @@ onMounted(() => {
 
     <!-- Quick links -->
     <section aria-label="Accès rapides">
-      <p class="font-serif font-semibold text-base text-cgws-charcoal mb-3">
+      <p class="font-serif font-semibold text-base text-cgws-ink mb-3">
         Accès rapides
       </p>
       <div class="flex flex-wrap gap-3">
