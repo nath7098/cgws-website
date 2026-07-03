@@ -111,7 +111,7 @@ const cardContent = computed(() => ({
         <p v-if="product.size" class="font-sans text-[12px] text-cgws-ink-soft/70 italic">
           Taille : {{ product.size }}
         </p>
-        <p class="product-price font-display text-2xl text-right mt-auto" :class="cardContent.priceClass">
+        <p class="product-price font-display text-2xl tabular-nums text-right mt-auto" :class="cardContent.priceClass">
           <span class="sr-only">Prix : </span>{{ formattedPrice }} €
         </p>
       </div>
@@ -176,7 +176,7 @@ const cardContent = computed(() => ({
         aria-hidden="true"
       >
         <span
-          class="rotate-[-25deg] bg-cgws-danger/90 px-8 py-1.5 w-[200%] font-sans font-bold text-[11px] uppercase tracking-widest text-cgws-on-danger text-center"
+          class="rotate-[-25deg] bg-cgws-ink-soft/90 px-8 py-1.5 w-[200%] font-sans font-bold text-[11px] uppercase tracking-widest text-cgws-ground text-center"
         >
           Réservé
         </span>
@@ -202,7 +202,7 @@ const cardContent = computed(() => ({
           Taille : {{ product.size }}
         </p>
         <p
-          class="product-price font-display text-2xl text-right mt-auto"
+          class="product-price font-display text-2xl tabular-nums text-right mt-auto"
           :class="cardContent.priceClass"
         >
           <span class="sr-only">Prix : </span>{{ formattedPrice }} €

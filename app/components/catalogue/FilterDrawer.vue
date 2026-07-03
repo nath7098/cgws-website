@@ -109,6 +109,7 @@ function toggleBrand(brand: string): void {
           <button
             class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.categories"
+            aria-controls="drawer-filter-section-categories"
             @click="openSections.categories = !openSections.categories"
           >
             <span>Catégorie</span>
@@ -134,7 +135,7 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.categories" class="px-4 pb-3 space-y-2">
+            <div v-if="openSections.categories" id="drawer-filter-section-categories" role="region" class="px-4 pb-3 space-y-2">
               <label
                 v-for="cat in ALL_CATEGORIES"
                 :key="cat"
@@ -160,6 +161,7 @@ function toggleBrand(brand: string): void {
           <button
             class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.conditions"
+            aria-controls="drawer-filter-section-conditions"
             @click="openSections.conditions = !openSections.conditions"
           >
             <span>État</span>
@@ -185,7 +187,7 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.conditions" class="px-4 pb-3 space-y-2">
+            <div v-if="openSections.conditions" id="drawer-filter-section-conditions" role="region" class="px-4 pb-3 space-y-2">
               <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
                 <input
                   type="checkbox"
@@ -215,6 +217,7 @@ function toggleBrand(brand: string): void {
           <button
             class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.brands"
+            aria-controls="drawer-filter-section-brands"
             @click="openSections.brands = !openSections.brands"
           >
             <span>Marque</span>
@@ -240,7 +243,7 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.brands" class="px-4 pb-3 space-y-2">
+            <div v-if="openSections.brands" id="drawer-filter-section-brands" role="region" class="px-4 pb-3 space-y-2">
               <label
                 v-for="brand in visibleBrands"
                 :key="brand"
@@ -271,6 +274,7 @@ function toggleBrand(brand: string): void {
           <button
             class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.price"
+            aria-controls="drawer-filter-section-price"
             @click="openSections.price = !openSections.price"
           >
             <span>Prix</span>
@@ -288,7 +292,7 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.price" class="px-4 pb-4">
+            <div v-if="openSections.price" id="drawer-filter-section-price" role="region" class="px-4 pb-4">
               <USlider
                 v-model="priceRange"
                 :min="0"
@@ -297,6 +301,11 @@ function toggleBrand(brand: string): void {
                 :min-steps-between-thumbs="50"
                 aria-label="Fourchette de prix"
                 class="mt-2 mb-4"
+                :ui="{
+                  track: 'bg-cgws-hairline',
+                  range: 'bg-cgws-accent',
+                  thumb: 'bg-cgws-surface ring-cgws-accent focus-visible:outline-cgws-accent',
+                }"
               />
               <div class="flex gap-2">
                 <div class="flex-1">
@@ -337,6 +346,7 @@ function toggleBrand(brand: string): void {
           <button
             class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.availability"
+            aria-controls="drawer-filter-section-availability"
             @click="openSections.availability = !openSections.availability"
           >
             <span>Disponibilité</span>
@@ -354,7 +364,7 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.availability" class="px-4 pb-3 space-y-2">
+            <div v-if="openSections.availability" id="drawer-filter-section-availability" role="region" class="px-4 pb-3 space-y-2">
               <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
                 <input
                   type="checkbox"

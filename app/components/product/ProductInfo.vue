@@ -9,8 +9,9 @@ const props = defineProps<Props>()
 
 const isSold = computed(() => props.product.status === 'sold')
 
-const conditionBadgeVariant = computed((): 'sold' | 'new' | 'occasion' => {
+const conditionBadgeVariant = computed((): 'sold' | 'reserved' | 'new' | 'occasion' => {
   if (isSold.value) return 'sold'
+  if (props.product.status === 'reserved') return 'reserved'
   return props.product.condition === 'new' ? 'new' : 'occasion'
 })
 
@@ -98,7 +99,7 @@ onUnmounted(() => {
     <hr class="border-t border-cgws-hairline my-1" aria-hidden="true">
 
     <!-- Prix -->
-    <p class="product-info-price font-display text-[48px] leading-none mt-1" :class="priceColorClass">
+    <p class="product-info-price font-display text-[48px] tabular-nums leading-none mt-1" :class="priceColorClass">
       <span class="sr-only">Prix : </span>
       <span :aria-label="`${product.price.toFixed(0)} euros`">
         {{ product.price.toFixed(0) }} €

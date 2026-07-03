@@ -315,6 +315,11 @@ function availabilityActiveCount(): number {
             :min-steps-between-thumbs="50"
             aria-label="Fourchette de prix"
             class="mt-2 mb-4"
+            :ui="{
+              track: 'bg-cgws-hairline',
+              range: 'bg-cgws-accent',
+              thumb: 'bg-cgws-surface ring-cgws-accent focus-visible:outline-cgws-accent',
+            }"
           />
           <div class="flex gap-2">
             <div class="flex-1">

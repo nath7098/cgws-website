@@ -28,7 +28,7 @@ defineEmits<{
       Modifiez vos critères de recherche ou explorez tout le catalogue.
     </p>
 
-    <CgwsButton variant="primary" size="sm" @click="$emit('reset')">
+    <CgwsButton variant="ghost" @click="$emit('reset')">
       Réinitialiser les filtres
     </CgwsButton>
   </div>

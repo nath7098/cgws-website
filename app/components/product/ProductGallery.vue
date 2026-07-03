@@ -104,7 +104,7 @@ onUnmounted(() => {
   <div class="group relative w-full">
     <!-- Main gallery container -->
     <div
-      class="product-gallery-main relative overflow-hidden rounded-[6px] bg-cgws-hairline aspect-[4/3]"
+      class="product-gallery-main relative overflow-hidden rounded-[6px] border border-cgws-edge bg-cgws-hairline aspect-[4/3]"
       :class="sold ? 'grayscale' : ''"
       role="region"
       :aria-label="`Galerie photos : ${alt}`"
