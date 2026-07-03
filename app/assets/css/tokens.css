@@ -34,12 +34,13 @@
   /* ─── Rayon global — Élégante (§5) ───────────────────────────────── */
   --ui-radius: 0.5rem;
 
-  /* ─── Typographie (§3) ───────────────────────────────────────────── */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-heading: 'Rye', serif;
-  --font-eyebrow: 'Playfair Display', Georgia, serif;
-  --font-serif:   'Playfair Display', Georgia, serif;
-  --font-sans:    'Inter', system-ui, sans-serif;
+  /* ─── Typographie (§3) — namespacée --cgws-font-* pour éviter un cycle
+   *     avec les tokens Tailwind --font-* mappés dans main.css (@theme) ── */
+  --cgws-font-display: 'Playfair Display', Georgia, serif;
+  --cgws-font-heading: 'Rye', serif;
+  --cgws-font-eyebrow: 'Playfair Display', Georgia, serif;
+  --cgws-font-serif:   'Playfair Display', Georgia, serif;
+  --cgws-font-sans:    'Inter', system-ui, sans-serif;
 
   /* ─── Espacements — inchangés v2 ─────────────────────────────────── */
   --section-py:    clamp(3rem, 8vw, 6rem);

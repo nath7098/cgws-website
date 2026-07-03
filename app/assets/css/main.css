@@ -38,12 +38,14 @@
   --color-cgws-brand-tack:      var(--cgws-brand-tack);
   --color-cgws-brand-espresso:  var(--cgws-brand-espresso);
 
-  /* Typography tokens */
-  --font-display: var(--font-display);
-  --font-heading: var(--font-heading);
-  --font-eyebrow: var(--font-eyebrow);
-  --font-serif:   var(--font-serif);
-  --font-sans:    var(--font-sans);
+  /* Typography tokens — indirection vers --cgws-font-* (tokens.css) pour
+   * générer les utilitaires font-display/-heading/-eyebrow/-serif/-sans
+   * sans référence circulaire (le nom source diffère du nom de sortie). */
+  --font-display: var(--cgws-font-display);
+  --font-heading: var(--cgws-font-heading);
+  --font-eyebrow: var(--cgws-font-eyebrow);
+  --font-serif:   var(--cgws-font-serif);
+  --font-sans:    var(--cgws-font-sans);
 }
 
 *, *::before, *::after {
