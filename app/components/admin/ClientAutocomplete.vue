@@ -190,7 +190,7 @@ onUnmounted(() => {
       <!-- Search icon -->
       <UIcon
         name="i-lucide-search"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-leather/50 pointer-events-none"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft/50 pointer-events-none"
         aria-hidden="true"
       />
 
@@ -207,12 +207,12 @@ onUnmounted(() => {
         autocomplete="off"
         :placeholder="props.placeholder"
         :disabled="props.disabled"
-        class="w-full pl-9 pr-8 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-               font-sans text-sm text-cgws-charcoal
-               placeholder:text-cgws-rope
-               focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20
+        class="w-full pl-9 pr-8 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm
+               font-sans text-sm text-cgws-ink
+               placeholder:text-cgws-ink-soft
+               focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20
                focus:outline-none disabled:opacity-50"
-        :class="props.hasError ? 'border-cgws-rust' : ''"
+        :class="props.hasError ? 'border-cgws-danger' : ''"
         @keydown="onKeydown"
         @blur="onInputBlur"
       >
@@ -221,8 +221,8 @@ onUnmounted(() => {
       <div
         v-if="isLoading"
         class="absolute right-2 top-1/2 -translate-y-1/2
-               w-4 h-4 rounded-full border-2 border-cgws-leather/30
-               border-t-cgws-copper animate-spin"
+               w-4 h-4 rounded-full border-2 border-cgws-hairline
+               border-t-cgws-accent animate-spin"
         aria-hidden="true"
       />
 
@@ -231,9 +231,9 @@ onUnmounted(() => {
         v-else-if="inputText"
         type="button"
         class="absolute right-2 top-1/2 -translate-y-1/2
-               p-0.5 rounded-sm text-cgws-leather/50 hover:text-cgws-charcoal
+               p-0.5 rounded-sm text-cgws-ink-soft/50 hover:text-cgws-ink
                transition-colors focus-visible:outline-none
-               focus-visible:ring-1 focus-visible:ring-cgws-copper"
+               focus-visible:ring-1 focus-visible:ring-cgws-accent"
         aria-label="Effacer la sélection"
         tabindex="-1"
         @click="clearSelection"
@@ -254,7 +254,7 @@ onUnmounted(() => {
         role="listbox"
         aria-label="Suggestions de clients"
         class="absolute top-full left-0 right-0 z-50 mt-1
-               bg-white border border-cgws-leather/30 rounded-[4px]
+               bg-cgws-surface border border-cgws-hairline rounded-[4px]
                shadow-lg max-h-56 overflow-y-auto"
       >
         <!-- Skeleton rows while loading -->
@@ -265,10 +265,10 @@ onUnmounted(() => {
             class="flex items-center gap-3 px-3 py-2.5"
             aria-hidden="true"
           >
-            <div class="w-7 h-7 rounded-full bg-cgws-leather/10 animate-pulse flex-shrink-0" />
+            <div class="w-7 h-7 rounded-full bg-cgws-hairline animate-pulse flex-shrink-0" />
             <div class="flex-1 space-y-1.5">
-              <div class="h-3 w-32 bg-cgws-leather/10 rounded animate-pulse" />
-              <div class="h-2 w-48 bg-cgws-leather/10 rounded animate-pulse" />
+              <div class="h-3 w-32 bg-cgws-hairline rounded animate-pulse" />
+              <div class="h-2 w-48 bg-cgws-hairline rounded animate-pulse" />
             </div>
           </li>
         </template>
@@ -283,28 +283,28 @@ onUnmounted(() => {
             :aria-selected="focusedIndex === i"
             class="flex items-center gap-3 px-3 py-2.5
                    cursor-pointer transition-colors duration-100
-                   hover:bg-cgws-parchment/50"
-            :class="focusedIndex === i ? 'bg-cgws-parchment/50' : ''"
+                   hover:bg-cgws-surface/50"
+            :class="focusedIndex === i ? 'bg-cgws-surface/50' : ''"
             @mousedown.prevent="selectClient(client)"
           >
             <!-- Avatar -->
             <div
-              class="w-7 h-7 rounded-full bg-cgws-copper/15 flex-shrink-0
+              class="w-7 h-7 rounded-full bg-cgws-accent/15 flex-shrink-0
                      flex items-center justify-center"
               aria-hidden="true"
             >
-              <span class="font-display text-sm text-cgws-copper">
+              <span class="font-display text-sm text-cgws-accent">
                 {{ client.name.charAt(0).toUpperCase() }}
               </span>
             </div>
             <!-- Info -->
             <div class="min-w-0 flex-1">
-              <p class="font-sans text-sm font-medium text-cgws-charcoal truncate">
+              <p class="font-sans text-sm font-medium text-cgws-ink truncate">
                 {{ client.name }}
               </p>
               <p
                 v-if="client.email"
-                class="font-sans text-xs text-cgws-leather/70 leading-tight truncate"
+                class="font-sans text-xs text-cgws-ink-soft/70 leading-tight truncate"
               >
                 {{ client.email }}
               </p>
@@ -316,7 +316,7 @@ onUnmounted(() => {
           <li
             v-if="results.length > 0"
             role="none"
-            class="border-t border-cgws-leather/10"
+            class="border-t border-cgws-hairline"
           />
         </template>
 
@@ -326,17 +326,17 @@ onUnmounted(() => {
           role="option"
           :aria-selected="focusedIndex === createOptionIndex"
           class="flex items-center gap-3 px-3 py-2.5
-                 cursor-pointer bg-cgws-copper/5
-                 hover:bg-cgws-copper/10 transition-colors"
-          :class="focusedIndex === createOptionIndex ? 'bg-cgws-copper/10' : ''"
+                 cursor-pointer bg-cgws-accent/5
+                 hover:bg-cgws-accent/10 transition-colors"
+          :class="focusedIndex === createOptionIndex ? 'bg-cgws-accent/10' : ''"
           @mousedown.prevent="selectCreate"
         >
           <UIcon
             name="i-lucide-plus"
-            class="w-4 h-4 text-cgws-copper flex-shrink-0"
+            class="w-4 h-4 text-cgws-accent flex-shrink-0"
             aria-hidden="true"
           />
-          <span class="font-sans text-sm font-medium text-cgws-copper">
+          <span class="font-sans text-sm font-medium text-cgws-accent">
             Créer : "{{ inputText }}"
           </span>
         </li>

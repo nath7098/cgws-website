@@ -26,7 +26,7 @@ function initRootSortable() {
     animation: 150,
     handle: '[data-drag-handle]',
     ghostClass: 'opacity-40',
-    chosenClass: 'ring-1 ring-cgws-copper ring-inset',
+    chosenClass: 'ring-1 ring-cgws-accent ring-inset',
     dragClass: 'shadow-lg',
     group: { name: 'root-categories', pull: false, put: false },
     onEnd(evt) {
@@ -75,18 +75,18 @@ function onSiblingReorder(
 </script>
 
 <template>
-  <div class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden">
+  <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
     <!-- Loading skeleton -->
     <template v-if="loading">
       <div
         v-for="i in 4"
         :key="i"
-        class="flex items-center gap-3 px-4 py-3 border-b border-cgws-leather/10 last:border-b-0"
+        class="flex items-center gap-3 px-4 py-3 border-b border-cgws-hairline last:border-b-0"
       >
-        <div class="w-4 h-4 rounded bg-cgws-leather/10 animate-pulse flex-shrink-0" />
-        <div class="w-4 h-4 rounded bg-cgws-leather/10 animate-pulse flex-shrink-0" />
-        <div class="h-4 w-40 rounded bg-cgws-leather/10 animate-pulse" />
-        <div class="ml-auto h-5 w-16 rounded-full bg-cgws-leather/10 animate-pulse" />
+        <div class="w-4 h-4 rounded bg-cgws-hairline animate-pulse flex-shrink-0" />
+        <div class="w-4 h-4 rounded bg-cgws-hairline animate-pulse flex-shrink-0" />
+        <div class="h-4 w-40 rounded bg-cgws-hairline animate-pulse" />
+        <div class="ml-auto h-5 w-16 rounded-full bg-cgws-hairline animate-pulse" />
       </div>
     </template>
 
@@ -97,13 +97,13 @@ function onSiblingReorder(
     >
       <UIcon
         name="i-lucide-folder-open"
-        class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+        class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
         aria-hidden="true"
       />
-      <p class="font-sans text-sm text-cgws-leather italic">
+      <p class="font-sans text-sm text-cgws-ink-soft italic">
         Aucune catégorie créée.
       </p>
-      <p class="font-sans text-xs text-cgws-rope mt-1">
+      <p class="font-sans text-xs text-cgws-ink-soft mt-1">
         Commencez par ajouter une catégorie racine.
       </p>
     </div>
@@ -114,7 +114,7 @@ function onSiblingReorder(
       ref="rootSortableRef"
       role="tree"
       aria-label="Arborescence des catégories"
-      class="divide-y divide-cgws-leather/10"
+      class="divide-y divide-cgws-hairline"
       :aria-busy="loading"
     >
       <CategoryTreeItem

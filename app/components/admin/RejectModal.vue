@@ -101,7 +101,7 @@ function handleConfirm(): void {
       >
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-cgws-charcoal/60 backdrop-blur-sm"
+          class="absolute inset-0 bg-cgws-ink/60 backdrop-blur-sm"
           aria-hidden="true"
           @click="closeModal"
         />
@@ -109,34 +109,34 @@ function handleConfirm(): void {
         <!-- Modal box -->
         <div
           ref="rejectModalRef"
-          class="relative bg-white border-2 border-cgws-charcoal rounded-sm shadow-xl w-full max-w-md flex flex-col max-h-[90dvh]"
+          class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md flex flex-col max-h-[90dvh]"
           tabindex="-1"
           @keydown="handleRejectModalKeydown"
         >
           <!-- Header -->
-          <div class="flex items-start gap-4 p-5 border-b border-cgws-leather/20 flex-shrink-0">
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-rust/10 flex items-center justify-center">
+          <div class="flex items-start gap-4 p-5 border-b border-cgws-hairline flex-shrink-0">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-danger/10 flex items-center justify-center">
               <UIcon
                 name="i-lucide-ban"
-                class="w-5 h-5 text-cgws-rust"
+                class="w-5 h-5 text-cgws-danger"
                 aria-hidden="true"
               />
             </div>
             <div class="flex-1 min-w-0">
               <h3
                 id="reject-modal-title"
-                class="font-serif font-bold text-lg text-cgws-charcoal"
+                class="font-serif font-bold text-lg text-cgws-ink"
               >
                 Refuser la demande
               </h3>
-              <p class="font-sans text-sm text-cgws-leather mt-0.5 line-clamp-1">
+              <p class="font-sans text-sm text-cgws-ink-soft mt-0.5 line-clamp-1">
                 {{ consignment.depositorName }} — {{ consignment.itemDescription }}
               </p>
             </div>
             <button
               type="button"
               :disabled="loading"
-              class="flex-shrink-0 p-1.5 -mr-1.5 -mt-1.5 rounded-sm text-cgws-leather hover:text-cgws-charcoal hover:bg-cgws-parchment/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+              class="flex-shrink-0 p-1.5 -mr-1.5 -mt-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-ink hover:bg-cgws-surface/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
               aria-label="Fermer sans refuser"
               @click="closeModal"
             >
@@ -150,17 +150,17 @@ function handleConfirm(): void {
 
           <!-- Body -->
           <div class="flex-1 overflow-y-auto p-5 space-y-4">
-            <p class="font-sans text-sm text-cgws-leather">
+            <p class="font-sans text-sm text-cgws-ink-soft">
               Un email sera automatiquement envoyé à
-              <strong class="text-cgws-charcoal">{{ consignment.depositorEmail }}</strong>
+              <strong class="text-cgws-ink">{{ consignment.depositorEmail }}</strong>
               avec le motif de refus.
             </p>
             <div>
               <label
                 for="reject-reason"
-                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
               >
-                Motif de refus <span class="text-cgws-rust">*</span>
+                Motif de refus <span class="text-cgws-danger">*</span>
               </label>
               <textarea
                 id="reject-reason"
@@ -170,8 +170,8 @@ function handleConfirm(): void {
                 placeholder="Ex. : L'état de l'article ne correspond pas à nos critères de dépôt…"
                 required
                 :disabled="loading"
-                class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope resize-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none disabled:opacity-50"
-                :class="rejectErrors.reason ? 'border-cgws-rust' : ''"
+                class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft resize-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none disabled:opacity-50"
+                :class="rejectErrors.reason ? 'border-cgws-danger' : ''"
                 aria-required="true"
                 :aria-describedby="rejectErrors.reason ? 'reject-reason-error' : undefined"
               />
@@ -179,13 +179,13 @@ function handleConfirm(): void {
                 v-if="rejectErrors.reason"
                 id="reject-reason-error"
                 role="alert"
-                class="mt-1 font-sans text-xs text-cgws-rust"
+                class="mt-1 font-sans text-xs text-cgws-danger"
               >
                 {{ rejectErrors.reason }}
               </p>
               <p
                 v-else
-                class="mt-1 font-sans text-xs text-cgws-leather/70"
+                class="mt-1 font-sans text-xs text-cgws-ink-soft/70"
               >
                 Ce message sera repris tel quel dans l'email envoyé au déposant.
               </p>
@@ -193,28 +193,25 @@ function handleConfirm(): void {
           </div>
 
           <!-- Footer -->
-          <div class="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 p-5 border-t border-cgws-leather/20 flex-shrink-0">
+          <div class="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 p-5 border-t border-cgws-hairline flex-shrink-0">
             <button
               type="button"
               :disabled="loading"
-              class="w-full sm:w-auto px-4 py-2 rounded-sm border border-cgws-leather/40 text-cgws-leather font-sans text-sm font-medium hover:bg-cgws-parchment/40 hover:text-cgws-charcoal transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+              class="w-full sm:w-auto px-4 py-2 rounded-sm border border-cgws-hairline text-cgws-ink-soft font-sans text-sm font-medium hover:bg-cgws-surface/40 hover:text-cgws-ink transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
               @click="closeModal"
             >
               Annuler
             </button>
-            <button
-              type="button"
+            <CgwsButton
+              variant="destructive"
+              size="sm"
+              class="w-full sm:w-auto"
+              :loading="loading"
               :disabled="loading || !rejectForm.reason.trim()"
-              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2 rounded-sm bg-cgws-rust text-white font-sans text-sm font-semibold hover:bg-cgws-charcoal transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2 focus-visible:outline-none"
               @click="handleConfirm"
             >
-              <span
-                v-if="loading"
-                class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
-                aria-hidden="true"
-              />
               {{ loading ? 'Envoi…' : 'Confirmer le refus' }}
-            </button>
+            </CgwsButton>
           </div>
         </div>
       </div>

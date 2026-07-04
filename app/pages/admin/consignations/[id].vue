@@ -92,11 +92,11 @@ const BASE_PILL = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 font-sans font
 
 function consignmentPillClass(status: ConsignmentStatus): string {
   const map: Record<ConsignmentStatus, string> = {
-    pending: `${BASE_PILL} bg-cgws-copper/20 text-cgws-copper`,
-    accepted: `${BASE_PILL} bg-green-100 text-green-700`,
-    rejected: `${BASE_PILL} bg-cgws-rust/15 text-cgws-rust`,
-    sold: `${BASE_PILL} bg-cgws-charcoal/10 text-cgws-charcoal`,
-    returned: `${BASE_PILL} bg-cgws-leather/15 text-cgws-leather`,
+    pending: `${BASE_PILL} bg-cgws-accent/20 text-cgws-accent`,
+    accepted: `${BASE_PILL} bg-cgws-success/15 text-cgws-success border border-cgws-success/40`,
+    rejected: `${BASE_PILL} bg-cgws-danger/15 text-cgws-danger`,
+    sold: `${BASE_PILL} bg-cgws-ink/10 text-cgws-ink`,
+    returned: `${BASE_PILL} bg-cgws-hairline text-cgws-ink-soft`,
   }
   return map[status]
 }
@@ -299,7 +299,7 @@ onUnmounted(() => {
       <div class="flex items-center gap-3 min-w-0">
         <NuxtLink
           to="/admin/consignations"
-          class="flex-shrink-0 p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+          class="flex-shrink-0 p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
           aria-label="Retour à la liste des consignations"
         >
           <UIcon
@@ -309,10 +309,10 @@ onUnmounted(() => {
           />
         </NuxtLink>
         <div class="min-w-0">
-          <h2 class="font-serif font-bold text-2xl text-cgws-charcoal line-clamp-1">
+          <h2 class="font-serif font-bold text-2xl text-cgws-ink line-clamp-1">
             Demande de {{ consignment?.depositorName ?? '…' }}
           </h2>
-          <p class="font-sans text-xs text-cgws-leather mt-0.5">
+          <p class="font-sans text-xs text-cgws-ink-soft mt-0.5">
             Reçue le {{ formatDate(consignment?.createdAt) }}
           </p>
         </div>
@@ -323,7 +323,7 @@ onUnmounted(() => {
       >
         <span
           v-if="consignment.status === 'pending'"
-          class="w-1.5 h-1.5 rounded-full bg-cgws-copper animate-pulse"
+          class="w-1.5 h-1.5 rounded-full bg-cgws-accent animate-pulse"
           aria-hidden="true"
         />
         {{ CONSIGNMENT_STATUS_LABELS[consignment.status as ConsignmentStatus] }}
@@ -333,15 +333,15 @@ onUnmounted(() => {
     <!-- Load error -->
     <div
       v-if="loadError"
-      class="bg-cgws-rust/5 border border-cgws-rust/30 rounded-[4px] p-5 flex items-center gap-3"
+      class="bg-cgws-danger/5 border border-cgws-danger/30 rounded-[4px] p-5 flex items-center gap-3"
       role="alert"
     >
       <UIcon
         name="i-lucide-alert-circle"
-        class="w-5 h-5 text-cgws-rust flex-shrink-0"
+        class="w-5 h-5 text-cgws-danger flex-shrink-0"
         aria-hidden="true"
       />
-      <p class="font-sans text-sm text-cgws-charcoal">
+      <p class="font-sans text-sm text-cgws-ink">
         {{ loadError }}
       </p>
     </div>
@@ -351,9 +351,9 @@ onUnmounted(() => {
       v-else-if="!consignment"
       class="space-y-4 animate-pulse"
     >
-      <div class="h-8 w-72 bg-cgws-leather/10 rounded" />
-      <div class="h-48 bg-cgws-leather/10 rounded-[4px]" />
-      <div class="h-64 bg-cgws-leather/10 rounded-[4px]" />
+      <div class="h-8 w-72 bg-cgws-hairline rounded" />
+      <div class="h-48 bg-cgws-hairline rounded-[4px]" />
+      <div class="h-64 bg-cgws-hairline rounded-[4px]" />
     </div>
 
     <!-- Content -->
@@ -365,16 +365,16 @@ onUnmounted(() => {
       <div class="lg:col-span-1 lg:sticky lg:top-24 order-first lg:order-last">
         <section
           aria-labelledby="photos-heading"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-4"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
         >
           <div class="flex items-center justify-between mb-3">
             <h3
               id="photos-heading"
-              class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper"
+              class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent"
             >
               Photos
             </h3>
-            <span class="font-sans text-xs text-cgws-leather">
+            <span class="font-sans text-xs text-cgws-ink-soft">
               {{ consignment.images.length }} photo{{ consignment.images.length !== 1 ? 's' : '' }}
             </span>
           </div>
@@ -382,14 +382,14 @@ onUnmounted(() => {
           <!-- Empty -->
           <div
             v-if="consignment.images.length === 0"
-            class="py-8 text-center border-2 border-dashed border-cgws-leather/20 rounded-sm"
+            class="py-8 text-center border-2 border-dashed border-cgws-hairline rounded-sm"
           >
             <UIcon
               name="i-lucide-image-off"
-              class="w-8 h-8 mx-auto mb-2 text-cgws-leather/30"
+              class="w-8 h-8 mx-auto mb-2 text-cgws-ink-soft/30"
               aria-hidden="true"
             />
-            <p class="font-sans text-xs text-cgws-leather italic">
+            <p class="font-sans text-xs text-cgws-ink-soft italic">
               Aucune photo fournie par le déposant.
             </p>
           </div>
@@ -405,7 +405,7 @@ onUnmounted(() => {
               v-for="(url, index) in consignment.images"
               :key="url"
               role="listitem"
-              class="relative aspect-square rounded-sm overflow-hidden bg-cgws-parchment border border-cgws-leather/20"
+              class="relative aspect-square rounded-sm overflow-hidden bg-cgws-surface border border-cgws-hairline"
             >
               <NuxtImg
                 :src="url"
@@ -418,7 +418,7 @@ onUnmounted(() => {
               />
               <div
                 v-if="index === 0"
-                class="absolute bottom-0 left-0 right-0 bg-cgws-copper/85 text-cgws-charcoal font-sans font-semibold text-[9px] uppercase tracking-wider py-0.5 text-center"
+                class="absolute bottom-0 left-0 right-0 bg-cgws-accent/85 text-cgws-on-accent font-sans font-semibold text-[9px] uppercase tracking-wider py-0.5 text-center"
               >
                 Principale
               </div>
@@ -432,11 +432,11 @@ onUnmounted(() => {
         <!-- Depositor card -->
         <section
           aria-labelledby="depositor-heading"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
         >
           <h3
             id="depositor-heading"
-            class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper mb-4"
+            class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent mb-4"
           >
             Déposant
           </h3>
@@ -447,10 +447,10 @@ onUnmounted(() => {
               </dt>
               <UIcon
                 name="i-lucide-user"
-                class="w-4 h-4 text-cgws-leather/60 flex-shrink-0"
+                class="w-4 h-4 text-cgws-ink-soft/60 flex-shrink-0"
                 aria-hidden="true"
               />
-              <dd class="font-sans text-sm font-medium text-cgws-charcoal">
+              <dd class="font-sans text-sm font-medium text-cgws-ink">
                 {{ consignment.depositorName }}
               </dd>
             </div>
@@ -460,13 +460,13 @@ onUnmounted(() => {
               </dt>
               <UIcon
                 name="i-lucide-mail"
-                class="w-4 h-4 text-cgws-leather/60 flex-shrink-0"
+                class="w-4 h-4 text-cgws-ink-soft/60 flex-shrink-0"
                 aria-hidden="true"
               />
               <dd>
                 <a
                   :href="`mailto:${consignment.depositorEmail}`"
-                  class="font-sans text-sm text-cgws-copper hover:underline focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none rounded-sm"
+                  class="font-sans text-sm text-cgws-accent hover:underline focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none rounded-sm"
                 >
                   {{ consignment.depositorEmail }}
                 </a>
@@ -481,13 +481,13 @@ onUnmounted(() => {
               </dt>
               <UIcon
                 name="i-lucide-phone"
-                class="w-4 h-4 text-cgws-leather/60 flex-shrink-0"
+                class="w-4 h-4 text-cgws-ink-soft/60 flex-shrink-0"
                 aria-hidden="true"
               />
               <dd>
                 <a
                   :href="`tel:${consignment.depositorPhone}`"
-                  class="font-sans text-sm text-cgws-charcoal hover:text-cgws-copper focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none rounded-sm"
+                  class="font-sans text-sm text-cgws-ink hover:text-cgws-accent focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none rounded-sm"
                 >
                   {{ consignment.depositorPhone }}
                 </a>
@@ -499,60 +499,60 @@ onUnmounted(() => {
         <!-- Article + form card -->
         <section
           aria-labelledby="item-heading"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 space-y-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-5"
         >
           <h3
             id="item-heading"
-            class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper"
+            class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent"
           >
             Article proposé
           </h3>
 
           <!-- Description + metadata -->
           <div class="space-y-3">
-            <p class="font-sans text-sm text-cgws-charcoal leading-relaxed">
+            <p class="font-sans text-sm text-cgws-ink leading-relaxed">
               {{ consignment.itemDescription }}
             </p>
             <dl class="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div v-if="consignment.brand">
-                <dt class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather mb-0.5">
+                <dt class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft mb-0.5">
                   Marque
                 </dt>
-                <dd class="font-sans text-sm font-medium text-cgws-charcoal">
+                <dd class="font-sans text-sm font-medium text-cgws-ink">
                   {{ consignment.brand }}
                 </dd>
               </div>
               <div>
-                <dt class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather mb-0.5">
+                <dt class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft mb-0.5">
                   État
                 </dt>
-                <dd class="font-sans text-sm font-medium text-cgws-charcoal">
+                <dd class="font-sans text-sm font-medium text-cgws-ink">
                   {{ CONDITION_LABELS[consignment.condition as ProductCondition] ?? consignment.condition }}
                 </dd>
               </div>
               <div>
-                <dt class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather mb-0.5">
+                <dt class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft mb-0.5">
                   Prix demandé
                 </dt>
-                <dd class="font-display text-base text-cgws-charcoal">
+                <dd class="font-display text-base text-cgws-ink">
                   {{ formatPrice(consignment.askingPrice) }}
                 </dd>
               </div>
             </dl>
           </div>
 
-          <hr class="border-cgws-leather/15">
+          <hr class="border-cgws-hairline">
 
           <!-- Agreed price field -->
           <div>
             <label
               for="field-agreed-price"
-              class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+              class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
             >
               Prix de mise en vente (€)
               <span
                 v-if="consignment.status === 'pending'"
-                class="text-cgws-rust ml-0.5"
+                class="text-cgws-danger ml-0.5"
               >*</span>
             </label>
             <div class="relative">
@@ -563,8 +563,8 @@ onUnmounted(() => {
                 min="0"
                 step="0.01"
                 :disabled="consignment.status !== 'pending' || isSubmitting"
-                class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-display text-xl text-cgws-copper focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none disabled:opacity-60 disabled:bg-cgws-leather/5 disabled:cursor-default"
-                :class="errors.agreedPrice ? 'border-cgws-rust' : ''"
+                class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm font-display text-xl text-cgws-accent focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none disabled:opacity-60 disabled:bg-cgws-hairline disabled:cursor-default"
+                :class="errors.agreedPrice ? 'border-cgws-danger' : ''"
                 aria-required="true"
                 :aria-describedby="errors.agreedPrice ? 'agreed-price-error' : 'agreed-price-hint'"
               >
@@ -573,14 +573,14 @@ onUnmounted(() => {
               v-if="errors.agreedPrice"
               id="agreed-price-error"
               role="alert"
-              class="mt-1 font-sans text-xs text-cgws-rust"
+              class="mt-1 font-sans text-xs text-cgws-danger"
             >
               {{ errors.agreedPrice }}
             </p>
             <p
               v-else
               id="agreed-price-hint"
-              class="mt-1 font-sans text-xs text-cgws-leather"
+              class="mt-1 font-sans text-xs text-cgws-ink-soft"
             >
               <template v-if="consignment.status === 'pending'">
                 Le déposant demande {{ formatPrice(consignment.askingPrice) }}.
@@ -596,10 +596,10 @@ onUnmounted(() => {
           <div v-if="consignment.status === 'pending'">
             <label
               for="field-notes"
-              class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+              class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
             >
               Notes internes
-              <span class="font-normal normal-case tracking-normal text-cgws-leather/70">(optionnel)</span>
+              <span class="font-normal normal-case tracking-normal text-cgws-ink-soft/70">(optionnel)</span>
             </label>
             <textarea
               id="field-notes"
@@ -607,17 +607,17 @@ onUnmounted(() => {
               :rows="3"
               placeholder="Observations sur l'état, historique de contact…"
               :disabled="isSubmitting"
-              class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope resize-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none disabled:opacity-50"
+              class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft resize-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none disabled:opacity-50"
             />
           </div>
           <div
             v-else-if="consignment.notes"
-            class="bg-cgws-parchment/50 border border-cgws-leather/20 rounded-sm p-3"
+            class="bg-cgws-surface/50 border border-cgws-hairline rounded-sm p-3"
           >
-            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather mb-1">
+            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft mb-1">
               Notes
             </p>
-            <p class="font-sans text-sm text-cgws-charcoal">
+            <p class="font-sans text-sm text-cgws-ink">
               {{ consignment.notes }}
             </p>
           </div>
@@ -629,31 +629,31 @@ onUnmounted(() => {
         <section
           v-if="consignment.status === 'pending'"
           aria-labelledby="actions-heading"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
         >
           <h3
             id="actions-heading"
-            class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper mb-4"
+            class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent mb-4"
           >
             Décision
           </h3>
-          <p class="font-sans text-sm text-cgws-leather mb-5">
+          <p class="font-sans text-sm text-cgws-ink-soft mb-5">
             En acceptant, un produit sera automatiquement créé au catalogue avec le prix de mise en vente
             indiqué ci-dessus. Un email de confirmation sera envoyé à
-            <strong class="text-cgws-charcoal">{{ consignment.depositorEmail }}</strong>.
+            <strong class="text-cgws-ink">{{ consignment.depositorEmail }}</strong>.
           </p>
           <div class="flex flex-col sm:flex-row gap-3">
             <!-- Accept button -->
             <button
               type="button"
               :disabled="isSubmitting"
-              class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm bg-cgws-copper text-white font-sans text-sm font-semibold hover:bg-cgws-leather transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2 focus-visible:outline-none"
+              class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm bg-cgws-accent text-cgws-on-accent font-sans text-sm font-semibold hover:bg-cgws-edge transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2 focus-visible:outline-none"
               aria-describedby="accept-hint"
               @click="handleAccept"
             >
               <span
                 v-if="isSubmitting && pendingAction === 'accept'"
-                class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                 aria-hidden="true"
               />
               <UIcon
@@ -670,7 +670,7 @@ onUnmounted(() => {
               ref="rejectButtonRef"
               type="button"
               :disabled="isSubmitting"
-              class="sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-sm border border-cgws-rust/50 text-cgws-rust bg-transparent font-sans text-sm font-semibold hover:bg-cgws-rust/10 hover:border-cgws-rust transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+              class="sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-sm border border-cgws-danger/50 text-cgws-danger bg-transparent font-sans text-sm font-semibold hover:bg-cgws-danger/10 hover:border-cgws-danger transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
               @click="openRejectModal"
             >
               <UIcon
@@ -683,7 +683,7 @@ onUnmounted(() => {
           </div>
           <p
             id="accept-hint"
-            class="mt-3 font-sans text-xs text-cgws-leather/70"
+            class="mt-3 font-sans text-xs text-cgws-ink-soft/70"
           >
             Assurez-vous que le prix de mise en vente est correct avant d'accepter.
           </p>
@@ -692,34 +692,34 @@ onUnmounted(() => {
         <!-- accepted: Info + product link -->
         <section
           v-else-if="consignment.status === 'accepted'"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-5"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
         >
           <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-success/15 flex items-center justify-center">
               <UIcon
                 name="i-lucide-shopping-bag"
-                class="w-5 h-5 text-green-700"
+                class="w-5 h-5 text-cgws-success"
                 aria-hidden="true"
               />
             </div>
             <div>
-              <p class="font-sans text-sm font-semibold text-cgws-charcoal mb-1">
+              <p class="font-sans text-sm font-semibold text-cgws-ink mb-1">
                 Consignation acceptée — article en vente
               </p>
-              <p class="font-sans text-sm text-cgws-leather">
+              <p class="font-sans text-sm text-cgws-ink-soft">
                 Un produit a été créé automatiquement au catalogue
                 avec un prix de mise en vente de
-                <strong class="font-display text-base text-cgws-copper">
+                <strong class="font-display text-base text-cgws-accent">
                   {{ formatPrice(consignment.agreedPrice ?? 0) }}
                 </strong>.
               </p>
-              <p class="font-sans text-xs text-cgws-leather/70 mt-1">
+              <p class="font-sans text-xs text-cgws-ink-soft/70 mt-1">
                 Pensez à vérifier la catégorie du produit créé (défaut : Accessoires).
               </p>
               <NuxtLink
                 v-if="linkedProduct"
                 :to="`/admin/produits/${linkedProduct.id}`"
-                class="mt-3 inline-flex items-center gap-1.5 font-sans text-sm font-semibold text-cgws-copper hover:underline focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+                class="mt-3 inline-flex items-center gap-1.5 font-sans text-sm font-semibold text-cgws-accent hover:underline focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
               >
                 Voir le produit au catalogue
                 <UIcon
@@ -730,26 +730,26 @@ onUnmounted(() => {
               </NuxtLink>
 
               <!-- PDF receipt button -->
-              <div class="mt-4 pt-4 border-t border-cgws-leather/15">
-                <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather/70 mb-2">
+              <div class="mt-4 pt-4 border-t border-cgws-hairline">
+                <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft/70 mb-2">
                   Documents
                 </p>
                 <button
                   type="button"
                   :disabled="isGeneratingPdf"
                   :aria-busy="isGeneratingPdf ? 'true' : undefined"
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-cgws-leather/40
-                         bg-cgws-parchment text-cgws-charcoal font-sans text-sm font-medium
-                         hover:border-cgws-copper hover:text-cgws-copper
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-cgws-hairline
+                         bg-cgws-surface text-cgws-ink font-sans text-sm font-medium
+                         hover:border-cgws-accent hover:text-cgws-accent
                          transition-colors duration-150
                          disabled:opacity-40 disabled:cursor-not-allowed
-                         focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+                         focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
                   aria-label="Générer et télécharger le bon de dépôt PDF"
                   @click="handleDownloadReceipt"
                 >
                   <span
                     v-if="isGeneratingPdf"
-                    class="w-4 h-4 rounded-full border-2 border-cgws-copper border-t-transparent animate-spin"
+                    class="w-4 h-4 rounded-full border-2 border-cgws-accent border-t-transparent animate-spin"
                     aria-hidden="true"
                   />
                   <UIcon
@@ -768,28 +768,28 @@ onUnmounted(() => {
         <!-- rejected: Info + reason -->
         <section
           v-else-if="consignment.status === 'rejected'"
-          class="bg-cgws-rust/5 border border-cgws-rust/30 rounded-[4px] p-5"
+          class="bg-cgws-danger/5 border border-cgws-danger/30 rounded-[4px] p-5"
         >
           <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-rust/15 flex items-center justify-center">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-danger/15 flex items-center justify-center">
               <UIcon
                 name="i-lucide-ban"
-                class="w-5 h-5 text-cgws-rust"
+                class="w-5 h-5 text-cgws-danger"
                 aria-hidden="true"
               />
             </div>
             <div>
-              <p class="font-sans text-sm font-semibold text-cgws-charcoal mb-1">
+              <p class="font-sans text-sm font-semibold text-cgws-ink mb-1">
                 Consignation refusée
               </p>
-              <p class="font-sans text-sm text-cgws-leather">
+              <p class="font-sans text-sm text-cgws-ink-soft">
                 Un email de refus a été envoyé à
-                <strong class="text-cgws-charcoal">{{ consignment.depositorEmail }}</strong>
+                <strong class="text-cgws-ink">{{ consignment.depositorEmail }}</strong>
                 avec le motif suivant :
               </p>
               <blockquote
                 v-if="consignment.notes"
-                class="mt-2 pl-3 border-l-2 border-cgws-rust/40 font-sans text-sm text-cgws-charcoal italic"
+                class="mt-2 pl-3 border-l-2 border-cgws-danger/40 font-sans text-sm text-cgws-ink italic"
               >
                 {{ consignment.notes }}
               </blockquote>
@@ -800,65 +800,65 @@ onUnmounted(() => {
         <!-- sold: Commission details -->
         <section
           v-else-if="consignment.status === 'sold'"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 space-y-4"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 space-y-4"
         >
-          <h3 class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper">
+          <h3 class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent">
             Détail de la vente
           </h3>
 
           <dl class="space-y-2">
-            <div class="flex items-center justify-between py-2 border-b border-cgws-leather/10">
-              <dt class="font-sans text-sm text-cgws-leather">
+            <div class="flex items-center justify-between py-2 border-b border-cgws-hairline">
+              <dt class="font-sans text-sm text-cgws-ink-soft">
                 Prix de vente
               </dt>
-              <dd class="font-display text-lg text-cgws-charcoal">
+              <dd class="font-display text-lg text-cgws-ink">
                 {{ formatPrice(linkedSale?.salePrice ?? consignment.agreedPrice ?? 0) }}
               </dd>
             </div>
-            <div class="flex items-center justify-between py-2 border-b border-cgws-leather/10">
-              <dt class="font-sans text-sm text-cgws-leather">
+            <div class="flex items-center justify-between py-2 border-b border-cgws-hairline">
+              <dt class="font-sans text-sm text-cgws-ink-soft">
                 Commission CGWS
-                <span class="text-xs text-cgws-leather/60">(20 %)</span>
+                <span class="text-xs text-cgws-ink-soft/60">(20 %)</span>
               </dt>
-              <dd class="font-display text-lg text-cgws-rust">
+              <dd class="font-display text-lg text-cgws-danger">
                 − {{ formatPrice(computedCommission) }}
               </dd>
             </div>
             <div class="flex items-center justify-between pt-3">
-              <dt class="font-sans text-sm font-semibold text-cgws-charcoal">
+              <dt class="font-sans text-sm font-semibold text-cgws-ink">
                 Montant à reverser au déposant
               </dt>
-              <dd class="font-display text-2xl text-cgws-copper">
+              <dd class="font-display text-2xl text-cgws-accent">
                 {{ formatPrice(computedDepositorAmount) }}
               </dd>
             </div>
           </dl>
 
-          <p class="font-sans text-xs text-cgws-leather/70">
+          <p class="font-sans text-xs text-cgws-ink-soft/70">
             Taux de commission CGWS fixe : 20 % du prix de vente effectif.
           </p>
 
           <!-- PDF receipt button -->
-          <div class="pt-4 border-t border-cgws-leather/15">
-            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather/70 mb-2">
+          <div class="pt-4 border-t border-cgws-hairline">
+            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft/70 mb-2">
               Documents
             </p>
             <button
               type="button"
               :disabled="isGeneratingPdf"
               :aria-busy="isGeneratingPdf ? 'true' : undefined"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-cgws-leather/40
-                     bg-cgws-parchment text-cgws-charcoal font-sans text-sm font-medium
-                     hover:border-cgws-copper hover:text-cgws-copper
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-cgws-hairline
+                     bg-cgws-surface text-cgws-ink font-sans text-sm font-medium
+                     hover:border-cgws-accent hover:text-cgws-accent
                      transition-colors duration-150
                      disabled:opacity-40 disabled:cursor-not-allowed
-                     focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+                     focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
               aria-label="Générer et télécharger le bon de dépôt PDF"
               @click="handleDownloadReceipt"
             >
               <span
                 v-if="isGeneratingPdf"
-                class="w-4 h-4 rounded-full border-2 border-cgws-copper border-t-transparent animate-spin"
+                class="w-4 h-4 rounded-full border-2 border-cgws-accent border-t-transparent animate-spin"
                 aria-hidden="true"
               />
               <UIcon
@@ -875,15 +875,15 @@ onUnmounted(() => {
         <!-- returned -->
         <section
           v-else-if="consignment.status === 'returned'"
-          class="bg-cgws-leather/5 border border-cgws-leather/20 rounded-[4px] p-5"
+          class="bg-cgws-hairline border border-cgws-hairline rounded-[4px] p-5"
         >
           <div class="flex items-center gap-3">
             <UIcon
               name="i-lucide-undo-2"
-              class="w-5 h-5 text-cgws-leather"
+              class="w-5 h-5 text-cgws-ink-soft"
               aria-hidden="true"
             />
-            <p class="font-sans text-sm text-cgws-leather">
+            <p class="font-sans text-sm text-cgws-ink-soft">
               Cet article a été retourné au déposant.
             </p>
           </div>
@@ -908,13 +908,13 @@ onUnmounted(() => {
           v-if="toast"
           :role="toast.type === 'error' ? 'alert' : 'status'"
           :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
-          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-tack text-cgws-rope px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
-          :class="toast.type === 'error' ? 'border-cgws-rust' : 'border-cgws-copper'"
+          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-brand-espresso text-cgws-brand-cream px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
+          :class="toast.type === 'error' ? 'border-cgws-danger' : 'border-cgws-accent'"
         >
           <UIcon
             :name="toast.type === 'error' ? 'i-lucide-x-circle' : 'i-lucide-check-circle'"
             class="w-5 h-5 flex-shrink-0"
-            :class="toast.type === 'error' ? 'text-cgws-rust' : 'text-cgws-copper'"
+            :class="toast.type === 'error' ? 'text-cgws-danger' : 'text-cgws-accent'"
             aria-hidden="true"
           />
           <p class="font-sans text-sm">

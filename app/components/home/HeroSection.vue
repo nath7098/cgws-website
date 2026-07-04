@@ -1,22 +1,27 @@
 <script setup lang="ts">
 import CgwsButton from '../ui/CgwsButton.vue'
-import SaddleIllustration from './SaddleIllustration.vue'
 
 const TITLE = "L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
 
-interface TitleChar {
+interface TitleLetter {
   char: string
-  isSpace: boolean
   key: number
 }
+interface TitleWord {
+  key: number
+  chars: TitleLetter[]
+}
 
-const titleChars = computed<TitleChar[]>(() =>
-  TITLE.split('').map((char, i) => ({
-    char,
-    isSpace: char === ' ',
-    key: i,
-  })),
-)
+// Groupe les lettres par mot : chaque mot est un wrapper insécable
+// (whitespace-nowrap), les lettres restent des spans .hero-letter individuels
+// pour que le stagger GSAP fonctionne inchangé.
+const titleWords = computed<TitleWord[]>(() => {
+  let k = 0
+  return TITLE.split(' ').map((word, wi) => ({
+    key: wi,
+    chars: word.split('').map((char) => ({ char, key: k++ })),
+  }))
+})
 
 let ctx: { revert: () => void } | undefined
 
@@ -54,13 +59,6 @@ onMounted(async () => {
       y: 24,
       duration: 0.5,
     }, 1.2)
-
-    tl.from('.saddle-illustration-wrapper', {
-      opacity: 0,
-      x: 30,
-      duration: 0.9,
-      ease: 'power1.out',
-    }, 0.4)
 
     tl.from('.hero-scroll-indicator', {
       opacity: 0,
@@ -111,7 +109,7 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-tack"
+    class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-ground"
     aria-label="Accueil CGWS — Sellerie équestre western"
   >
     <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
@@ -133,53 +131,73 @@ onUnmounted(() => {
 
     <!-- Gradient overlay -->
     <div
-      class="absolute inset-0 z-[1] bg-gradient-to-t from-cgws-tack/90 via-cgws-tack/40 to-cgws-tack/10"
+      class="absolute inset-0 z-[1] bg-gradient-to-t from-cgws-brand-espresso/90 via-cgws-brand-espresso/40 to-cgws-brand-espresso/10"
       aria-hidden="true"
     />
-
-    <!-- Saddle illustration (desktop only) -->
-    <div
-      class="saddle-illustration-wrapper absolute z-[2] hidden md:block
-             right-[6%] lg:right-[8%] xl:right-[10%]
-             top-1/2 -translate-y-[55%]
-             w-[200px] lg:w-[260px] xl:w-[300px]
-             opacity-70 md:opacity-75"
-      aria-hidden="true"
-    >
-      <SaddleIllustration />
-    </div>
 
     <!-- Content layer -->
     <div
       class="relative z-[10] h-full flex flex-col justify-end pb-16 md:pb-24 lg:justify-center lg:pb-0
              px-[clamp(1rem,4vw,2rem)] max-w-[1280px] mx-auto w-full"
     >
-      <!-- Eyebrow -->
-      <p
-        class="hero-eyebrow font-eyebrow text-[13px] text-cgws-rope uppercase tracking-[0.2em] mb-4 md:mb-5"
-      >
-        Sellerie Équestre Western · Brèches, 37
-      </p>
-
-      <!-- H1 with per-character spans for GSAP stagger -->
-      <h1
-        class="font-display uppercase leading-none text-cgws-cream
-               text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
-               mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
-        aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
-      >
-        <span
-          v-for="item in titleChars"
-          :key="item.key"
-          class="hero-letter inline-block"
-          :class="item.isSpace ? 'w-[0.25em]' : ''"
+      <!-- Bloc titre (eyebrow + H1) encadré par l'arche fine ornementale -->
+      <div class="hero-title-block relative">
+        <!-- Arche fine décorative (accent-deco ornemental, aria-hidden) -->
+        <svg
+          class="pointer-events-none absolute -top-6 left-0 h-auto w-full
+                 max-w-[420px] sm:max-w-[520px] lg:max-w-[620px]"
+          viewBox="0 0 520 160"
+          fill="none"
           aria-hidden="true"
-        >{{ item.isSpace ? '' : item.char }}</span>
-      </h1>
+        >
+          <path
+            d="M20 160 C20 60 120 8 260 8 C400 8 500 60 500 160"
+            stroke="var(--cgws-accent-deco)"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+
+        <!-- Eyebrow : barre décorative accent-deco + texte marque (mt-6 sous l'arche) -->
+        <div class="hero-eyebrow flex items-center gap-2.5 mt-6 mb-4 md:mb-5">
+          <span
+            class="block w-0.5 h-3 bg-cgws-accent-deco flex-shrink-0"
+            aria-hidden="true"
+          />
+          <p
+            class="font-eyebrow font-semibold text-[11px] md:text-xs text-cgws-brand-sand uppercase tracking-[0.3em]"
+          >
+            Sellerie Équestre Western · Brèches, 37
+          </p>
+        </div>
+
+        <!-- H1 : mots insécables (whitespace-nowrap) → lettres animables (.hero-letter) -->
+        <h1
+          class="font-display font-bold uppercase leading-none text-cgws-brand-cream
+                 text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
+                 mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
+          aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
+        >
+          <template v-for="(word, wi) in titleWords" :key="word.key">
+            <span class="inline-block whitespace-nowrap">
+              <span
+                v-for="letter in word.chars"
+                :key="letter.key"
+                class="hero-letter inline-block"
+                aria-hidden="true"
+              >{{ letter.char }}</span>
+            </span><span
+              v-if="wi < titleWords.length - 1"
+              class="hero-letter inline-block w-[0.25em]"
+              aria-hidden="true"
+            />
+          </template>
+        </h1>
+      </div>
 
       <!-- Subtitle -->
       <p
-        class="hero-subtitle font-serif italic text-cgws-rope
+        class="hero-subtitle font-serif italic text-cgws-brand-sand
                text-[17px] md:text-[19px] lg:text-[21px]
                leading-relaxed mb-8 md:mb-10 max-w-[45ch] md:max-w-[38ch]"
       >
@@ -218,7 +236,7 @@ onUnmounted(() => {
       role="presentation"
       aria-label="Défiler vers le bas"
     >
-      <span class="font-eyebrow text-[10px] text-cgws-rope/60 uppercase tracking-widest">
+      <span class="font-eyebrow text-[10px] text-cgws-brand-sand/60 uppercase tracking-widest">
         Découvrir
       </span>
       <svg
@@ -227,7 +245,7 @@ onUnmounted(() => {
         viewBox="0 0 16 24"
         fill="none"
         aria-hidden="true"
-        class="text-cgws-rope"
+        class="text-cgws-brand-sand"
       >
         <path d="M2 8 L8 14 L14 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
         <path d="M2 14 L8 20 L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />

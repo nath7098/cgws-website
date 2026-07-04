@@ -54,12 +54,12 @@ const STATUS_LABELS: Record<ProductStatus, string> = {
 
 function statusDotClass(status: string): string {
   const map: Record<string, string> = {
-    active: 'bg-green-500 border-green-300',
-    reserved: 'bg-cgws-copper border-cgws-copper/40',
-    sold: 'bg-cgws-charcoal border-cgws-charcoal/30',
-    inactive: 'bg-cgws-leather/60 border-cgws-leather/30',
+    active: 'bg-cgws-success border-cgws-success/40',
+    reserved: 'bg-cgws-accent border-cgws-accent/40',
+    sold: 'bg-cgws-ink border-cgws-ink/30',
+    inactive: 'bg-cgws-hairline border-cgws-hairline',
   }
-  return map[status] ?? 'bg-cgws-leather/40 border-cgws-leather/20'
+  return map[status] ?? 'bg-cgws-hairline border-cgws-hairline'
 }
 
 function formatHistoryDate(iso: string): string {
@@ -156,7 +156,7 @@ async function handleUpdate(payload: ProductFormPayload) {
     <div class="flex items-center gap-3">
       <NuxtLink
         to="/admin/produits"
-        class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+        class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
         aria-label="Retour à la liste des produits"
       >
         <UIcon
@@ -165,7 +165,7 @@ async function handleUpdate(payload: ProductFormPayload) {
           aria-hidden="true"
         />
       </NuxtLink>
-      <h2 class="font-serif font-bold text-2xl text-cgws-charcoal line-clamp-1">
+      <h2 class="font-serif font-bold text-2xl text-cgws-ink line-clamp-1">
         Modifier : {{ product?.title ?? '…' }}
       </h2>
     </div>
@@ -174,14 +174,14 @@ async function handleUpdate(payload: ProductFormPayload) {
     <div
       v-if="loadError"
       role="alert"
-      class="bg-cgws-rust/10 border border-cgws-rust rounded-sm p-4 flex items-center gap-3"
+      class="bg-cgws-danger/10 border border-cgws-danger rounded-sm p-4 flex items-center gap-3"
     >
       <UIcon
         name="i-lucide-alert-circle"
-        class="w-5 h-5 text-cgws-rust flex-shrink-0"
+        class="w-5 h-5 text-cgws-danger flex-shrink-0"
         aria-hidden="true"
       />
-      <p class="font-sans text-sm text-cgws-rust">
+      <p class="font-sans text-sm text-cgws-danger">
         {{ loadError }}
       </p>
     </div>
@@ -202,21 +202,21 @@ async function handleUpdate(payload: ProductFormPayload) {
       v-else-if="!loadError"
       class="space-y-4 animate-pulse"
     >
-      <div class="h-48 bg-cgws-leather/10 rounded-[4px]" />
-      <div class="h-32 bg-cgws-leather/10 rounded-[4px]" />
-      <div class="h-24 bg-cgws-leather/10 rounded-[4px]" />
+      <div class="h-48 bg-cgws-hairline rounded-[4px]" />
+      <div class="h-32 bg-cgws-hairline rounded-[4px]" />
+      <div class="h-24 bg-cgws-hairline rounded-[4px]" />
     </div>
 
     <!-- Status history section -->
     <section
       v-if="product || !loadError"
       aria-labelledby="status-history-title"
-      class="bg-white border border-cgws-leather/30 rounded-[4px] p-5"
+      class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5"
     >
       <h3
         id="status-history-title"
         class="font-sans font-semibold text-xs uppercase tracking-widest
-               text-cgws-copper mb-4"
+               text-cgws-accent mb-4"
       >
         Historique des statuts
       </h3>
@@ -232,10 +232,10 @@ async function handleUpdate(payload: ProductFormPayload) {
           :key="i"
           class="flex items-center gap-3 mb-4 last:mb-0 animate-pulse"
         >
-          <div class="w-3 h-3 rounded-full bg-cgws-leather/20 flex-shrink-0" />
+          <div class="w-3 h-3 rounded-full bg-cgws-hairline flex-shrink-0" />
           <div class="flex-1 space-y-1.5">
-            <div class="h-3.5 w-28 bg-cgws-leather/15 rounded" />
-            <div class="h-3 w-44 bg-cgws-leather/10 rounded" />
+            <div class="h-3.5 w-28 bg-cgws-hairline rounded" />
+            <div class="h-3 w-44 bg-cgws-hairline rounded" />
           </div>
         </div>
       </div>
@@ -247,10 +247,10 @@ async function handleUpdate(payload: ProductFormPayload) {
       >
         <UIcon
           name="i-lucide-clock"
-          class="w-4 h-4 text-cgws-leather/40 flex-shrink-0"
+          class="w-4 h-4 text-cgws-ink-soft/40 flex-shrink-0"
           aria-hidden="true"
         />
-        <p class="font-sans text-sm text-cgws-leather italic">
+        <p class="font-sans text-sm text-cgws-ink-soft italic">
           Aucun changement de statut enregistré.
         </p>
       </div>
@@ -269,7 +269,7 @@ async function handleUpdate(payload: ProductFormPayload) {
           <!-- Vertical connector line -->
           <div
             v-if="index < statusHistory.length - 1"
-            class="absolute left-[5px] top-4 bottom-0 w-px bg-cgws-leather/15"
+            class="absolute left-[5px] top-4 bottom-0 w-px bg-cgws-hairline"
             aria-hidden="true"
           />
 
@@ -283,23 +283,23 @@ async function handleUpdate(payload: ProductFormPayload) {
           <!-- Content -->
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-2 flex-wrap">
-              <span class="font-sans text-sm font-semibold text-cgws-charcoal">
+              <span class="font-sans text-sm font-semibold text-cgws-ink">
                 {{ STATUS_LABELS[entry.newStatus] }}
               </span>
               <span
                 v-if="entry.oldStatus"
-                class="font-sans text-xs text-cgws-leather"
+                class="font-sans text-xs text-cgws-ink-soft"
               >
                 ← {{ STATUS_LABELS[entry.oldStatus] }}
               </span>
               <span
                 v-else
-                class="font-sans text-xs text-cgws-leather italic"
+                class="font-sans text-xs text-cgws-ink-soft italic"
               >
                 (statut initial)
               </span>
             </div>
-            <p class="font-sans text-xs text-cgws-leather mt-0.5">
+            <p class="font-sans text-xs text-cgws-ink-soft mt-0.5">
               {{ formatHistoryDate(entry.changedAt) }} · {{ entry.changedBy }}
             </p>
           </div>

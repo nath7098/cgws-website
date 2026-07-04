@@ -279,10 +279,10 @@ onUnmounted(() => {
     <!-- Page header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+        <h2 class="font-serif font-bold text-2xl text-cgws-ink">
           Produits
         </h2>
-        <p class="font-sans text-sm text-cgws-leather mt-0.5">
+        <p class="font-sans text-sm text-cgws-ink-soft mt-0.5">
           {{ totalCount }} produit{{ totalCount !== 1 ? 's' : '' }} au catalogue
         </p>
       </div>
@@ -302,19 +302,19 @@ onUnmounted(() => {
     </div>
 
     <!-- Toolbar -->
-    <div class="bg-white border border-cgws-leather/30 rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
+    <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
       <!-- Search -->
       <div class="relative flex-1 min-w-0">
         <UIcon
           name="i-lucide-search"
-          class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-rope pointer-events-none"
+          class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft pointer-events-none"
           aria-hidden="true"
         />
         <input
           v-model="searchQuery"
           type="search"
           placeholder="Rechercher par nom ou marque…"
-          class="w-full pl-9 pr-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20"
+          class="w-full pl-9 pr-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20"
           aria-label="Rechercher un produit par nom ou marque"
         >
       </div>
@@ -322,7 +322,7 @@ onUnmounted(() => {
       <!-- Category filter -->
       <select
         v-model="filterCategory"
-        class="py-2 px-3 pr-8 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal appearance-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 outline-none min-w-[160px]"
+        class="py-2 px-3 pr-8 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink appearance-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 outline-none min-w-[160px]"
         aria-label="Filtrer par catégorie"
       >
         <option value="">
@@ -351,7 +351,7 @@ onUnmounted(() => {
       <!-- Status filter -->
       <select
         v-model="filterStatus"
-        class="py-2 px-3 pr-8 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal appearance-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 outline-none min-w-[140px]"
+        class="py-2 px-3 pr-8 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink appearance-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 outline-none min-w-[140px]"
         aria-label="Filtrer par statut"
       >
         <option value="">
@@ -378,13 +378,13 @@ onUnmounted(() => {
         <div
           v-for="i in 5"
           :key="i"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-3 animate-pulse"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 animate-pulse"
         >
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-sm bg-cgws-leather/10 flex-shrink-0" />
+            <div class="w-12 h-12 rounded-sm bg-cgws-hairline flex-shrink-0" />
             <div class="flex-1 space-y-2">
-              <div class="h-4 w-3/4 bg-cgws-leather/10 rounded" />
-              <div class="h-3 w-1/2 bg-cgws-leather/10 rounded" />
+              <div class="h-4 w-3/4 bg-cgws-hairline rounded" />
+              <div class="h-3 w-1/2 bg-cgws-hairline rounded" />
             </div>
           </div>
         </div>
@@ -395,15 +395,15 @@ onUnmounted(() => {
       >
         <UIcon
           name="i-lucide-package-open"
-          class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+          class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
           aria-hidden="true"
         />
-        <p class="font-sans text-sm text-cgws-leather italic">
+        <p class="font-sans text-sm text-cgws-ink-soft italic">
           Aucun produit ne correspond à votre recherche.
         </p>
         <button
           type="button"
-          class="mt-3 font-sans text-xs text-cgws-copper hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="mt-3 font-sans text-xs text-cgws-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           @click="resetFilters"
         >
           Réinitialiser les filtres
@@ -413,10 +413,10 @@ onUnmounted(() => {
         <div
           v-for="product in products"
           :key="product.id"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-3 flex items-start gap-3"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 flex items-start gap-3"
         >
           <!-- Thumbnail -->
-          <div class="w-12 h-12 rounded-sm overflow-hidden bg-cgws-parchment border border-cgws-leather/20 flex-shrink-0">
+          <div class="w-12 h-12 rounded-sm overflow-hidden bg-cgws-surface border border-cgws-hairline flex-shrink-0">
             <NuxtImg
               v-if="product.images[0]"
               :src="product.images[0]"
@@ -433,24 +433,24 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-image"
-                class="w-4 h-4 text-cgws-leather/40"
+                class="w-4 h-4 text-cgws-ink-soft/40"
                 aria-hidden="true"
               />
             </div>
           </div>
           <!-- Info -->
           <div class="flex-1 min-w-0">
-            <p class="font-sans text-sm font-medium text-cgws-charcoal line-clamp-1">
+            <p class="font-sans text-sm font-medium text-cgws-ink line-clamp-1">
               {{ product.title }}
             </p>
             <p
               v-if="product.brand"
-              class="font-sans text-xs text-cgws-leather"
+              class="font-sans text-xs text-cgws-ink-soft"
             >
               {{ product.brand }}
             </p>
             <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span class="font-display text-sm text-cgws-copper">{{ formatPrice(product.price) }}</span>
+              <span class="font-display text-sm text-cgws-accent">{{ formatPrice(product.price) }}</span>
               <StatusDropdown
                 :product-id="product.id"
                 :current-status="product.status"
@@ -465,7 +465,7 @@ onUnmounted(() => {
           <div class="flex items-center gap-1 flex-shrink-0">
             <NuxtLink
               :to="`/admin/produits/${product.id}`"
-              class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+              class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
               :aria-label="`Modifier ${product.title}`"
             >
               <UIcon
@@ -476,7 +476,7 @@ onUnmounted(() => {
             </NuxtLink>
             <button
               type="button"
-              class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-rust hover:bg-cgws-rust/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+              class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-danger hover:bg-cgws-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
               :aria-label="`Supprimer ${product.title}`"
               @click="openDeleteModal(product, $event.currentTarget as HTMLButtonElement)"
             >
@@ -493,7 +493,7 @@ onUnmounted(() => {
 
     <!-- Table (sm+) -->
     <div class="hidden sm:block">
-    <div class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden">
+    <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
       <table
         class="w-full text-sm font-sans"
         aria-label="Liste des produits"
@@ -501,7 +501,7 @@ onUnmounted(() => {
         <caption class="sr-only">
           {{ totalCount }} produits, triés par date d'ajout décroissante
         </caption>
-        <thead class="border-b border-cgws-leather/20 bg-cgws-parchment/40">
+        <thead class="border-b border-cgws-hairline bg-cgws-surface/40">
           <tr>
             <th
               scope="col"
@@ -511,31 +511,31 @@ onUnmounted(() => {
             </th>
             <th
               scope="col"
-              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Nom
             </th>
             <th
               scope="col"
-              class="hidden sm:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="hidden sm:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Catégorie
             </th>
             <th
               scope="col"
-              class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Prix
             </th>
             <th
               scope="col"
-              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Statut
             </th>
             <th
               scope="col"
-              class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Ajouté le
             </th>
@@ -547,35 +547,35 @@ onUnmounted(() => {
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-cgws-leather/10">
+        <tbody class="divide-y divide-cgws-hairline">
           <!-- Loading skeleton -->
           <template v-if="isLoading">
             <tr
               v-for="i in 8"
               :key="i"
-              class="border-b border-cgws-leather/10"
+              class="border-b border-cgws-hairline"
             >
               <td class="py-3 pl-4 pr-2">
-                <div class="w-10 h-10 rounded-sm bg-cgws-leather/10 animate-pulse" />
+                <div class="w-10 h-10 rounded-sm bg-cgws-hairline animate-pulse" />
               </td>
               <td class="py-3 px-3">
-                <div class="h-4 w-40 bg-cgws-leather/10 rounded animate-pulse mb-1" />
-                <div class="h-3 w-24 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-40 bg-cgws-hairline rounded animate-pulse mb-1" />
+                <div class="h-3 w-24 bg-cgws-hairline rounded animate-pulse" />
               </td>
               <td class="hidden sm:table-cell py-3 px-3">
-                <div class="h-4 w-24 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-24 bg-cgws-hairline rounded animate-pulse" />
               </td>
               <td class="py-3 px-3">
-                <div class="h-4 w-16 bg-cgws-leather/10 rounded animate-pulse ml-auto" />
+                <div class="h-4 w-16 bg-cgws-hairline rounded animate-pulse ml-auto" />
               </td>
               <td class="py-3 px-3">
-                <div class="h-5 w-20 bg-cgws-leather/10 rounded-full animate-pulse" />
+                <div class="h-5 w-20 bg-cgws-hairline rounded-full animate-pulse" />
               </td>
               <td class="hidden lg:table-cell py-3 px-3">
-                <div class="h-4 w-16 bg-cgws-leather/10 rounded animate-pulse" />
+                <div class="h-4 w-16 bg-cgws-hairline rounded animate-pulse" />
               </td>
               <td class="py-3 pl-3 pr-4">
-                <div class="h-7 w-16 bg-cgws-leather/10 rounded animate-pulse ml-auto" />
+                <div class="h-7 w-16 bg-cgws-hairline rounded animate-pulse ml-auto" />
               </td>
             </tr>
           </template>
@@ -588,15 +588,15 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-package-open"
-                class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+                class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
                 aria-hidden="true"
               />
-              <p class="font-sans text-sm text-cgws-leather italic">
+              <p class="font-sans text-sm text-cgws-ink-soft italic">
                 Aucun produit ne correspond à votre recherche.
               </p>
               <button
                 type="button"
-                class="mt-3 font-sans text-xs text-cgws-copper hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                class="mt-3 font-sans text-xs text-cgws-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 @click="resetFilters"
               >
                 Réinitialiser les filtres
@@ -609,11 +609,11 @@ onUnmounted(() => {
             v-for="product in products"
             v-else
             :key="product.id"
-            class="hover:bg-cgws-parchment/20 transition-colors duration-100"
+            class="hover:bg-cgws-surface/20 transition-colors duration-100"
           >
             <!-- Thumbnail -->
             <td class="py-2.5 pl-4 pr-2 w-12">
-              <div class="w-10 h-10 rounded-sm overflow-hidden bg-cgws-parchment border border-cgws-leather/20 flex-shrink-0">
+              <div class="w-10 h-10 rounded-sm overflow-hidden bg-cgws-surface border border-cgws-hairline flex-shrink-0">
                 <NuxtImg
                   v-if="product.images[0]"
                   :src="product.images[0]"
@@ -630,7 +630,7 @@ onUnmounted(() => {
                 >
                   <UIcon
                     name="i-lucide-image"
-                    class="w-4 h-4 text-cgws-leather/40"
+                    class="w-4 h-4 text-cgws-ink-soft/40"
                     aria-hidden="true"
                   />
                 </div>
@@ -639,24 +639,24 @@ onUnmounted(() => {
 
             <!-- Name + brand -->
             <td class="py-2.5 px-3">
-              <span class="font-sans text-sm font-medium text-cgws-charcoal line-clamp-1 block">
+              <span class="font-sans text-sm font-medium text-cgws-ink line-clamp-1 block">
                 {{ product.title }}
               </span>
               <span
                 v-if="product.brand"
-                class="font-sans text-xs text-cgws-leather"
+                class="font-sans text-xs text-cgws-ink-soft"
               >
                 {{ product.brand }}
               </span>
             </td>
 
             <!-- Category (sm+) -->
-            <td class="hidden sm:table-cell py-2.5 px-3 font-sans text-sm text-cgws-leather">
+            <td class="hidden sm:table-cell py-2.5 px-3 font-sans text-sm text-cgws-ink-soft">
               {{ CATEGORY_LABELS[product.category] ?? product.category }}
             </td>
 
             <!-- Price -->
-            <td class="py-2.5 px-3 text-right font-display text-base text-cgws-copper whitespace-nowrap">
+            <td class="py-2.5 px-3 text-right font-display text-base text-cgws-accent whitespace-nowrap">
               {{ formatPrice(product.price) }}
             </td>
 
@@ -673,7 +673,7 @@ onUnmounted(() => {
             </td>
 
             <!-- Date (lg+) -->
-            <td class="hidden lg:table-cell py-2.5 px-3 font-sans text-xs text-cgws-leather whitespace-nowrap">
+            <td class="hidden lg:table-cell py-2.5 px-3 font-sans text-xs text-cgws-ink-soft whitespace-nowrap">
               {{ formatDate(product.createdAt) }}
             </td>
 
@@ -682,7 +682,7 @@ onUnmounted(() => {
               <div class="inline-flex items-center gap-1">
                 <NuxtLink
                   :to="`/admin/produits/${product.id}`"
-                  class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   :aria-label="`Modifier ${product.title}`"
                 >
                   <UIcon
@@ -693,7 +693,7 @@ onUnmounted(() => {
                 </NuxtLink>
                 <button
                   type="button"
-                  class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-rust hover:bg-cgws-rust/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-danger hover:bg-cgws-danger/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   :aria-label="`Supprimer ${product.title}`"
                   @click="openDeleteModal(product, $event.currentTarget as HTMLButtonElement)"
                 >
@@ -716,7 +716,7 @@ onUnmounted(() => {
       v-if="!isLoading && totalPages > 1"
       class="flex items-center justify-between mt-4 flex-wrap gap-3"
     >
-      <p class="font-sans text-xs text-cgws-leather">
+      <p class="font-sans text-xs text-cgws-ink-soft">
         {{ totalCount }} produit{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} de {{ totalPages }}
       </p>
       <nav
@@ -726,7 +726,7 @@ onUnmounted(() => {
         <button
           type="button"
           :disabled="currentPage === 1"
-          class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30 hover:bg-cgws-leather/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30 hover:bg-cgws-hairline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           aria-label="Page précédente"
           @click="goToPage(currentPage - 1)"
         >
@@ -742,10 +742,10 @@ onUnmounted(() => {
           type="button"
           :aria-current="page === currentPage ? 'page' : undefined"
           :class="[
-            'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper',
+            'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent',
             page === currentPage
-              ? 'bg-cgws-copper text-cgws-charcoal font-semibold'
-              : 'text-cgws-leather hover:bg-cgws-leather/10',
+              ? 'bg-cgws-accent text-cgws-on-accent font-semibold'
+              : 'text-cgws-ink-soft hover:bg-cgws-hairline',
           ]"
           @click="goToPage(page)"
         >
@@ -755,7 +755,7 @@ onUnmounted(() => {
         <button
           type="button"
           :disabled="currentPage === totalPages"
-          class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30 hover:bg-cgws-leather/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30 hover:bg-cgws-hairline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           aria-label="Page suivante"
           @click="goToPage(currentPage + 1)"
         >
@@ -790,7 +790,7 @@ onUnmounted(() => {
         >
           <!-- Backdrop -->
           <div
-            class="absolute inset-0 bg-cgws-charcoal/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-cgws-ink/60 backdrop-blur-sm"
             aria-hidden="true"
             @click="closeDeleteModal()"
           />
@@ -798,27 +798,27 @@ onUnmounted(() => {
           <!-- Modal box -->
           <div
             ref="modalBoxRef"
-            class="relative bg-white border-2 border-cgws-charcoal rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
+            class="relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl w-full max-w-md p-6 space-y-4"
             tabindex="-1"
             @keydown="handleModalKeydown"
           >
             <div class="flex items-start gap-4">
-              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-rust/10 flex items-center justify-center">
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-danger/10 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-triangle-alert"
-                  class="w-5 h-5 text-cgws-rust"
+                  class="w-5 h-5 text-cgws-danger"
                   aria-hidden="true"
                 />
               </div>
               <div>
                 <h3
                   id="delete-modal-title"
-                  class="font-serif font-bold text-lg text-cgws-charcoal"
+                  class="font-serif font-bold text-lg text-cgws-ink"
                 >
                   Supprimer ce produit ?
                 </h3>
-                <p class="font-sans text-sm text-cgws-leather mt-1">
-                  <strong class="text-cgws-charcoal">{{ deleteTarget.title }}</strong>
+                <p class="font-sans text-sm text-cgws-ink-soft mt-1">
+                  <strong class="text-cgws-ink">{{ deleteTarget.title }}</strong>
                   sera définitivement supprimé du catalogue ainsi que toutes ses photos.
                   Cette action est irréversible.
                 </p>
@@ -837,12 +837,12 @@ onUnmounted(() => {
               <button
                 type="button"
                 :disabled="isDeleting"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-rust text-white font-sans text-sm font-semibold hover:bg-cgws-charcoal transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-danger/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                 @click="confirmDelete()"
               >
                 <span
                   v-if="isDeleting"
-                  class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                  class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                   aria-hidden="true"
                 />
                 Supprimer définitivement
@@ -860,13 +860,13 @@ onUnmounted(() => {
           v-if="toast"
           :role="toast.type === 'error' ? 'alert' : 'status'"
           :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
-          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-tack text-cgws-rope px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
-          :class="toast.type === 'error' ? 'border-cgws-rust' : 'border-cgws-copper'"
+          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-brand-espresso text-cgws-brand-cream px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
+          :class="toast.type === 'error' ? 'border-cgws-danger' : 'border-cgws-accent'"
         >
           <UIcon
             :name="toast.type === 'error' ? 'i-lucide-x-circle' : 'i-lucide-check-circle'"
             class="w-5 h-5 flex-shrink-0"
-            :class="toast.type === 'error' ? 'text-cgws-rust' : 'text-cgws-copper'"
+            :class="toast.type === 'error' ? 'text-cgws-danger' : 'text-cgws-accent'"
             aria-hidden="true"
           />
           <p class="font-sans text-sm">

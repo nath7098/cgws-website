@@ -132,7 +132,7 @@ onUnmounted(() => {
     <template v-if="isVisible">
       <div
         ref="backdropRef"
-        class="fixed inset-0 z-60 bg-cgws-tack/60 backdrop-blur-sm"
+        class="fixed inset-0 z-60 bg-cgws-ink/60 backdrop-blur-sm"
         aria-hidden="true"
         @click="close"
       />
@@ -143,18 +143,18 @@ onUnmounted(() => {
         role="dialog"
         aria-modal="true"
         aria-label="Menu de navigation"
-        class="fixed top-0 right-0 z-60 h-full w-[85vw] max-w-[340px] bg-cgws-tack flex flex-col"
+        class="fixed top-0 right-0 z-60 h-full w-[85vw] max-w-[340px] bg-cgws-ground flex flex-col"
         @keydown="handleKeydown"
       >
-        <div class="h-14 flex items-center justify-between px-5 flex-shrink-0 border-b border-cgws-leather/30">
-          <span class="font-display text-[22px] leading-none uppercase tracking-[0.2em] text-cgws-copper">
+        <div class="h-14 flex items-center justify-between px-5 flex-shrink-0 border-b border-cgws-hairline">
+          <span class="font-display text-[22px] leading-none uppercase tracking-[0.2em] text-cgws-accent">
             CGWS
           </span>
           <button
             type="button"
-            class="w-10 h-10 flex items-center justify-center text-cgws-rope hover:text-cgws-copper
+            class="w-10 h-10 flex items-center justify-center text-cgws-ink-soft hover:text-cgws-accent
                    transition-colors duration-150
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper rounded-sm"
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
             aria-label="Fermer le menu"
             @click="close"
           >
@@ -169,32 +169,36 @@ onUnmounted(() => {
             :key="link.to"
             :to="link.to"
             :aria-current="isActive(link.to) ? 'page' : undefined"
-            class="mobile-nav-link flex items-center justify-between py-4 px-5 border-b border-cgws-leather/20
-                   font-sans text-lg font-medium text-cgws-rope
-                   hover:text-cgws-copper hover:bg-cgws-leather/10 transition-colors duration-150
-                   focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
-            active-class="text-cgws-copper"
+            class="mobile-nav-link flex items-center justify-between py-4 px-5 border-b border-cgws-hairline
+                   font-sans text-lg font-medium text-cgws-ink-soft
+                   hover:text-cgws-accent hover:bg-cgws-hairline transition-colors duration-150
+                   focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
+            active-class="text-cgws-accent"
             @click="close"
           >
             {{ link.label }}
-            <UIcon name="i-lucide-chevron-right" class="w-4 h-4 text-cgws-leather flex-shrink-0" aria-hidden="true" />
+            <UIcon name="i-lucide-chevron-right" class="w-4 h-4 text-cgws-ink-soft flex-shrink-0" aria-hidden="true" />
           </NuxtLink>
         </nav>
 
         <div class="relative flex items-center mx-5 my-1 flex-shrink-0" aria-hidden="true">
-          <div class="flex-1 border-t border-cgws-leather/30" />
-          <div class="mx-3 w-5 h-5 rounded-full border-2 border-cgws-copper/60 flex items-center justify-center flex-shrink-0">
-            <div class="w-1.5 h-1.5 rounded-full bg-cgws-copper/80" />
+          <div class="flex-1 border-t border-cgws-hairline" />
+          <div class="mx-3 w-5 h-5 rounded-full border-2 border-cgws-accent/60 flex items-center justify-center flex-shrink-0">
+            <div class="w-1.5 h-1.5 rounded-full bg-cgws-accent/80" />
           </div>
-          <div class="flex-1 border-t border-cgws-leather/30" />
+          <div class="flex-1 border-t border-cgws-hairline" />
+        </div>
+
+        <div class="px-5 py-4 flex-shrink-0">
+          <ThemeSwitcher layout="stacked" />
         </div>
 
         <div class="px-5 py-5 flex flex-col gap-3 flex-shrink-0">
           <a
             href="tel:+33247XXXXXX"
-            class="flex items-center gap-3 text-cgws-rope hover:text-cgws-copper text-sm font-sans
+            class="flex items-center gap-3 text-cgws-ink-soft hover:text-cgws-accent text-sm font-sans
                    transition-colors duration-150
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper rounded-sm"
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
             aria-label="Appeler la boutique"
           >
             <UIcon name="i-lucide-phone" class="w-4 h-4 flex-shrink-0" aria-hidden="true" />
@@ -202,9 +206,9 @@ onUnmounted(() => {
           </a>
           <a
             href="mailto:contact@cgws.fr"
-            class="flex items-center gap-3 text-cgws-rope hover:text-cgws-copper text-sm font-sans
+            class="flex items-center gap-3 text-cgws-ink-soft hover:text-cgws-accent text-sm font-sans
                    transition-colors duration-150
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper rounded-sm"
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
             aria-label="Envoyer un email à la boutique"
           >
             <UIcon name="i-lucide-mail" class="w-4 h-4 flex-shrink-0" aria-hidden="true" />

@@ -44,9 +44,9 @@ const ariaLabel = computed(() => {
 })
 
 const cardContent = computed(() => ({
-  borderClass: isSold.value ? 'border-cgws-leather/30' : 'border-cgws-copper',
-  titleClass: isSold.value ? 'text-cgws-charcoal/60' : 'text-cgws-charcoal',
-  priceClass: isSold.value ? 'text-cgws-leather' : 'text-cgws-copper',
+  borderClass: isSold.value ? 'border-cgws-hairline' : 'border-cgws-accent',
+  titleClass: isSold.value ? 'text-cgws-ink/60' : 'text-cgws-ink',
+  priceClass: isSold.value ? 'text-cgws-ink-soft' : 'text-cgws-accent',
 }))
 </script>
 
@@ -58,11 +58,11 @@ const cardContent = computed(() => ({
     class="product-card block rounded-[6px]"
   >
     <article
-      class="relative flex flex-col bg-cgws-parchment border-2 border-cgws-leather rounded-[6px] overflow-hidden cursor-default"
+      class="relative flex flex-col bg-cgws-surface border-2 border-cgws-edge rounded-[6px] overflow-hidden cursor-default"
     >
       <!-- Perforation hole -->
       <div
-        class="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cgws-cream border border-cgws-leather z-10"
+        class="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cgws-ground border border-cgws-edge z-10"
         aria-hidden="true"
       />
 
@@ -79,16 +79,16 @@ const cardContent = computed(() => ({
         />
         <div
           v-else
-          class="w-full h-full bg-cgws-leather/10 flex items-center justify-center"
+          class="w-full h-full bg-cgws-hairline flex items-center justify-center"
           aria-hidden="true"
         >
-          <svg class="w-12 h-12 text-cgws-leather/30" viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+          <svg class="w-12 h-12 text-cgws-ink-soft/30" viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
             <path d="M8 20c0-7 7-13 16-13s16 6 16 13c0 4-2 7.5-6 9.5V36H14v-6.5C10 27.5 8 24 8 20zm14 18h4v2h-4v-2z" opacity="0.5" />
           </svg>
         </div>
 
         <!-- Sold overlay -->
-        <div class="absolute inset-0 bg-cgws-charcoal/30" aria-hidden="true" />
+        <div class="absolute inset-0 bg-cgws-ink/30" aria-hidden="true" />
 
         <!-- Sold badge -->
         <div class="absolute top-3 left-3 z-10">
@@ -107,11 +107,11 @@ const cardContent = computed(() => ({
         >
           {{ product.title }}
         </p>
-        <p class="font-sans text-[13px] text-cgws-leather">{{ product.brand }}</p>
-        <p v-if="product.size" class="font-sans text-[12px] text-cgws-leather/70 italic">
+        <p class="font-sans text-[13px] text-cgws-ink-soft">{{ product.brand }}</p>
+        <p v-if="product.size" class="font-sans text-[12px] text-cgws-ink-soft/70 italic">
           Taille : {{ product.size }}
         </p>
-        <p class="product-price font-display text-2xl text-right mt-auto" :class="cardContent.priceClass">
+        <p class="product-price font-display text-2xl tabular-nums text-right mt-auto" :class="cardContent.priceClass">
           <span class="sr-only">Prix : </span>{{ formattedPrice }} €
         </p>
       </div>
@@ -123,15 +123,15 @@ const cardContent = computed(() => ({
     v-else
     :to="`/catalogue/${product.slug}`"
     :aria-label="ariaLabel"
-    class="product-card group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2 rounded-[6px]"
+    class="product-card group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2 rounded-[6px]"
   >
     <article
-      class="relative flex flex-col bg-cgws-parchment border-2 border-cgws-leather rounded-[6px] overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-in-out"
-      :class="isActive ? 'group-hover:-translate-y-[4px] group-hover:shadow-xl group-hover:shadow-cgws-leather/25 group-hover:border-cgws-copper' : ''"
+      class="relative flex flex-col bg-cgws-surface border-2 border-cgws-edge rounded-[6px] overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-in-out"
+      :class="isActive ? 'group-hover:-translate-y-[4px] group-hover:shadow-xl group-hover:shadow-cgws-edge/25 group-hover:border-cgws-accent' : ''"
     >
       <!-- Perforation hole -->
       <div
-        class="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cgws-cream border border-cgws-leather z-10"
+        class="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cgws-ground border border-cgws-edge z-10"
         aria-hidden="true"
       />
 
@@ -149,10 +149,10 @@ const cardContent = computed(() => ({
         />
         <div
           v-else
-          class="w-full h-full bg-cgws-leather/10 flex items-center justify-center"
+          class="w-full h-full bg-cgws-hairline flex items-center justify-center"
           aria-hidden="true"
         >
-          <svg class="w-12 h-12 text-cgws-leather/30" viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+          <svg class="w-12 h-12 text-cgws-ink-soft/30" viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
             <path d="M8 20c0-7 7-13 16-13s16 6 16 13c0 4-2 7.5-6 9.5V36H14v-6.5C10 27.5 8 24 8 20zm14 18h4v2h-4v-2z" opacity="0.5" />
           </svg>
         </div>
@@ -160,10 +160,10 @@ const cardContent = computed(() => ({
         <!-- Hover overlay (active only) -->
         <div
           v-if="isActive"
-          class="absolute inset-0 bg-cgws-tack/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          class="absolute inset-0 bg-cgws-brand-espresso/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           aria-hidden="true"
         >
-          <span class="font-display text-[16px] text-cgws-parchment uppercase tracking-widest">
+          <span class="font-display text-[16px] text-cgws-brand-cream uppercase tracking-widest">
             Voir le produit
           </span>
         </div>
@@ -176,7 +176,7 @@ const cardContent = computed(() => ({
         aria-hidden="true"
       >
         <span
-          class="rotate-[-25deg] bg-cgws-rust/90 px-8 py-1.5 w-[200%] font-sans font-bold text-[11px] uppercase tracking-widest text-white text-center"
+          class="rotate-[-25deg] bg-cgws-ink-soft/90 px-8 py-1.5 w-[200%] font-sans font-bold text-[11px] uppercase tracking-widest text-cgws-ground text-center"
         >
           Réservé
         </span>
@@ -197,12 +197,12 @@ const cardContent = computed(() => ({
         >
           {{ product.title }}
         </p>
-        <p class="font-sans text-[13px] text-cgws-leather">{{ product.brand }}</p>
-        <p v-if="product.size" class="font-sans text-[12px] text-cgws-leather/70 italic">
+        <p class="font-sans text-[13px] text-cgws-ink-soft">{{ product.brand }}</p>
+        <p v-if="product.size" class="font-sans text-[12px] text-cgws-ink-soft/70 italic">
           Taille : {{ product.size }}
         </p>
         <p
-          class="product-price font-display text-2xl text-right mt-auto"
+          class="product-price font-display text-2xl tabular-nums text-right mt-auto"
           :class="cardContent.priceClass"
         >
           <span class="sr-only">Prix : </span>{{ formattedPrice }} €

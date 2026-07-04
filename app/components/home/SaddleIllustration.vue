@@ -52,8 +52,8 @@ onUnmounted(() => {
   >
     <defs>
       <radialGradient id="seat-highlight" cx="50%" cy="40%" r="50%">
-        <stop offset="0%" stop-color="#C8AB82" />
-        <stop offset="100%" stop-color="#7B3B1C" />
+        <stop offset="0%" stop-color="var(--cgws-surface-2)" />
+        <stop offset="100%" stop-color="var(--cgws-edge)" />
       </radialGradient>
     </defs>
 
@@ -61,34 +61,34 @@ onUnmounted(() => {
       <!-- Right skirt (background, slightly darker) -->
       <path
         d="M 55 175 Q 60 145 90 135 Q 140 125 175 135 Q 195 145 200 175 Q 202 205 190 220 Q 170 235 130 235 Q 90 235 68 220 Q 52 205 55 175 Z"
-        class="fill-cgws-leather stroke-cgws-charcoal"
+        class="fill-cgws-edge stroke-cgws-ink"
         stroke-width="1"
       />
 
       <!-- Left skirt (foreground) -->
       <path
         d="M 25 172 Q 30 140 65 130 Q 118 118 162 130 Q 188 140 192 172 Q 195 205 180 222 Q 158 240 105 240 Q 58 240 38 222 Q 20 205 25 172 Z"
-        class="fill-cgws-leather stroke-cgws-charcoal"
+        class="fill-cgws-edge stroke-cgws-ink"
         stroke-width="1.5"
       />
 
       <!-- Skirt medallion / concho decoration (left skirt) -->
-      <circle cx="105" cy="183" r="14" fill="none" class="stroke-cgws-copper" stroke-width="1" />
-      <circle cx="105" cy="183" r="9" fill="none" class="stroke-cgws-copper" stroke-width="0.5" stroke-dasharray="2 2" />
+      <circle cx="105" cy="183" r="14" fill="none" class="stroke-cgws-accent-deco" stroke-width="1" />
+      <circle cx="105" cy="183" r="9" fill="none" class="stroke-cgws-accent-deco" stroke-width="0.5" stroke-dasharray="2 2" />
       <!-- Tooling dots around medallion -->
-      <circle cx="105" cy="167" r="1.5" class="fill-cgws-copper" />
-      <circle cx="105" cy="199" r="1.5" class="fill-cgws-copper" />
-      <circle cx="89" cy="183" r="1.5" class="fill-cgws-copper" />
-      <circle cx="121" cy="183" r="1.5" class="fill-cgws-copper" />
-      <circle cx="93" cy="171" r="1" class="fill-cgws-copper" />
-      <circle cx="117" cy="171" r="1" class="fill-cgws-copper" />
-      <circle cx="93" cy="195" r="1" class="fill-cgws-copper" />
-      <circle cx="117" cy="195" r="1" class="fill-cgws-copper" />
+      <circle cx="105" cy="167" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="105" cy="199" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="89" cy="183" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="121" cy="183" r="1.5" class="fill-cgws-accent-deco" />
+      <circle cx="93" cy="171" r="1" class="fill-cgws-accent-deco" />
+      <circle cx="117" cy="171" r="1" class="fill-cgws-accent-deco" />
+      <circle cx="93" cy="195" r="1" class="fill-cgws-accent-deco" />
+      <circle cx="117" cy="195" r="1" class="fill-cgws-accent-deco" />
 
       <!-- Cantle (rear raised back) -->
       <path
         d="M 62 138 Q 75 115 105 110 Q 140 115 155 138"
-        class="fill-cgws-leather stroke-cgws-charcoal"
+        class="fill-cgws-edge stroke-cgws-ink"
         stroke-width="1.5"
         stroke-linecap="round"
       />
@@ -100,14 +100,14 @@ onUnmounted(() => {
         rx="68"
         ry="30"
         fill="url(#seat-highlight)"
-        class="stroke-cgws-charcoal"
+        class="stroke-cgws-ink"
         stroke-width="1.5"
       />
 
       <!-- Pommel / front arch -->
       <path
         d="M 62 140 Q 68 118 88 112 Q 105 106 108 104 Q 112 106 128 112 Q 148 118 155 140"
-        class="fill-cgws-leather stroke-cgws-charcoal"
+        class="fill-cgws-edge stroke-cgws-ink"
         stroke-width="1.5"
         stroke-linejoin="round"
       />
@@ -120,7 +120,7 @@ onUnmounted(() => {
           width="16"
           height="42"
           rx="5"
-          class="fill-cgws-leather stroke-cgws-charcoal"
+          class="fill-cgws-edge stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Horn cap -->
@@ -129,7 +129,7 @@ onUnmounted(() => {
           cy="64"
           rx="14"
           ry="8"
-          class="fill-cgws-copper stroke-cgws-charcoal"
+          class="fill-cgws-accent-deco stroke-cgws-ink"
           stroke-width="1.5"
         />
       </g>
@@ -143,7 +143,7 @@ onUnmounted(() => {
           width="14"
           height="48"
           rx="3"
-          class="fill-cgws-leather stroke-cgws-charcoal"
+          class="fill-cgws-edge stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Left stirrup (oxbow) -->
@@ -153,7 +153,7 @@ onUnmounted(() => {
           width="42"
           height="30"
           rx="10"
-          class="fill-cgws-copper stroke-cgws-charcoal"
+          class="fill-cgws-accent-deco stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Left stirrup inner opening -->
@@ -163,7 +163,7 @@ onUnmounted(() => {
           width="26"
           height="16"
           rx="5"
-          class="fill-cgws-tack"
+          class="fill-cgws-brand-tack"
         />
 
         <!-- Right fender -->
@@ -173,7 +173,7 @@ onUnmounted(() => {
           width="14"
           height="48"
           rx="3"
-          class="fill-cgws-leather stroke-cgws-charcoal"
+          class="fill-cgws-edge stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Right stirrup (oxbow) -->
@@ -183,7 +183,7 @@ onUnmounted(() => {
           width="42"
           height="30"
           rx="10"
-          class="fill-cgws-copper stroke-cgws-charcoal"
+          class="fill-cgws-accent-deco stroke-cgws-ink"
           stroke-width="1.5"
         />
         <!-- Right stirrup inner opening -->
@@ -193,7 +193,7 @@ onUnmounted(() => {
           width="26"
           height="16"
           rx="5"
-          class="fill-cgws-tack"
+          class="fill-cgws-brand-tack"
         />
       </g>
     </g>

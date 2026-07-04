@@ -23,5 +23,6 @@ const sortItems: SelectItem[] = [
     variant="outline"
     aria-label="Trier les produits"
     class="min-w-[160px]"
+    :ui="{ base: 'focus-visible:ring-2 focus-visible:ring-cgws-accent' }"
   />
 </template>

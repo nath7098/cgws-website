@@ -49,11 +49,11 @@ interface StatusConfig {
 }
 
 const STATUS_CONFIG: Record<ConsignmentStatus, StatusConfig> = {
-  pending: { classes: 'bg-cgws-copper/15 text-cgws-copper', label: 'En attente' },
-  accepted: { classes: 'bg-cgws-denim/15 text-cgws-denim', label: 'Acceptée' },
-  rejected: { classes: 'bg-cgws-rust/15 text-cgws-rust', label: 'Refusée' },
-  sold: { classes: 'bg-cgws-charcoal/10 text-cgws-charcoal', label: 'Vendue' },
-  returned: { classes: 'bg-cgws-leather/15 text-cgws-leather', label: 'Retournée' },
+  pending: { classes: 'bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline', label: 'En attente' },
+  accepted: { classes: 'bg-cgws-success/15 text-cgws-success border border-cgws-success/40', label: 'Acceptée' },
+  rejected: { classes: 'bg-cgws-danger text-cgws-on-danger', label: 'Refusée' },
+  sold: { classes: 'bg-cgws-accent text-cgws-on-accent', label: 'Vendue' },
+  returned: { classes: 'bg-cgws-danger text-cgws-on-danger', label: 'Retournée' },
 }
 
 function statusConfig(status: ConsignmentStatus): StatusConfig {
@@ -95,9 +95,9 @@ function formatPrice(price: number): string {
 </script>
 
 <template>
-  <div class="bg-white border border-cgws-leather/30 rounded-[4px] shadow-sm p-5">
+  <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] shadow-sm p-5">
     <!-- Section title -->
-    <h3 class="font-serif font-semibold text-base text-cgws-charcoal mb-4">
+    <h3 class="font-serif font-semibold text-base text-cgws-ink mb-4">
       {{ sectionTitle }}
     </h3>
 
@@ -106,14 +106,14 @@ function formatPrice(price: number): string {
       <div
         v-for="n in 5"
         :key="n"
-        class="h-4 bg-cgws-leather/10 rounded animate-pulse my-2"
+        class="h-4 bg-cgws-hairline rounded animate-pulse my-2"
       />
     </template>
 
     <!-- Empty state -->
     <p
       v-else-if="isEmpty"
-      class="font-sans text-sm text-cgws-leather italic text-center py-4"
+      class="font-sans text-sm text-cgws-ink-soft italic text-center py-4"
     >
       Aucune activité récente.
     </p>
@@ -132,25 +132,25 @@ function formatPrice(price: number): string {
           <tr>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-left"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-left"
             >
               Déposant
             </th>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-left"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-left"
             >
               Article
             </th>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-left"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-left"
             >
               Statut
             </th>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-right"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-right"
             >
               Date
             </th>
@@ -161,13 +161,13 @@ function formatPrice(price: number): string {
             v-for="item in consignmentItems"
             :key="item.id"
           >
-            <td class="py-2 border-t border-cgws-leather/10 text-cgws-charcoal align-middle">
+            <td class="py-2 border-t border-cgws-hairline text-cgws-ink align-middle">
               {{ item.depositorName }}
             </td>
-            <td class="py-2 border-t border-cgws-leather/10 text-cgws-charcoal align-middle max-w-[160px]">
+            <td class="py-2 border-t border-cgws-hairline text-cgws-ink align-middle max-w-[160px]">
               <span class="block truncate max-w-[160px]">{{ item.itemDescription }}</span>
             </td>
-            <td class="py-2 border-t border-cgws-leather/10 align-middle">
+            <td class="py-2 border-t border-cgws-hairline align-middle">
               <span
                 :class="['inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-sans font-medium', statusConfig(item.status).classes]"
                 :aria-label="`Statut : ${statusConfig(item.status).label}`"
@@ -175,7 +175,7 @@ function formatPrice(price: number): string {
                 {{ statusConfig(item.status).label }}
               </span>
             </td>
-            <td class="py-2 border-t border-cgws-leather/10 text-cgws-leather align-middle text-right text-xs">
+            <td class="py-2 border-t border-cgws-hairline text-cgws-ink-soft align-middle text-right text-xs">
               {{ formatDate(item.createdAt) }}
             </td>
           </tr>
@@ -194,25 +194,25 @@ function formatPrice(price: number): string {
           <tr>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-left"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-left"
             >
               Produit
             </th>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-left"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-left"
             >
               Prix
             </th>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-left"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-left"
             >
               Paiement
             </th>
             <th
               scope="col"
-              class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather pb-2 text-right"
+              class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft pb-2 text-right"
             >
               Date
             </th>
@@ -223,16 +223,16 @@ function formatPrice(price: number): string {
             v-for="item in saleItems"
             :key="item.id"
           >
-            <td class="py-2 border-t border-cgws-leather/10 text-cgws-charcoal align-middle">
+            <td class="py-2 border-t border-cgws-hairline text-cgws-ink align-middle">
               <span class="block truncate max-w-[160px]">{{ item.productTitle }}</span>
             </td>
-            <td class="py-2 border-t border-cgws-leather/10 align-middle">
-              <span class="font-display text-cgws-copper">{{ formatPrice(item.salePrice) }}</span>
+            <td class="py-2 border-t border-cgws-hairline align-middle">
+              <span class="font-display text-cgws-accent">{{ formatPrice(item.salePrice) }}</span>
             </td>
-            <td class="py-2 border-t border-cgws-leather/10 text-cgws-charcoal align-middle">
+            <td class="py-2 border-t border-cgws-hairline text-cgws-ink align-middle">
               {{ paymentLabel(item.paymentMethod) }}
             </td>
-            <td class="py-2 border-t border-cgws-leather/10 text-cgws-leather align-middle text-right text-xs">
+            <td class="py-2 border-t border-cgws-hairline text-cgws-ink-soft align-middle text-right text-xs">
               {{ formatDate(item.saleDate) }}
             </td>
           </tr>

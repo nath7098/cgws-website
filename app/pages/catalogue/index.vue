@@ -54,7 +54,7 @@ onMounted(async () => {
     <!-- Skip link for keyboard/screen reader users -->
     <a
       href="#catalogue-results"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-20 focus:left-4 focus:z-50 focus:bg-cgws-copper focus:text-cgws-charcoal focus:font-sans focus:font-semibold focus:text-sm focus:px-4 focus:py-2 focus:rounded-sm"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-20 focus:left-4 focus:z-50 focus:bg-cgws-accent focus:text-cgws-on-accent focus:font-sans focus:font-semibold focus:text-sm focus:px-4 focus:py-2 focus:rounded-sm"
     >
       Aller aux résultats
     </a>
@@ -65,8 +65,8 @@ onMounted(async () => {
       :is-filtered="hasActiveFilters"
     />
 
-    <!-- Concho divider -->
-    <ConchoDivider />
+    <!-- Star divider -->
+    <StarDivider />
 
     <!-- Main content -->
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)] py-8">
@@ -97,7 +97,7 @@ onMounted(async () => {
               role="status"
               aria-live="polite"
               aria-atomic="true"
-              class="font-sans text-sm text-cgws-leather"
+              class="font-sans text-sm text-cgws-ink-soft"
             >
               {{ totalCount }} produit{{ totalCount !== 1 ? 's' : '' }}
             </span>

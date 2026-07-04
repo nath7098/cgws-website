@@ -80,18 +80,18 @@ onUnmounted(() => {
     tabindex="0"
     :class="[
       'tag-card-inner relative flex flex-col',
-      'bg-cgws-parchment border-2 border-cgws-leather rounded-[6px]',
+      'bg-cgws-surface border-2 border-cgws-edge rounded-[6px]',
       'overflow-hidden cursor-pointer',
       'transition-transform transition-shadow duration-200 ease-in-out',
-      'hover:-translate-y-1 hover:shadow-lg hover:shadow-cgws-leather/20',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper',
+      'hover:-translate-y-1 hover:shadow-lg hover:shadow-cgws-edge/20',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent',
     ]"
     @click="handleClick"
     @keydown="handleKeydown"
   >
     <!-- Perforation hole -->
     <div
-      class="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cgws-cream border border-cgws-leather z-10"
+      class="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cgws-ground border border-cgws-edge z-10"
       aria-hidden="true"
     />
 
@@ -113,11 +113,11 @@ onUnmounted(() => {
       />
       <div
         v-else
-        class="flex h-full items-center justify-center bg-cgws-leather/10"
+        class="flex h-full items-center justify-center bg-cgws-surface-2"
         aria-hidden="true"
       >
         <svg
-          class="w-12 h-12 text-cgws-leather/30"
+          class="w-12 h-12 text-cgws-edge/40"
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -138,24 +138,24 @@ onUnmounted(() => {
     <!-- Sold overlay -->
     <div
       v-if="isSold"
-      class="absolute inset-0 bg-cgws-charcoal/20 pointer-events-none"
+      class="absolute inset-0 bg-cgws-ink/20 pointer-events-none"
       aria-hidden="true"
     />
 
     <!-- Stitching block -->
-    <div class="m-2 p-3 border border-dashed border-cgws-copper rounded-sm flex flex-col gap-1.5">
+    <div class="m-2 p-3 border border-dashed border-cgws-accent-deco rounded-sm flex flex-col gap-1.5">
       <div>
         <span class="sr-only">Statut : </span>
         <CgwsBadge :variant="badgeVariant" />
       </div>
 
-      <h3 class="font-serif font-semibold text-base text-cgws-charcoal leading-snug line-clamp-2 mt-1.5">
+      <h3 class="font-serif font-semibold text-base text-cgws-ink leading-snug line-clamp-2 mt-1.5">
         {{ product.title }}
       </h3>
 
-      <p class="font-sans text-[13px] text-cgws-leather">{{ product.brand }}</p>
+      <p class="font-sans text-[13px] text-cgws-ink-soft">{{ product.brand }}</p>
 
-      <p class="font-display text-2xl text-cgws-copper text-right mt-auto">
+      <p class="font-display text-2xl tabular-nums text-cgws-accent text-right mt-auto">
         <span class="sr-only">Prix : </span>
         {{ product.price.toFixed(0) }} €
       </p>

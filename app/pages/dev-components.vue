@@ -8,7 +8,7 @@ if (process.env.NODE_ENV === 'production') {
 
 useSeoMeta({
   title: 'Design System — CGWS',
-  description: 'Composants UI et tokens du design system CGWS v2',
+  description: 'Composants UI et tokens du design system CGWS v3',
   robots: 'noindex',
 })
 
@@ -90,16 +90,21 @@ const selectOptions: SelectOption[] = [
   { value: 'fair', label: 'État correct' },
 ]
 
+// Aperçu des rôles theme-aware — valeurs Élégante Jour (défaut, DESIGN_SYSTEM_v3.md §2.2).
+// Ces couleurs changent réellement selon [data-skin]/.dark (voir tokens.css) ;
+// cette page ne fait qu'afficher le rendu par défaut à titre de référence dev.
 const colors: Record<string, string> = {
-  'cgws-tack': '#3D1A06',
-  'cgws-leather': '#7B3B1C',
-  'cgws-copper': '#B8650A',
-  'cgws-rope': '#C8AB82',
-  'cgws-parchment': '#F0DDB8',
-  'cgws-cream': '#FAF3E3',
-  'cgws-denim': '#2C4A72',
-  'cgws-rust': '#943218',
-  'cgws-charcoal': '#1A0B03',
+  'cgws-ground': '#F6EDDF',
+  'cgws-surface': '#EFE1CC',
+  'cgws-surface-2': '#E7D6BC',
+  'cgws-edge': '#8A4B2F',
+  'cgws-hairline': '#D8C4A8',
+  'cgws-ink': '#2A1D16',
+  'cgws-ink-soft': '#5B4436',
+  'cgws-heading': '#8A4B2F',
+  'cgws-accent': '#8C4A56',
+  'cgws-accent-deco': '#B76E79',
+  'cgws-danger': '#A23A47',
 }
 </script>
 
@@ -107,11 +112,11 @@ const colors: Record<string, string> = {
   <div class="mx-auto max-w-[1280px] px-[var(--container-px)] py-12 space-y-16">
     <!-- Page header -->
     <div>
-      <p class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-2">
+      <p class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-2">
         Sellerie de Brèches
       </p>
-      <h1 class="font-display text-5xl text-cgws-charcoal">
-        CGWS — Design System v2
+      <h1 class="font-display text-5xl text-cgws-ink">
+        CGWS — Design System v3
       </h1>
     </div>
 
@@ -121,7 +126,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-colors">
       <h2
         id="section-colors"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Couleurs
       </h2>
@@ -132,11 +137,11 @@ const colors: Record<string, string> = {
           class="flex flex-col gap-1"
         >
           <div
-            class="h-16 rounded border border-cgws-leather/20"
+            class="h-16 rounded border border-cgws-hairline"
             :style="{ backgroundColor: hex }"
           />
-          <span class="text-xs font-sans text-cgws-charcoal break-all">{{ name }}</span>
-          <span class="text-xs font-mono text-cgws-rope">{{ hex }}</span>
+          <span class="text-xs font-sans text-cgws-ink break-all">{{ name }}</span>
+          <span class="text-xs font-mono text-cgws-ink-soft">{{ hex }}</span>
         </div>
       </div>
     </section>
@@ -145,17 +150,18 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-typo">
       <h2
         id="section-typo"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Typographie
       </h2>
       <div class="space-y-3">
-        <p class="font-display text-5xl text-cgws-charcoal">Bebas Neue — Hero H1, Prix</p>
-        <p class="font-eyebrow text-lg text-cgws-leather">Rye — Eyebrow label section</p>
-        <p class="font-serif text-3xl font-semibold text-cgws-charcoal">Playfair Display — Titre section</p>
-        <p class="font-serif italic text-xl text-cgws-leather">Playfair Display Italic — Tagline, citation</p>
-        <p class="font-sans text-base text-cgws-charcoal">Inter 400 — Corps de texte principal</p>
-        <p class="font-sans font-semibold text-base text-cgws-charcoal">Inter 600 — Labels CTA, emphasis</p>
+        <p class="font-display text-5xl text-cgws-ink">Playfair Display 700 — Hero H1, Prix</p>
+        <p class="font-heading text-3xl text-cgws-heading">Rye — Titre de section court (H2/H3 ≤ 4 mots)</p>
+        <p class="font-eyebrow text-lg text-cgws-ink-soft">Playfair Display capitales — Eyebrow label</p>
+        <p class="font-serif text-3xl font-semibold text-cgws-ink">Playfair Display 600/700 — Titre section long, nom produit</p>
+        <p class="font-serif italic text-xl text-cgws-ink-soft">Playfair Display Italic — Tagline, citation</p>
+        <p class="font-sans text-base text-cgws-ink">Inter 400 — Corps de texte principal</p>
+        <p class="font-sans font-semibold text-base text-cgws-ink">Inter 600 — Labels CTA, emphasis</p>
       </div>
     </section>
 
@@ -163,7 +169,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-buttons">
       <h2
         id="section-buttons"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Boutons
       </h2>
@@ -173,6 +179,8 @@ const colors: Record<string, string> = {
         <CgwsButton variant="secondary">Service consignation</CgwsButton>
         <CgwsButton variant="secondary" size="sm">Secondary sm</CgwsButton>
         <CgwsButton variant="ghost">En savoir plus</CgwsButton>
+        <CgwsButton variant="destructive">Supprimer</CgwsButton>
+        <CgwsButton variant="destructive" size="sm">Refuser</CgwsButton>
         <CgwsButton variant="primary" loading>Chargement...</CgwsButton>
         <CgwsButton variant="primary" disabled>Désactivé</CgwsButton>
         <CgwsButton variant="secondary" disabled>Désactivé</CgwsButton>
@@ -183,7 +191,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-badges">
       <h2
         id="section-badges"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Badges
       </h2>
@@ -192,6 +200,7 @@ const colors: Record<string, string> = {
         <CgwsBadge variant="occasion" />
         <CgwsBadge variant="consignment" />
         <CgwsBadge variant="sold" />
+        <CgwsBadge variant="rejected" />
       </div>
     </section>
 
@@ -199,7 +208,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-inputs">
       <h2
         id="section-inputs"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Inputs
       </h2>
@@ -234,7 +243,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-textarea">
       <h2
         id="section-textarea"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Textarea
       </h2>
@@ -263,7 +272,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-select">
       <h2
         id="section-select"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Select
       </h2>
@@ -293,21 +302,21 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-cards">
       <h2
         id="section-cards"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         Card générique
       </h2>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 max-w-2xl">
         <CgwsCard>
-          <p class="font-sans text-sm text-cgws-charcoal">Card sans titre — slot par défaut.</p>
+          <p class="font-sans text-sm text-cgws-ink">Card sans titre — slot par défaut.</p>
         </CgwsCard>
         <CgwsCard title="À propos de CGWS">
-          <p class="font-sans text-sm text-cgws-charcoal">
+          <p class="font-sans text-sm text-cgws-ink">
             Boutique d'équipements western à Brèches, Indre-et-Loire. Sellerie artisanale depuis 2015.
           </p>
         </CgwsCard>
         <CgwsCard title="Padding sm" padding="sm">
-          <p class="font-sans text-sm text-cgws-charcoal">Variant padding compact.</p>
+          <p class="font-sans text-sm text-cgws-ink">Variant padding compact.</p>
         </CgwsCard>
       </div>
     </section>
@@ -316,7 +325,7 @@ const colors: Record<string, string> = {
     <section aria-labelledby="section-tagcards">
       <h2
         id="section-tagcards"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
         TagCard — Produits
       </h2>
@@ -329,19 +338,46 @@ const colors: Record<string, string> = {
       </div>
     </section>
 
-    <!-- Section: ConchoStat -->
-    <section aria-labelledby="section-concho">
+    <!-- Section: StarDivider (variant stat) -->
+    <section aria-labelledby="section-star-stat">
       <h2
-        id="section-concho"
-        class="font-eyebrow text-xs text-cgws-leather uppercase tracking-widest mb-6"
+        id="section-star-stat"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
       >
-        ConchoStat
+        StarDivider — variant stat
       </h2>
       <div class="flex flex-wrap gap-8">
-        <ConchoStat value="250" suffix="+" label="Articles disponibles" :animate-on-visible="true" />
-        <ConchoStat value="15" suffix="+" label="Marques western" :animate-on-visible="true" />
-        <ConchoStat value="100" suffix="%" label="Passion équestre" :animate-on-visible="true" />
-        <ConchoStat value="Brèches" label="Indre-et-Loire" />
+        <StarDivider variant="stat" :value="250" suffix="+" label="Articles disponibles" :animate-on-visible="true" />
+        <StarDivider variant="stat" :value="15" suffix="+" label="Marques western" :animate-on-visible="true" />
+        <StarDivider variant="stat" :value="100" suffix="%" label="Passion équestre" :animate-on-visible="true" />
+        <StarDivider variant="stat" value="Brèches" label="Indre-et-Loire" />
+      </div>
+    </section>
+
+    <!-- Section: StarDivider (variant divider) -->
+    <section aria-labelledby="section-star-divider">
+      <h2
+        id="section-star-divider"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
+      >
+        StarDivider — variant divider
+      </h2>
+      <StarDivider />
+    </section>
+
+    <!-- Section: FiligreeCorner -->
+    <section aria-labelledby="section-filigree">
+      <h2
+        id="section-filigree"
+        class="font-eyebrow text-xs text-cgws-ink-soft uppercase tracking-widest mb-6"
+      >
+        FiligreeCorner
+      </h2>
+      <div class="relative h-40 bg-cgws-surface border border-cgws-hairline rounded-[--ui-radius]">
+        <FiligreeCorner class="absolute top-0 left-0" />
+        <FiligreeCorner class="absolute top-0 right-0 -scale-x-100" />
+        <FiligreeCorner class="absolute bottom-0 left-0 -scale-y-100" />
+        <FiligreeCorner class="absolute bottom-0 right-0 -scale-100" />
       </div>
     </section>
   </div>

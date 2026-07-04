@@ -9,8 +9,9 @@ const props = defineProps<Props>()
 
 const isSold = computed(() => props.product.status === 'sold')
 
-const conditionBadgeVariant = computed((): 'sold' | 'new' | 'occasion' => {
+const conditionBadgeVariant = computed((): 'sold' | 'reserved' | 'new' | 'occasion' => {
   if (isSold.value) return 'sold'
+  if (props.product.status === 'reserved') return 'reserved'
   return props.product.condition === 'new' ? 'new' : 'occasion'
 })
 
@@ -35,7 +36,7 @@ const categoryLabel: Record<ProductCategory, string> = {
 }
 
 const priceColorClass = computed(() =>
-  isSold.value ? 'text-cgws-leather' : 'text-cgws-copper',
+  isSold.value ? 'text-cgws-ink-soft' : 'text-cgws-accent',
 )
 
 let ctx: { revert: () => void } | undefined
@@ -82,23 +83,23 @@ onUnmounted(() => {
 
     <!-- H1 — unique sur la page -->
     <h1
-      class="product-info-title font-serif font-bold text-[24px] sm:text-[28px] lg:text-[36px] text-cgws-charcoal leading-tight mt-1"
+      class="product-info-title font-serif font-bold text-[24px] sm:text-[28px] lg:text-[36px] text-cgws-ink leading-tight mt-1"
     >
       {{ product.title }}
     </h1>
 
     <!-- Marque · Catégorie -->
-    <p class="product-info-meta font-sans text-sm text-cgws-leather flex items-center gap-2">
+    <p class="product-info-meta font-sans text-sm text-cgws-ink-soft flex items-center gap-2">
       <span>{{ product.brand }}</span>
       <span aria-hidden="true">·</span>
       <span>{{ categoryLabel[product.category] }}</span>
     </p>
 
     <!-- Séparateur -->
-    <hr class="border-t border-cgws-leather/20 my-1" aria-hidden="true">
+    <hr class="border-t border-cgws-hairline my-1" aria-hidden="true">
 
     <!-- Prix -->
-    <p class="product-info-price font-display text-[48px] leading-none mt-1" :class="priceColorClass">
+    <p class="product-info-price font-display text-[48px] tabular-nums leading-none mt-1" :class="priceColorClass">
       <span class="sr-only">Prix : </span>
       <span :aria-label="`${product.price.toFixed(0)} euros`">
         {{ product.price.toFixed(0) }} €
@@ -108,27 +109,27 @@ onUnmounted(() => {
     <!-- État + Taille -->
     <div class="product-info-details flex flex-col gap-1.5">
       <!-- Condition -->
-      <p class="font-sans font-medium text-sm text-cgws-leather flex items-center gap-1.5">
-        <UIcon name="i-lucide-tag" class="w-3.5 h-3.5 text-cgws-copper/70 flex-shrink-0" aria-hidden="true" />
+      <p class="font-sans font-medium text-sm text-cgws-ink-soft flex items-center gap-1.5">
+        <UIcon name="i-lucide-tag" class="w-3.5 h-3.5 text-cgws-accent/70 flex-shrink-0" aria-hidden="true" />
         {{ conditionLabel[product.condition] }}
       </p>
 
       <!-- Taille (conditionnelle) -->
       <p
         v-if="product.size"
-        class="font-sans text-sm text-cgws-leather flex items-center gap-1.5"
+        class="font-sans text-sm text-cgws-ink-soft flex items-center gap-1.5"
       >
-        <UIcon name="i-lucide-ruler" class="w-3.5 h-3.5 text-cgws-leather/50 flex-shrink-0" aria-hidden="true" />
+        <UIcon name="i-lucide-ruler" class="w-3.5 h-3.5 text-cgws-ink-soft/50 flex-shrink-0" aria-hidden="true" />
         <span class="sr-only">Taille : </span>Taille : {{ product.size }}
       </p>
     </div>
 
     <!-- Séparateur -->
-    <hr class="border-t border-cgws-leather/10 my-1" aria-hidden="true">
+    <hr class="border-t border-cgws-hairline my-1" aria-hidden="true">
 
     <!-- Description complète -->
     <p
-      class="product-info-description font-sans text-base text-cgws-charcoal leading-relaxed whitespace-pre-wrap"
+      class="product-info-description font-sans text-base text-cgws-ink leading-relaxed whitespace-pre-wrap"
     >
       {{ product.description }}
     </p>
@@ -136,20 +137,20 @@ onUnmounted(() => {
     <!-- Encart consignation -->
     <div
       v-if="product.isConsignment && !isSold"
-      class="product-info-consignment bg-cgws-parchment border border-cgws-leather/30 rounded-[4px] p-4 flex flex-col gap-3"
+      class="product-info-consignment bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4 flex flex-col gap-3"
       role="note"
       aria-label="Information consignation"
     >
       <div class="self-start">
         <CgwsBadge variant="consignment" />
       </div>
-      <p class="font-sans text-[13px] text-cgws-leather leading-relaxed">
+      <p class="font-sans text-[13px] text-cgws-ink-soft leading-relaxed">
         Cet article est proposé en consignation par un particulier. Son prix a été convenu avec CGWS.
       </p>
       <!-- eslint-disable link-checker/valid-route, link-checker/valid-sitemap-link -->
       <NuxtLink
         to="/consignation"
-        class="font-sans font-medium text-[13px] text-cgws-copper hover:text-cgws-leather transition-colors duration-150 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-copper rounded-sm self-start"
+        class="font-sans font-medium text-[13px] text-cgws-accent hover:text-cgws-ink-soft transition-colors duration-150 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-accent rounded-sm self-start"
       >
         En savoir plus sur la consignation
       </NuxtLink>

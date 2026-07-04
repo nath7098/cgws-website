@@ -4,7 +4,7 @@ const currentYear = new Date().getFullYear()
 
 <template>
   <footer
-    class="bg-cgws-tack border-t-2 border-cgws-copper"
+    class="bg-cgws-surface border-t-2 border-cgws-accent-deco"
     aria-label="Pied de page CGWS"
   >
     <div
@@ -28,16 +28,16 @@ const currentYear = new Date().getFullYear()
         <div class="col-span-2 sm:col-span-1 order-1 flex flex-col gap-3">
           <div>
             <span
-              class="font-display text-[28px] text-cgws-parchment tracking-widest
+              class="font-display text-[28px] text-cgws-heading tracking-widest
                      uppercase leading-none block"
             >
               CGWS
             </span>
-            <span class="font-serif italic text-sm text-cgws-rope leading-snug block mt-1">
+            <span class="font-serif italic text-sm text-cgws-ink-soft leading-snug block mt-1">
               Sellerie de Brèches
             </span>
           </div>
-          <p class="font-sans text-sm text-cgws-rope/80 leading-relaxed max-w-[220px]">
+          <p class="font-sans text-sm text-cgws-ink-soft/80 leading-relaxed max-w-[220px]">
             Équipements western authentiques —
             neuf, occasion &amp; consignation.
           </p>
@@ -46,18 +46,18 @@ const currentYear = new Date().getFullYear()
             <a
               href="#"
               aria-label="CGWS sur Instagram"
-              class="text-cgws-rope hover:text-cgws-copper transition-colors duration-150
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper
-                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-tack rounded-sm"
+              class="text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
+                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-surface rounded-sm"
             >
               <UIcon name="i-lucide-instagram" class="w-5 h-5" aria-hidden="true" />
             </a>
             <a
               href="#"
               aria-label="CGWS sur Facebook"
-              class="text-cgws-rope hover:text-cgws-copper transition-colors duration-150
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper
-                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-tack rounded-sm"
+              class="text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
+                     focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-surface rounded-sm"
             >
               <UIcon name="i-lucide-facebook" class="w-5 h-5" aria-hidden="true" />
             </a>
@@ -71,11 +71,11 @@ const currentYear = new Date().getFullYear()
         -->
         <div
           class="col-span-1 order-2
-                 border-t border-cgws-leather/20 pt-6
+                 border-t border-cgws-hairline pt-6
                  sm:border-t-0 sm:pt-0"
         >
           <p
-            class="font-eyebrow text-cgws-copper text-[11px] uppercase tracking-[0.2em] mb-4"
+            class="font-eyebrow text-cgws-accent text-[11px] uppercase tracking-[0.2em] mb-4"
             aria-hidden="true"
           >
             Navigation
@@ -84,12 +84,12 @@ const currentYear = new Date().getFullYear()
             <li>
               <NuxtLink
                 to="/catalogue"
-                active-class="text-cgws-copper"
-                class="font-sans text-sm text-cgws-rope hover:text-cgws-copper
+                active-class="text-cgws-accent"
+                class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Catalogue
               </NuxtLink>
@@ -97,12 +97,12 @@ const currentYear = new Date().getFullYear()
             <li>
               <NuxtLink
                 to="/consignation"
-                active-class="text-cgws-copper"
-                class="font-sans text-sm text-cgws-rope hover:text-cgws-copper
+                active-class="text-cgws-accent"
+                class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Consignation
               </NuxtLink>
@@ -110,12 +110,12 @@ const currentYear = new Date().getFullYear()
             <li>
               <NuxtLink
                 to="/contact"
-                active-class="text-cgws-copper"
-                class="font-sans text-sm text-cgws-rope hover:text-cgws-copper
+                active-class="text-cgws-accent"
+                class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Contact
               </NuxtLink>
@@ -124,12 +124,12 @@ const currentYear = new Date().getFullYear()
               <!-- /a-propos n'est pas encore créé — redirigera vers 404 jusqu'à implémentation -->
               <NuxtLink
                 to="/a-propos"
-                active-class="text-cgws-copper"
-                class="font-sans text-sm text-cgws-rope hover:text-cgws-copper
+                active-class="text-cgws-accent"
+                class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 À propos
               </NuxtLink>
@@ -145,11 +145,11 @@ const currentYear = new Date().getFullYear()
         -->
         <div
           class="col-span-2 sm:col-span-1 order-4 sm:order-3
-                 border-t border-cgws-leather/20 pt-6
+                 border-t border-cgws-hairline pt-6
                  sm:border-t-0 sm:pt-0"
         >
           <p
-            class="font-eyebrow text-cgws-copper text-[11px] uppercase tracking-[0.2em] mb-4"
+            class="font-eyebrow text-cgws-accent text-[11px] uppercase tracking-[0.2em] mb-4"
             aria-hidden="true"
           >
             Boutique
@@ -159,11 +159,11 @@ const currentYear = new Date().getFullYear()
             <li class="flex items-start gap-2">
               <UIcon
                 name="i-lucide-map-pin"
-                class="w-4 h-4 text-cgws-copper flex-shrink-0 mt-0.5"
+                class="w-4 h-4 text-cgws-accent flex-shrink-0 mt-0.5"
                 aria-hidden="true"
               />
               <!-- TODO: confirmer adresse exacte avec Camille -->
-              <span class="font-sans text-sm text-cgws-rope/80 leading-snug">
+              <span class="font-sans text-sm text-cgws-ink-soft/80 leading-snug">
                 Brèches, 37320 Indre-et-Loire
               </span>
             </li>
@@ -171,17 +171,17 @@ const currentYear = new Date().getFullYear()
             <li class="flex items-center gap-2">
               <UIcon
                 name="i-lucide-phone"
-                class="w-4 h-4 text-cgws-copper flex-shrink-0"
+                class="w-4 h-4 text-cgws-accent flex-shrink-0"
                 aria-hidden="true"
               />
               <!-- TODO: confirmer numéro de téléphone avec Camille -->
               <a
                 href="tel:+33600000000"
-                class="font-sans text-sm text-cgws-rope/80 hover:text-cgws-copper
+                class="font-sans text-sm text-cgws-ink-soft/80 hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 06 XX XX XX XX
               </a>
@@ -190,10 +190,10 @@ const currentYear = new Date().getFullYear()
             <li class="flex items-start gap-2">
               <UIcon
                 name="i-lucide-clock"
-                class="w-4 h-4 text-cgws-copper flex-shrink-0 mt-0.5"
+                class="w-4 h-4 text-cgws-accent flex-shrink-0 mt-0.5"
                 aria-hidden="true"
               />
-              <div class="font-sans text-sm text-cgws-rope/80 leading-snug">
+              <div class="font-sans text-sm text-cgws-ink-soft/80 leading-snug">
                 <span class="block">Mar – Ven · 10h – 18h</span>
                 <span class="block">Samedi · 9h – 17h</span>
                 <span class="block">Dim – Lun · Fermé</span>
@@ -203,16 +203,16 @@ const currentYear = new Date().getFullYear()
             <li class="flex items-center gap-2">
               <UIcon
                 name="i-lucide-mail"
-                class="w-4 h-4 text-cgws-copper flex-shrink-0"
+                class="w-4 h-4 text-cgws-accent flex-shrink-0"
                 aria-hidden="true"
               />
               <a
                 href="mailto:contact@cgws.fr"
-                class="font-sans text-sm text-cgws-rope/80 hover:text-cgws-copper
+                class="font-sans text-sm text-cgws-ink-soft/80 hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 contact@cgws.fr
               </a>
@@ -228,11 +228,11 @@ const currentYear = new Date().getFullYear()
         -->
         <div
           class="col-span-1 order-3 sm:order-4
-                 border-t border-cgws-leather/20 pt-6
+                 border-t border-cgws-hairline pt-6
                  sm:border-t-0 sm:pt-0"
         >
           <p
-            class="font-eyebrow text-cgws-copper text-[11px] uppercase tracking-[0.2em] mb-4"
+            class="font-eyebrow text-cgws-accent text-[11px] uppercase tracking-[0.2em] mb-4"
             aria-hidden="true"
           >
             Informations
@@ -241,19 +241,19 @@ const currentYear = new Date().getFullYear()
             <li>
               <NuxtLink
                 to="/mentions-legales"
-                active-class="text-cgws-copper"
-                class="font-sans text-sm text-cgws-rope hover:text-cgws-copper
+                active-class="text-cgws-accent"
+                class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
                        transition-colors duration-150
                        focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper focus-visible:ring-offset-2
-                       focus-visible:ring-offset-cgws-tack rounded-sm"
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
               >
                 Mentions légales
               </NuxtLink>
             </li>
             <li>
               <span
-                class="font-sans text-sm text-cgws-rope/40 cursor-not-allowed"
+                class="font-sans text-sm text-cgws-ink-soft/40 cursor-not-allowed"
                 aria-label="CGV — page à venir"
               >
                 CGV (à venir)
@@ -261,7 +261,7 @@ const currentYear = new Date().getFullYear()
             </li>
             <li>
               <span
-                class="font-sans text-sm text-cgws-rope/40 cursor-not-allowed"
+                class="font-sans text-sm text-cgws-ink-soft/40 cursor-not-allowed"
                 aria-label="Politique de confidentialité — page à venir"
               >
                 Politique de conf. (à venir)
@@ -271,19 +271,18 @@ const currentYear = new Date().getFullYear()
         </div>
       </div>
 
-      <!-- Séparateur concho — ring-class adapté au fond sombre -->
-      <ConchoDivider
-        bg-class="bg-cgws-tack"
-        ring-class="ring-cgws-tack"
+      <!-- Séparateur étoile-boussole -->
+      <StarDivider
+        bg-class="bg-cgws-surface"
         class="mt-8 mb-6"
       />
 
       <!-- Barre de bas -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p class="font-sans text-xs text-cgws-rope/60 text-center sm:text-left">
+        <p class="font-sans text-xs text-cgws-ink-soft/60 text-center sm:text-left">
           © {{ currentYear }} CGWS — Camille Guignon Western Shop
         </p>
-        <p class="font-sans text-xs text-cgws-rope/60 text-center sm:text-right">
+        <p class="font-sans text-xs text-cgws-ink-soft/60 text-center sm:text-right">
           Fait avec ♥ en Indre-et-Loire
         </p>
       </div>

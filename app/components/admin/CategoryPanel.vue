@@ -161,7 +161,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
       >
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-cgws-charcoal/40 backdrop-blur-[2px]"
+          class="absolute inset-0 bg-cgws-ink/40 backdrop-blur-[2px]"
           aria-hidden="true"
           @click="$emit('close')"
         />
@@ -172,26 +172,26 @@ function handlePanelKeydown(event: KeyboardEvent) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="panel-title"
-          class="relative w-full self-end rounded-t-xl max-h-[85dvh] sm:ml-auto sm:w-96 sm:self-auto sm:rounded-none sm:max-h-full sm:h-full bg-cgws-cream border-t sm:border-t-0 sm:border-l border-cgws-leather/30 flex flex-col overflow-y-auto shadow-2xl"
+          class="relative w-full self-end rounded-t-xl max-h-[85dvh] sm:ml-auto sm:w-96 sm:self-auto sm:rounded-none sm:max-h-full sm:h-full bg-cgws-ground border-t sm:border-t-0 sm:border-l border-cgws-hairline flex flex-col overflow-y-auto shadow-2xl"
         >
           <!-- Panel header -->
-          <div class="flex items-center justify-between px-5 py-4 border-b border-cgws-leather/20 bg-white flex-shrink-0">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-cgws-hairline bg-cgws-surface flex-shrink-0">
             <div class="flex items-center gap-2">
               <UIcon
                 :name="mode === 'create' ? 'i-lucide-folder-plus' : 'i-lucide-folder-pen'"
-                class="w-5 h-5 text-cgws-copper"
+                class="w-5 h-5 text-cgws-accent"
                 aria-hidden="true"
               />
               <h3
                 id="panel-title"
-                class="font-serif font-bold text-lg text-cgws-charcoal"
+                class="font-serif font-bold text-lg text-cgws-ink"
               >
                 {{ mode === 'create' ? 'Nouvelle catégorie' : 'Modifier la catégorie' }}
               </h3>
             </div>
             <button
               type="button"
-              class="p-1.5 rounded-sm text-cgws-leather hover:text-cgws-copper hover:bg-cgws-copper/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+              class="p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
               aria-label="Fermer le panneau"
               @click="$emit('close')"
             >
@@ -209,10 +209,10 @@ function handlePanelKeydown(event: KeyboardEvent) {
             <div class="space-y-1">
               <label
                 for="cat-name"
-                class="block font-sans text-xs font-semibold uppercase tracking-widest text-cgws-leather"
+                class="block font-sans text-xs font-semibold uppercase tracking-widest text-cgws-ink-soft"
               >
                 Nom
-                <span class="text-cgws-rust ml-0.5" aria-hidden="true">*</span>
+                <span class="text-cgws-danger ml-0.5" aria-hidden="true">*</span>
                 <span class="sr-only">(obligatoire)</span>
               </label>
               <input
@@ -222,10 +222,10 @@ function handlePanelKeydown(event: KeyboardEvent) {
                 required
                 autocomplete="off"
                 placeholder="ex. Selles western"
-                class="w-full px-3 py-2 bg-white border rounded-sm font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope outline-none transition-colors duration-150"
+                class="w-full px-3 py-2 bg-cgws-surface border rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft outline-none transition-colors duration-150"
                 :class="errors.name
-                  ? 'border-cgws-rust focus:border-cgws-rust focus:ring-2 focus:ring-cgws-rust/20'
-                  : 'border-cgws-leather/40 focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20'"
+                  ? 'border-cgws-danger focus:border-cgws-danger focus:ring-2 focus:ring-cgws-danger/20'
+                  : 'border-cgws-hairline focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20'"
                 :aria-invalid="!!errors.name"
                 aria-describedby="cat-name-hint cat-name-error"
                 @input="onNameInput"
@@ -233,15 +233,15 @@ function handlePanelKeydown(event: KeyboardEvent) {
               >
               <p
                 id="cat-name-hint"
-                class="font-sans text-xs text-cgws-leather"
+                class="font-sans text-xs text-cgws-ink-soft"
               >
-                URL : <code class="text-cgws-copper font-mono">/catalogue/{{ slugPreview || '…' }}</code>
+                URL : <code class="text-cgws-accent font-mono">/catalogue/{{ slugPreview || '…' }}</code>
               </p>
               <p
                 v-if="errors.name"
                 id="cat-name-error"
                 role="alert"
-                class="font-sans text-xs text-cgws-rust"
+                class="font-sans text-xs text-cgws-danger"
               >
                 {{ errors.name }}
               </p>
@@ -251,10 +251,10 @@ function handlePanelKeydown(event: KeyboardEvent) {
             <div class="space-y-1">
               <label
                 for="cat-slug"
-                class="block font-sans text-xs font-semibold uppercase tracking-widest text-cgws-leather"
+                class="block font-sans text-xs font-semibold uppercase tracking-widest text-cgws-ink-soft"
               >
                 Slug
-                <span class="text-cgws-rust ml-0.5" aria-hidden="true">*</span>
+                <span class="text-cgws-danger ml-0.5" aria-hidden="true">*</span>
                 <span class="sr-only">(obligatoire)</span>
               </label>
               <input
@@ -264,17 +264,17 @@ function handlePanelKeydown(event: KeyboardEvent) {
                 required
                 autocomplete="off"
                 placeholder="selles-western"
-                class="w-full px-3 py-2 bg-white border rounded-sm font-mono text-sm text-cgws-charcoal placeholder:text-cgws-rope/60 outline-none transition-colors duration-150"
+                class="w-full px-3 py-2 bg-cgws-surface border rounded-sm font-mono text-sm text-cgws-ink placeholder:text-cgws-ink-soft/60 outline-none transition-colors duration-150"
                 :class="errors.slug
-                  ? 'border-cgws-rust focus:border-cgws-rust focus:ring-2 focus:ring-cgws-rust/20'
-                  : 'border-cgws-leather/40 focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20'"
+                  ? 'border-cgws-danger focus:border-cgws-danger focus:ring-2 focus:ring-cgws-danger/20'
+                  : 'border-cgws-hairline focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20'"
                 :aria-invalid="!!errors.slug"
                 aria-describedby="cat-slug-hint cat-slug-error"
                 @blur="validateField('slug')"
               >
               <p
                 id="cat-slug-hint"
-                class="font-sans text-[11px] text-cgws-leather/70"
+                class="font-sans text-[11px] text-cgws-ink-soft/70"
               >
                 Uniquement minuscules, chiffres et tirets. Modifier manuellement uniquement si nécessaire.
               </p>
@@ -282,7 +282,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
                 v-if="errors.slug"
                 id="cat-slug-error"
                 role="alert"
-                class="font-sans text-xs text-cgws-rust"
+                class="font-sans text-xs text-cgws-danger"
               >
                 {{ errors.slug }}
               </p>
@@ -292,14 +292,14 @@ function handlePanelKeydown(event: KeyboardEvent) {
             <div class="space-y-1">
               <label
                 for="cat-parent"
-                class="block font-sans text-xs font-semibold uppercase tracking-widest text-cgws-leather"
+                class="block font-sans text-xs font-semibold uppercase tracking-widest text-cgws-ink-soft"
               >
                 Catégorie parente
               </label>
               <select
                 id="cat-parent"
                 v-model="form.parentId"
-                class="w-full px-3 py-2 bg-white border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal appearance-none outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 transition-colors duration-150"
+                class="w-full px-3 py-2 bg-cgws-surface border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink appearance-none outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 transition-colors duration-150"
                 aria-describedby="cat-parent-hint"
               >
                 <option :value="null">
@@ -316,11 +316,11 @@ function handlePanelKeydown(event: KeyboardEvent) {
               </select>
               <p
                 id="cat-parent-hint"
-                class="font-sans text-[11px] text-cgws-leather/70"
+                class="font-sans text-[11px] text-cgws-ink-soft/70"
               >
                 <template v-if="form.parentId">
                   Cette catégorie apparaîtra sous
-                  <strong class="text-cgws-charcoal">{{ parentName }}</strong>.
+                  <strong class="text-cgws-ink">{{ parentName }}</strong>.
                   Maximum 2 niveaux — une sous-catégorie ne peut pas avoir d'enfants.
                 </template>
                 <template v-else>
@@ -331,7 +331,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
 
             <!-- Visibility toggle -->
             <div class="space-y-2">
-              <p class="font-sans text-xs font-semibold uppercase tracking-widest text-cgws-leather">
+              <p class="font-sans text-xs font-semibold uppercase tracking-widest text-cgws-ink-soft">
                 Visibilité catalogue
               </p>
               <label class="flex items-center gap-3 cursor-pointer group">
@@ -340,21 +340,21 @@ function handlePanelKeydown(event: KeyboardEvent) {
                   role="switch"
                   :aria-checked="form.isActive"
                   aria-label="Visible dans le catalogue public"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:ring-offset-2"
-                  :class="form.isActive ? 'bg-cgws-copper' : 'bg-cgws-leather/30'"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
+                  :class="form.isActive ? 'bg-cgws-accent' : 'bg-cgws-hairline'"
                   @click="form.isActive = !form.isActive"
                 >
                   <span
-                    class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200"
+                    class="inline-block h-4 w-4 transform rounded-full bg-cgws-on-accent shadow transition-transform duration-200"
                     :class="form.isActive ? 'translate-x-6' : 'translate-x-1'"
                     aria-hidden="true"
                   />
                 </button>
-                <span class="font-sans text-sm text-cgws-charcoal group-hover:text-cgws-copper transition-colors">
+                <span class="font-sans text-sm text-cgws-ink group-hover:text-cgws-accent transition-colors">
                   {{ form.isActive ? 'Visible dans le catalogue' : 'Masqué du catalogue' }}
                 </span>
               </label>
-              <p class="font-sans text-[11px] text-cgws-leather/70 ml-14">
+              <p class="font-sans text-[11px] text-cgws-ink-soft/70 ml-14">
                 Une catégorie inactive n'apparaît pas sur le site public mais reste accessible en backoffice.
               </p>
             </div>
@@ -364,7 +364,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
           </form>
 
           <!-- Footer -->
-          <div class="flex items-center justify-between px-5 py-4 border-t border-cgws-leather/20 bg-white flex-shrink-0">
+          <div class="flex items-center justify-between px-5 py-4 border-t border-cgws-hairline bg-cgws-surface flex-shrink-0">
             <CgwsButton
               variant="ghost"
               type="button"

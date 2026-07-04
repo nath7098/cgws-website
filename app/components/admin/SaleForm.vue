@@ -263,7 +263,7 @@ function formatCategory(cat: string): string {
       >
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-cgws-charcoal/60 backdrop-blur-sm"
+          class="absolute inset-0 bg-cgws-ink/60 backdrop-blur-sm"
           aria-hidden="true"
           @click="$emit('close')"
         />
@@ -271,30 +271,30 @@ function formatCategory(cat: string): string {
         <!-- Modal box -->
         <div
           ref="modalBoxRef"
-          class="modal-box relative bg-white border-2 border-cgws-charcoal rounded-sm shadow-xl
+          class="modal-box relative bg-cgws-surface border-2 border-cgws-ink rounded-sm shadow-xl
                  w-full max-w-lg flex flex-col max-h-[90dvh] sm:max-h-[80vh] overflow-hidden"
           tabindex="-1"
         >
           <!-- Header -->
-          <div class="flex items-start gap-3 p-5 border-b border-cgws-leather/20 flex-shrink-0">
+          <div class="flex items-start gap-3 p-5 border-b border-cgws-hairline flex-shrink-0">
             <div
-              class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-copper/10
+              class="flex-shrink-0 w-10 h-10 rounded-full bg-cgws-accent/10
                      flex items-center justify-center"
               aria-hidden="true"
             >
               <UIcon
                 name="i-lucide-receipt"
-                class="w-5 h-5 text-cgws-copper"
+                class="w-5 h-5 text-cgws-accent"
               />
             </div>
             <div class="flex-1 min-w-0">
               <h3
                 id="sale-form-title"
-                class="font-serif font-bold text-lg text-cgws-charcoal"
+                class="font-serif font-bold text-lg text-cgws-ink"
               >
                 Enregistrer une vente
               </h3>
-              <p class="font-sans text-xs text-cgws-leather mt-0.5">
+              <p class="font-sans text-xs text-cgws-ink-soft mt-0.5">
                 Sélectionnez l'article vendu et renseignez les détails.
               </p>
             </div>
@@ -302,8 +302,8 @@ function formatCategory(cat: string): string {
             <button
               type="button"
               class="flex-shrink-0 p-1.5 -mr-1.5 -mt-1.5 rounded-sm
-                     text-cgws-leather hover:text-cgws-charcoal hover:bg-cgws-parchment/40
-                     transition-colors focus-visible:ring-2 focus-visible:ring-cgws-copper
+                     text-cgws-ink-soft hover:text-cgws-ink hover:bg-cgws-surface/40
+                     transition-colors focus-visible:ring-2 focus-visible:ring-cgws-accent
                      focus-visible:outline-none"
               aria-label="Fermer sans enregistrer"
               @click="$emit('close')"
@@ -322,9 +322,9 @@ function formatCategory(cat: string): string {
             <div>
               <label
                 for="sale-product"
-                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
               >
-                Produit <span class="text-cgws-rust" aria-hidden="true">*</span>
+                Produit <span class="text-cgws-danger" aria-hidden="true">*</span>
               </label>
               <div class="relative">
                 <select
@@ -332,11 +332,11 @@ function formatCategory(cat: string): string {
                   v-model="selectedProductId"
                   :disabled="isLoadingProducts || isSubmitting"
                   required
-                  class="w-full px-3 py-2 pr-9 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                         font-sans text-sm text-cgws-charcoal appearance-none
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none
+                  class="w-full px-3 py-2 pr-9 bg-cgws-ground border border-cgws-hairline rounded-sm
+                         font-sans text-sm text-cgws-ink appearance-none
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none
                          disabled:opacity-50"
-                  :class="errors.productId ? 'border-cgws-rust' : ''"
+                  :class="errors.productId ? 'border-cgws-danger' : ''"
                   aria-required="true"
                   :aria-describedby="errors.productId ? 'sale-product-error' : undefined"
                 >
@@ -353,7 +353,7 @@ function formatCategory(cat: string): string {
                 </select>
                 <UIcon
                   name="i-lucide-chevron-down"
-                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-leather/60"
+                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft/60"
                   aria-hidden="true"
                 />
               </div>
@@ -361,7 +361,7 @@ function formatCategory(cat: string): string {
                 v-if="errors.productId"
                 id="sale-product-error"
                 role="alert"
-                class="mt-1 font-sans text-xs text-cgws-rust"
+                class="mt-1 font-sans text-xs text-cgws-danger"
               >
                 {{ errors.productId }}
               </p>
@@ -371,17 +371,17 @@ function formatCategory(cat: string): string {
             <Transition name="recap">
               <div
                 v-if="selectedProduct"
-                class="p-3 bg-cgws-parchment/40 border border-cgws-leather/20 rounded-sm"
+                class="p-3 bg-cgws-surface/40 border border-cgws-hairline rounded-sm"
               >
                 <div class="flex items-start justify-between gap-2">
                   <div class="min-w-0">
-                    <p class="font-sans text-sm font-medium text-cgws-charcoal">
+                    <p class="font-sans text-sm font-medium text-cgws-ink">
                       {{ selectedProduct.title }}
                     </p>
-                    <p class="font-sans text-xs text-cgws-leather mt-0.5">
+                    <p class="font-sans text-xs text-cgws-ink-soft mt-0.5">
                       {{ selectedProduct.brand }} · {{ formatCategory(selectedProduct.category) }}
                     </p>
-                    <p class="font-display text-sm text-cgws-charcoal mt-1">
+                    <p class="font-display text-sm text-cgws-ink mt-1">
                       Prix catalogue : {{ formatPrice(selectedProduct.price) }}
                     </p>
                   </div>
@@ -389,8 +389,8 @@ function formatCategory(cat: string): string {
                     class="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full
                            font-sans font-medium text-[11px] uppercase tracking-wider"
                     :class="selectedProduct.isConsignment
-                      ? 'bg-cgws-copper/20 text-cgws-copper'
-                      : 'bg-cgws-denim/15 text-cgws-denim'"
+                      ? 'bg-cgws-accent/20 text-cgws-accent'
+                      : 'bg-cgws-success/15 text-cgws-success'"
                   >
                     {{ selectedProduct.isConsignment ? 'Consignation' : 'Propre' }}
                   </span>
@@ -404,9 +404,9 @@ function formatCategory(cat: string): string {
               <div>
                 <label
                   for="sale-date"
-                  class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                  class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
                 >
-                  Date de vente <span class="text-cgws-rust" aria-hidden="true">*</span>
+                  Date de vente <span class="text-cgws-danger" aria-hidden="true">*</span>
                 </label>
                 <input
                   id="sale-date"
@@ -414,11 +414,11 @@ function formatCategory(cat: string): string {
                   type="date"
                   required
                   :disabled="isSubmitting"
-                  class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                         font-sans text-sm text-cgws-charcoal
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none
+                  class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm
+                         font-sans text-sm text-cgws-ink
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none
                          disabled:opacity-50"
-                  :class="errors.saleDate ? 'border-cgws-rust' : ''"
+                  :class="errors.saleDate ? 'border-cgws-danger' : ''"
                   aria-required="true"
                   :aria-describedby="errors.saleDate ? 'sale-date-error' : undefined"
                 >
@@ -426,7 +426,7 @@ function formatCategory(cat: string): string {
                   v-if="errors.saleDate"
                   id="sale-date-error"
                   role="alert"
-                  class="mt-1 font-sans text-xs text-cgws-rust"
+                  class="mt-1 font-sans text-xs text-cgws-danger"
                 >
                   {{ errors.saleDate }}
                 </p>
@@ -436,9 +436,9 @@ function formatCategory(cat: string): string {
               <div>
                 <label
                   for="sale-price"
-                  class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                  class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
                 >
-                  Prix de vente (€) <span class="text-cgws-rust" aria-hidden="true">*</span>
+                  Prix de vente (€) <span class="text-cgws-danger" aria-hidden="true">*</span>
                 </label>
                 <input
                   id="sale-price"
@@ -448,11 +448,11 @@ function formatCategory(cat: string): string {
                   step="0.01"
                   required
                   :disabled="isSubmitting"
-                  class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                         font-display text-base text-cgws-copper
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none
+                  class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm
+                         font-display text-base text-cgws-accent
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none
                          disabled:opacity-50"
-                  :class="errors.salePrice ? 'border-cgws-rust' : ''"
+                  :class="errors.salePrice ? 'border-cgws-danger' : ''"
                   aria-required="true"
                   :aria-describedby="errors.salePrice ? 'sale-price-error' : undefined"
                 >
@@ -460,7 +460,7 @@ function formatCategory(cat: string): string {
                   v-if="errors.salePrice"
                   id="sale-price-error"
                   role="alert"
-                  class="mt-1 font-sans text-xs text-cgws-rust"
+                  class="mt-1 font-sans text-xs text-cgws-danger"
                 >
                   {{ errors.salePrice }}
                 </p>
@@ -471,9 +471,9 @@ function formatCategory(cat: string): string {
             <Transition name="commission-panel">
               <div
                 v-if="selectedProduct?.isConsignment"
-                class="p-3 bg-cgws-parchment/60 border border-cgws-copper/20 rounded-sm space-y-1.5"
+                class="p-3 bg-cgws-surface/60 border border-cgws-accent/20 rounded-sm space-y-1.5"
               >
-                <p class="font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-2">
+                <p class="font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-2">
                   Calcul de commission
                 </p>
 
@@ -484,55 +484,55 @@ function formatCategory(cat: string): string {
                     :key="n"
                     class="flex items-center justify-between"
                   >
-                    <div class="animate-pulse h-4 w-36 rounded bg-cgws-leather/20" />
-                    <div class="animate-pulse h-4 w-20 rounded bg-cgws-leather/20" />
+                    <div class="animate-pulse h-4 w-36 rounded bg-cgws-hairline" />
+                    <div class="animate-pulse h-4 w-20 rounded bg-cgws-hairline" />
                   </div>
                 </template>
 
                 <!-- Values resolved -->
                 <template v-else>
                   <div class="flex items-center justify-between font-sans text-sm">
-                    <span class="text-cgws-leather">Prix accordé au déposant</span>
+                    <span class="text-cgws-ink-soft">Prix accordé au déposant</span>
                     <span
                       v-if="agreedPrice !== null"
-                      class="font-medium text-cgws-charcoal"
+                      class="font-medium text-cgws-ink"
                     >
                       {{ formatPrice(agreedPrice) }}
                     </span>
                     <span
                       v-else
-                      class="text-cgws-leather/60"
+                      class="text-cgws-ink-soft/60"
                     >—</span>
                   </div>
                   <div class="flex items-center justify-between font-sans text-sm">
-                    <span class="text-cgws-leather">Commission boutique</span>
+                    <span class="text-cgws-ink-soft">Commission boutique</span>
                     <span
                       v-if="commissionAmount !== null"
-                      class="font-semibold text-cgws-copper"
+                      class="font-semibold text-cgws-accent"
                     >
                       {{ formatPrice(commissionAmount) }}
                     </span>
                     <span
                       v-else
-                      class="text-cgws-leather/60"
+                      class="text-cgws-ink-soft/60"
                     >—</span>
                   </div>
-                  <div class="border-t border-cgws-leather/20 mt-1 pt-1 flex items-center justify-between font-sans text-sm">
-                    <span class="font-semibold text-cgws-charcoal">Net à reverser</span>
+                  <div class="border-t border-cgws-hairline mt-1 pt-1 flex items-center justify-between font-sans text-sm">
+                    <span class="font-semibold text-cgws-ink">Net à reverser</span>
                     <span
                       v-if="netToDepositor !== null"
-                      class="font-semibold text-cgws-charcoal"
+                      class="font-semibold text-cgws-ink"
                     >
                       {{ formatPrice(netToDepositor) }}
                     </span>
                     <span
                       v-else
-                      class="text-cgws-leather/60"
+                      class="text-cgws-ink-soft/60"
                     >—</span>
                   </div>
                   <p
                     v-if="agreedPrice === null"
-                    class="mt-1 font-sans text-xs italic text-cgws-leather"
+                    class="mt-1 font-sans text-xs italic text-cgws-ink-soft"
                   >
                     Prix accordé non défini — vérifiez la fiche de consignation.
                   </p>
@@ -544,9 +544,9 @@ function formatCategory(cat: string): string {
             <div>
               <label
                 for="sale-payment"
-                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
               >
-                Moyen de paiement <span class="text-cgws-rust" aria-hidden="true">*</span>
+                Moyen de paiement <span class="text-cgws-danger" aria-hidden="true">*</span>
               </label>
               <div class="relative">
                 <select
@@ -554,9 +554,9 @@ function formatCategory(cat: string): string {
                   v-model="form.paymentMethod"
                   required
                   :disabled="isSubmitting"
-                  class="w-full px-3 py-2 pr-9 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                         font-sans text-sm text-cgws-charcoal appearance-none
-                         focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none
+                  class="w-full px-3 py-2 pr-9 bg-cgws-ground border border-cgws-hairline rounded-sm
+                         font-sans text-sm text-cgws-ink appearance-none
+                         focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none
                          disabled:opacity-50"
                 >
                   <option value="cash">
@@ -574,7 +574,7 @@ function formatCategory(cat: string): string {
                 </select>
                 <UIcon
                   name="i-lucide-chevron-down"
-                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-leather/60"
+                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft/60"
                   aria-hidden="true"
                 />
               </div>
@@ -584,10 +584,10 @@ function formatCategory(cat: string): string {
             <div>
               <label
                 for="sale-client"
-                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
               >
                 Client
-                <span class="font-normal normal-case tracking-normal text-cgws-leather/70">(optionnel)</span>
+                <span class="font-normal normal-case tracking-normal text-cgws-ink-soft/70">(optionnel)</span>
               </label>
               <ClientAutocomplete
                 v-model="clientSelection"
@@ -601,10 +601,10 @@ function formatCategory(cat: string): string {
             <div>
               <label
                 for="sale-notes"
-                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-leather mb-1.5"
+                class="block font-sans text-xs font-semibold uppercase tracking-wider text-cgws-ink-soft mb-1.5"
               >
                 Notes internes
-                <span class="font-normal normal-case tracking-normal text-cgws-leather/70">(optionnel)</span>
+                <span class="font-normal normal-case tracking-normal text-cgws-ink-soft/70">(optionnel)</span>
               </label>
               <textarea
                 id="sale-notes"
@@ -612,9 +612,9 @@ function formatCategory(cat: string): string {
                 :rows="2"
                 placeholder="Observations, conditions particulières…"
                 :disabled="isSubmitting"
-                class="w-full px-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm
-                       font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope resize-none
-                       focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none
+                class="w-full px-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm
+                       font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft resize-none
+                       focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none
                        disabled:opacity-50"
               />
             </div>
@@ -623,15 +623,15 @@ function formatCategory(cat: string): string {
           <!-- Footer -->
           <div
             class="flex flex-col-reverse sm:flex-row items-center justify-between
-                   gap-3 p-5 border-t border-cgws-leather/20 flex-shrink-0"
+                   gap-3 p-5 border-t border-cgws-hairline flex-shrink-0"
           >
             <button
               type="button"
               :disabled="isSubmitting"
-              class="w-full sm:w-auto px-4 py-2 rounded-sm border border-cgws-leather/40
-                     font-sans text-sm font-medium text-cgws-leather
-                     hover:bg-cgws-parchment/40 hover:text-cgws-charcoal transition-colors
-                     focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none
+              class="w-full sm:w-auto px-4 py-2 rounded-sm border border-cgws-hairline
+                     font-sans text-sm font-medium text-cgws-ink-soft
+                     hover:bg-cgws-surface/40 hover:text-cgws-ink transition-colors
+                     focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none
                      disabled:opacity-40 disabled:cursor-not-allowed"
               @click="$emit('close')"
             >
@@ -642,16 +642,16 @@ function formatCategory(cat: string): string {
               type="button"
               :disabled="isSubmitting || isLoadingProducts"
               class="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                     px-5 py-2 rounded-sm bg-cgws-copper text-white
-                     font-sans text-sm font-semibold hover:bg-cgws-leather transition-colors
+                     px-5 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
+                     font-sans text-sm font-semibold hover:bg-cgws-edge transition-colors
                      disabled:opacity-40 disabled:cursor-not-allowed
-                     focus-visible:ring-2 focus-visible:ring-cgws-copper
+                     focus-visible:ring-2 focus-visible:ring-cgws-accent
                      focus-visible:ring-offset-2 focus-visible:outline-none"
               @click="submitSale"
             >
               <span
                 v-if="isSubmitting"
-                class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
                 aria-hidden="true"
               />
               {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer la vente' }}

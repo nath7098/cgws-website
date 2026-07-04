@@ -72,20 +72,20 @@ function toggleBrand(brand: string): void {
     :handle="true"
     :overlay="true"
     :ui="{
-      content: 'bg-cgws-cream rounded-t-[12px] max-h-[85vh] flex flex-col',
-      overlay: 'bg-cgws-charcoal/40 backdrop-blur-sm',
+      content: 'bg-cgws-ground rounded-t-[12px] max-h-[85vh] flex flex-col',
+      overlay: 'bg-cgws-ink/40 backdrop-blur-sm',
     }"
   >
     <!-- Trigger button (default slot = drawer trigger) -->
     <button
-      class="flex items-center gap-2 bg-cgws-cream border border-cgws-leather/30 rounded-sm px-3 py-2 font-sans font-medium text-sm text-cgws-charcoal hover:border-cgws-copper hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper w-full"
+      class="flex items-center gap-2 bg-cgws-ground border border-cgws-hairline rounded-sm px-3 py-2 font-sans font-medium text-sm text-cgws-ink hover:border-cgws-accent hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent w-full"
       aria-label="Ouvrir les filtres"
     >
       <UIcon name="i-lucide-sliders-horizontal" class="w-4 h-4 flex-shrink-0" />
       <span class="flex-1 text-left">Filtrer</span>
       <span
         v-if="activeFilterCount > 0"
-        class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+        class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
       >
         {{ activeFilterCount }}
       </span>
@@ -93,8 +93,8 @@ function toggleBrand(brand: string): void {
 
     <!-- Drawer header -->
     <template #header>
-      <div class="flex items-center justify-between px-4 py-3 border-b border-cgws-leather/20 flex-shrink-0">
-        <span class="font-eyebrow text-[11px] text-cgws-leather uppercase tracking-[0.2em]">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-cgws-hairline flex-shrink-0">
+        <span class="font-eyebrow text-[11px] text-cgws-ink-soft uppercase tracking-[0.2em]">
           Filtres
         </span>
       </div>
@@ -105,23 +105,24 @@ function toggleBrand(brand: string): void {
       <div class="overflow-y-auto flex-1">
 
         <!-- Section: Catégorie -->
-        <div class="border-b border-cgws-leather/10">
+        <div class="border-b border-cgws-hairline">
           <button
-            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.categories"
+            aria-controls="drawer-filter-section-categories"
             @click="openSections.categories = !openSections.categories"
           >
             <span>Catégorie</span>
             <span class="flex items-center gap-2">
               <span
                 v-if="filters.categories.length > 0"
-                class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+                class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
               >
                 {{ filters.categories.length }}
               </span>
               <UIcon
                 name="i-lucide-chevron-down"
-                class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+                class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
                 :class="{ 'rotate-180': openSections.categories }"
               />
             </span>
@@ -134,20 +135,20 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.categories" class="px-4 pb-3 space-y-2">
+            <div v-if="openSections.categories" id="drawer-filter-section-categories" role="region" class="px-4 pb-3 space-y-2">
               <label
                 v-for="cat in ALL_CATEGORIES"
                 :key="cat"
-                class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150"
+                class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150"
               >
                 <input
                   type="checkbox"
                   :checked="filters.categories.includes(cat)"
-                  class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+                  class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
                   :aria-label="CATEGORY_LABELS[cat]"
                   @change="toggleCategory(cat)"
                 >
-                <span class="font-sans text-sm text-cgws-charcoal flex-1">
+                <span class="font-sans text-sm text-cgws-ink flex-1">
                   {{ CATEGORY_LABELS[cat] }}
                 </span>
               </label>
@@ -156,23 +157,24 @@ function toggleBrand(brand: string): void {
         </div>
 
         <!-- Section: État -->
-        <div class="border-b border-cgws-leather/10">
+        <div class="border-b border-cgws-hairline">
           <button
-            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.conditions"
+            aria-controls="drawer-filter-section-conditions"
             @click="openSections.conditions = !openSections.conditions"
           >
             <span>État</span>
             <span class="flex items-center gap-2">
               <span
                 v-if="filters.conditions.length > 0"
-                class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+                class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
               >
                 {{ filters.conditions.length }}
               </span>
               <UIcon
                 name="i-lucide-chevron-down"
-                class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+                class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
                 :class="{ 'rotate-180': openSections.conditions }"
               />
             </span>
@@ -185,49 +187,50 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.conditions" class="px-4 pb-3 space-y-2">
-              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+            <div v-if="openSections.conditions" id="drawer-filter-section-conditions" role="region" class="px-4 pb-3 space-y-2">
+              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
                 <input
                   type="checkbox"
                   :checked="filters.conditions.includes('new')"
-                  class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+                  class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
                   aria-label="Neuf"
                   @change="toggleCondition('new')"
                 >
-                <span class="font-sans text-sm text-cgws-charcoal flex-1">Neuf</span>
+                <span class="font-sans text-sm text-cgws-ink flex-1">Neuf</span>
               </label>
-              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
                 <input
                   type="checkbox"
                   :checked="filters.conditions.includes('occasion')"
-                  class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+                  class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
                   aria-label="Occasion"
                   @change="toggleCondition('occasion')"
                 >
-                <span class="font-sans text-sm text-cgws-charcoal flex-1">Occasion</span>
+                <span class="font-sans text-sm text-cgws-ink flex-1">Occasion</span>
               </label>
             </div>
           </Transition>
         </div>
 
         <!-- Section: Marque -->
-        <div v-if="availableBrands.length > 0" class="border-b border-cgws-leather/10">
+        <div v-if="availableBrands.length > 0" class="border-b border-cgws-hairline">
           <button
-            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.brands"
+            aria-controls="drawer-filter-section-brands"
             @click="openSections.brands = !openSections.brands"
           >
             <span>Marque</span>
             <span class="flex items-center gap-2">
               <span
                 v-if="filters.brands.length > 0"
-                class="font-sans font-semibold text-[11px] text-cgws-copper bg-cgws-copper/10 rounded-full px-2 py-0.5"
+                class="font-sans font-semibold text-[11px] text-cgws-accent bg-cgws-accent/10 rounded-full px-2 py-0.5"
               >
                 {{ filters.brands.length }}
               </span>
               <UIcon
                 name="i-lucide-chevron-down"
-                class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+                class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
                 :class="{ 'rotate-180': openSections.brands }"
               />
             </span>
@@ -240,24 +243,24 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.brands" class="px-4 pb-3 space-y-2">
+            <div v-if="openSections.brands" id="drawer-filter-section-brands" role="region" class="px-4 pb-3 space-y-2">
               <label
                 v-for="brand in visibleBrands"
                 :key="brand"
-                class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150"
+                class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150"
               >
                 <input
                   type="checkbox"
                   :checked="filters.brands.includes(brand)"
-                  class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+                  class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
                   :aria-label="brand"
                   @change="toggleBrand(brand)"
                 >
-                <span class="font-sans text-sm text-cgws-charcoal flex-1">{{ brand }}</span>
+                <span class="font-sans text-sm text-cgws-ink flex-1">{{ brand }}</span>
               </label>
               <button
                 v-if="availableBrands.length > BRAND_LIMIT"
-                class="font-sans text-xs text-cgws-copper hover:underline cursor-pointer mt-1"
+                class="font-sans text-xs text-cgws-accent hover:underline cursor-pointer mt-1"
                 @click="showAllBrands = !showAllBrands"
               >
                 {{ showAllBrands ? 'Voir moins' : `Voir ${availableBrands.length - BRAND_LIMIT} de plus` }}
@@ -267,16 +270,17 @@ function toggleBrand(brand: string): void {
         </div>
 
         <!-- Section: Prix -->
-        <div class="border-b border-cgws-leather/10">
+        <div class="border-b border-cgws-hairline">
           <button
-            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.price"
+            aria-controls="drawer-filter-section-price"
             @click="openSections.price = !openSections.price"
           >
             <span>Prix</span>
             <UIcon
               name="i-lucide-chevron-down"
-              class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+              class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
               :class="{ 'rotate-180': openSections.price }"
             />
           </button>
@@ -288,7 +292,7 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.price" class="px-4 pb-4">
+            <div v-if="openSections.price" id="drawer-filter-section-price" role="region" class="px-4 pb-4">
               <USlider
                 v-model="priceRange"
                 :min="0"
@@ -297,10 +301,15 @@ function toggleBrand(brand: string): void {
                 :min-steps-between-thumbs="50"
                 aria-label="Fourchette de prix"
                 class="mt-2 mb-4"
+                :ui="{
+                  track: 'bg-cgws-hairline',
+                  range: 'bg-cgws-accent',
+                  thumb: 'bg-cgws-surface ring-cgws-accent focus-visible:outline-cgws-accent',
+                }"
               />
               <div class="flex gap-2">
                 <div class="flex-1">
-                  <label for="price-min-drawer" class="font-sans text-[11px] text-cgws-leather/70 block mb-1">
+                  <label for="price-min-drawer" class="font-sans text-[11px] text-cgws-ink-soft/70 block mb-1">
                     Min (€)
                   </label>
                   <input
@@ -309,12 +318,12 @@ function toggleBrand(brand: string): void {
                     :value="filters.priceMin"
                     :min="0"
                     :max="filters.priceMax"
-                    class="w-full bg-cgws-cream border border-cgws-leather/40 rounded-sm px-2 py-1 font-sans text-sm text-cgws-charcoal text-right focus:outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20"
+                    class="w-full bg-cgws-ground border border-cgws-hairline rounded-sm px-2 py-1 font-sans text-sm text-cgws-ink text-right focus:outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20"
                     @change="(e) => { const v = Number((e.target as HTMLInputElement).value); filters.priceMin = Math.max(0, Math.min(v, filters.priceMax - 10)) }"
                   >
                 </div>
                 <div class="flex-1">
-                  <label for="price-max-drawer" class="font-sans text-[11px] text-cgws-leather/70 block mb-1">
+                  <label for="price-max-drawer" class="font-sans text-[11px] text-cgws-ink-soft/70 block mb-1">
                     Max (€)
                   </label>
                   <input
@@ -323,7 +332,7 @@ function toggleBrand(brand: string): void {
                     :value="filters.priceMax"
                     :min="filters.priceMin"
                     :max="maxPrice"
-                    class="w-full bg-cgws-cream border border-cgws-leather/40 rounded-sm px-2 py-1 font-sans text-sm text-cgws-charcoal text-right focus:outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20"
+                    class="w-full bg-cgws-ground border border-cgws-hairline rounded-sm px-2 py-1 font-sans text-sm text-cgws-ink text-right focus:outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20"
                     @change="(e) => { const v = Number((e.target as HTMLInputElement).value); filters.priceMax = Math.min(maxPrice, Math.max(v, filters.priceMin + 10)) }"
                   >
                 </div>
@@ -335,14 +344,15 @@ function toggleBrand(brand: string): void {
         <!-- Section: Disponibilité -->
         <div>
           <button
-            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-charcoal hover:text-cgws-copper transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-copper"
+            class="flex items-center justify-between w-full px-4 py-3 font-serif font-semibold text-sm text-cgws-ink hover:text-cgws-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-cgws-accent"
             :aria-expanded="openSections.availability"
+            aria-controls="drawer-filter-section-availability"
             @click="openSections.availability = !openSections.availability"
           >
             <span>Disponibilité</span>
             <UIcon
               name="i-lucide-chevron-down"
-              class="w-4 h-4 text-cgws-leather/60 transition-transform duration-200"
+              class="w-4 h-4 text-cgws-ink-soft/60 transition-transform duration-200"
               :class="{ 'rotate-180': openSections.availability }"
             />
           </button>
@@ -354,26 +364,26 @@ function toggleBrand(brand: string): void {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
           >
-            <div v-if="openSections.availability" class="px-4 pb-3 space-y-2">
-              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+            <div v-if="openSections.availability" id="drawer-filter-section-availability" role="region" class="px-4 pb-3 space-y-2">
+              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
                 <input
                   type="checkbox"
                   :checked="filters.includeReserved"
-                  class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+                  class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
                   aria-label="Inclure les réservés"
                   @change="filters.includeReserved = !filters.includeReserved"
                 >
-                <span class="font-sans text-sm text-cgws-charcoal flex-1">Inclure les réservés</span>
+                <span class="font-sans text-sm text-cgws-ink flex-1">Inclure les réservés</span>
               </label>
-              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-copper transition-colors duration-150">
+              <label class="flex items-center gap-3 cursor-pointer hover:text-cgws-accent transition-colors duration-150">
                 <input
                   type="checkbox"
                   :checked="filters.isConsignment === true"
-                  class="w-4 h-4 rounded-[2px] border border-cgws-leather/40 cursor-pointer accent-cgws-copper"
+                  class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
                   aria-label="Articles en consignation uniquement"
                   @change="filters.isConsignment = filters.isConsignment === true ? null : true"
                 >
-                <span class="font-sans text-sm text-cgws-charcoal flex-1">Articles en consignation</span>
+                <span class="font-sans text-sm text-cgws-ink flex-1">Articles en consignation</span>
               </label>
             </div>
           </Transition>
@@ -383,7 +393,7 @@ function toggleBrand(brand: string): void {
 
     <!-- Drawer footer -->
     <template #footer>
-      <div class="flex-shrink-0 px-4 py-4 border-t border-cgws-leather/20 flex gap-3">
+      <div class="flex-shrink-0 px-4 py-4 border-t border-cgws-hairline flex gap-3">
         <CgwsButton
           variant="ghost"
           class="flex-1"

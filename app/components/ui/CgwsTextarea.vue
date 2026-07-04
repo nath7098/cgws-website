@@ -44,10 +44,10 @@ const describedBy = computed(() => {
   <div class="flex flex-col gap-1">
     <label
       :for="textareaId"
-      class="block font-sans font-medium text-sm text-cgws-charcoal mb-1.5"
+      class="block font-sans font-medium text-sm text-cgws-ink mb-1.5"
     >
       {{ label }}
-      <span v-if="required" class="text-cgws-rust ml-0.5" aria-hidden="true">*</span>
+      <span v-if="required" class="text-cgws-danger ml-0.5" aria-hidden="true">*</span>
     </label>
 
     <textarea
@@ -62,23 +62,23 @@ const describedBy = computed(() => {
       :aria-invalid="error ? 'true' : undefined"
       :aria-describedby="describedBy"
       :class="[
-        'w-full bg-cgws-cream text-cgws-charcoal border rounded-sm px-3 py-2.5',
-        'font-sans text-sm placeholder:text-cgws-rope placeholder:font-normal',
+        'w-full bg-cgws-ground text-cgws-ink border rounded-sm px-3 py-2.5',
+        'font-sans text-sm placeholder:text-cgws-ink-soft placeholder:font-normal',
         'transition-shadow transition-colors duration-150 outline-none',
         'resize-y min-h-[100px]',
-        'focus:ring-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cgws-parchment/50',
+        'focus:ring-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cgws-surface/50',
         error
-          ? 'border-cgws-rust focus:border-cgws-rust focus:ring-cgws-rust/20'
-          : 'border-cgws-leather focus:border-cgws-copper focus:ring-cgws-copper/20',
+          ? 'border-cgws-danger focus:border-cgws-danger focus:ring-cgws-danger/20'
+          : 'border-cgws-edge focus:border-cgws-accent focus:ring-cgws-accent/20',
       ]"
       v-bind="$attrs"
       @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     />
 
-    <p v-if="hint && !error" :id="hintId" class="mt-1 font-sans text-xs text-cgws-leather">
+    <p v-if="hint && !error" :id="hintId" class="mt-1 font-sans text-xs text-cgws-ink-soft">
       {{ hint }}
     </p>
-    <p v-if="error" :id="errorId" class="mt-1 font-sans text-xs text-cgws-rust" role="alert">
+    <p v-if="error" :id="errorId" class="mt-1 font-sans text-xs text-cgws-danger" role="alert">
       {{ error }}
     </p>
   </div>

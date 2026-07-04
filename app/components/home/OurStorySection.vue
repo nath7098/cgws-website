@@ -49,7 +49,7 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="story-section bg-cgws-cream pt-[clamp(3rem,8vw,6rem)] pb-8 md:pb-12"
+    class="story-section bg-cgws-ground pt-[clamp(3rem,8vw,6rem)] pb-8 md:pb-12"
     aria-labelledby="story-heading"
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
@@ -62,10 +62,10 @@ onUnmounted(() => {
           <!-- Eyebrow -->
           <p class="inline-flex items-center gap-3 mb-4 md:mb-5">
             <span
-              class="block w-0.5 h-5 bg-cgws-copper flex-shrink-0"
+              class="block w-0.5 h-5 bg-cgws-accent-deco flex-shrink-0"
               aria-hidden="true"
             />
-            <span class="font-eyebrow text-[13px] text-cgws-leather uppercase tracking-[0.2em]">
+            <span class="font-eyebrow text-[13px] text-cgws-ink-soft uppercase tracking-[0.2em]">
               Notre Passion
             </span>
           </p>
@@ -73,7 +73,7 @@ onUnmounted(() => {
           <!-- H2 lié via aria-labelledby à la section -->
           <h2
             id="story-heading"
-            class="font-serif font-bold text-cgws-charcoal leading-tight
+            class="font-serif font-bold text-cgws-ink leading-tight
                    text-[28px] md:text-[36px] lg:text-[44px]
                    mb-5 md:mb-6 max-w-[20ch]"
           >
@@ -82,7 +82,7 @@ onUnmounted(() => {
 
           <!-- Corps du texte — placeholder à personnaliser -->
           <p
-            class="font-sans text-[15px] md:text-base text-cgws-charcoal
+            class="font-sans text-[15px] md:text-base text-cgws-ink
                    leading-relaxed mb-6 md:mb-8 max-w-[52ch]"
           >
             <!-- PLACEHOLDER — texte à personnaliser par Camille avant mise en ligne -->
@@ -111,8 +111,22 @@ onUnmounted(() => {
         </div>
 
         <!-- Colonne image — order-1 mobile (en premier), order-2 desktop (à droite) -->
-        <div class="story-image-col order-1 md:order-2">
-          <div class="overflow-hidden rounded-lg shadow-[0_8px_32px_rgba(61,26,6,0.12)] bg-cgws-parchment">
+        <div class="story-image-col order-1 md:order-2 relative">
+          <!-- Arche fine ornementale en quart d'arc (accent-deco, aria-hidden) -->
+          <svg
+            class="pointer-events-none absolute -top-3 -left-3 z-10 h-16 w-16 md:h-20 md:w-20"
+            viewBox="0 0 80 80"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 40 C4 16 24 4 40 4"
+              stroke="var(--cgws-accent-deco)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="overflow-hidden rounded-lg shadow-[0_8px_32px_rgba(61,26,6,0.12)] bg-cgws-surface">
             <!-- Placeholder Unsplash — À remplacer par la vraie photo de Camille -->
             <!-- Photo crédit : Unsplash (placeholder uniquement, supprimer à la mise en ligne) -->
             <NuxtImg

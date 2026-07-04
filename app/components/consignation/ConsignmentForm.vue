@@ -286,16 +286,16 @@ onUnmounted(() => {
 <template>
   <section
     id="consignment-form"
-    class="bg-cgws-cream py-10 md:py-14 lg:py-16"
+    class="bg-cgws-ground py-10 md:py-14 lg:py-16"
   >
     <div class="max-w-2xl mx-auto px-[clamp(1rem,4vw,2rem)]">
 
       <!-- Section heading -->
       <div class="text-center mb-10">
-        <p class="font-eyebrow text-cgws-copper text-sm tracking-widest uppercase mb-2">
+        <p class="font-eyebrow text-cgws-accent text-sm tracking-widest uppercase mb-2">
           VOTRE DEMANDE
         </p>
-        <h2 class="font-serif font-bold text-cgws-charcoal text-3xl">
+        <h2 class="font-serif font-bold text-cgws-ink text-3xl">
           Formulaire de Consignation
         </h2>
       </div>
@@ -311,26 +311,26 @@ onUnmounted(() => {
           aria-live="polite"
           aria-atomic="true"
         >
-          <div class="mx-auto max-w-xl border-[3px] border-cgws-charcoal bg-cgws-parchment p-1.5">
-            <div class="border border-cgws-charcoal p-8 text-center">
+          <div class="mx-auto max-w-xl border-[3px] border-cgws-ink bg-cgws-surface p-1.5">
+            <div class="border border-cgws-ink p-8 text-center">
               <UIcon
                 name="i-lucide-check-circle"
-                class="w-12 h-12 text-cgws-copper mx-auto mb-4"
+                class="w-12 h-12 text-cgws-accent mx-auto mb-4"
                 aria-hidden="true"
               />
-              <p class="font-display text-4xl text-cgws-charcoal tracking-wide mb-2 uppercase">
+              <p class="font-display text-4xl text-cgws-ink tracking-wide mb-2 uppercase">
                 Demande reçue !
               </p>
-              <p class="font-serif font-semibold text-xl text-cgws-charcoal mb-4">
+              <p class="font-serif font-semibold text-xl text-cgws-ink mb-4">
                 Merci {{ submittedPrenom }}&nbsp;!
               </p>
-              <p class="font-sans text-sm text-cgws-charcoal/70 leading-relaxed mb-2">
+              <p class="font-sans text-sm text-cgws-ink/70 leading-relaxed mb-2">
                 Votre demande de consignation a bien été enregistrée.
               </p>
-              <p class="font-sans text-sm text-cgws-charcoal/70 leading-relaxed mb-2">
+              <p class="font-sans text-sm text-cgws-ink/70 leading-relaxed mb-2">
                 Camille vous contactera sous 48h pour valider les conditions.
               </p>
-              <p class="font-sans text-xs text-cgws-charcoal/50 italic">
+              <p class="font-sans text-xs text-cgws-ink/50 italic">
                 Un email de confirmation vient d'être envoyé à votre adresse.
               </p>
             </div>
@@ -359,9 +359,9 @@ onUnmounted(() => {
                Fieldset 1 — Vos coordonnées
           ================================================================ -->
           <fieldset
-            class="bg-cgws-cream border border-cgws-leather/30 rounded-sm p-6 mb-6"
+            class="bg-cgws-ground border border-cgws-hairline rounded-sm p-6 mb-6"
           >
-            <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper mb-4 block px-1">
+            <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent mb-4 block px-1">
               VOS COORDONNÉES
             </legend>
 
@@ -419,9 +419,9 @@ onUnmounted(() => {
                Fieldset 2 — Votre article
           ================================================================ -->
           <fieldset
-            class="bg-cgws-cream border border-cgws-leather/30 rounded-sm p-6 mb-6"
+            class="bg-cgws-ground border border-cgws-hairline rounded-sm p-6 mb-6"
           >
-            <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper mb-4 block px-1">
+            <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent mb-4 block px-1">
               VOTRE ARTICLE
             </legend>
 
@@ -486,10 +486,10 @@ onUnmounted(() => {
                Fieldset 3 — Photos
           ================================================================ -->
           <fieldset
-            class="bg-cgws-cream border border-cgws-leather/30 rounded-sm p-6 mb-6"
+            class="bg-cgws-ground border border-cgws-hairline rounded-sm p-6 mb-6"
           >
-            <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-copper mb-4 block px-1">
-              VOS PHOTOS <span class="font-sans font-normal normal-case tracking-normal text-cgws-leather/70">— optionnel, {{ MAX_FILES }} photos max</span>
+            <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent mb-4 block px-1">
+              VOS PHOTOS <span class="font-sans font-normal normal-case tracking-normal text-cgws-ink-soft/70">— optionnel, {{ MAX_FILES }} photos max</span>
             </legend>
 
             <!-- Drop zone -->
@@ -504,8 +504,8 @@ onUnmounted(() => {
                 'border-2 border-dashed rounded-sm p-8 text-center',
                 'transition-colors duration-200',
                 isDragOver
-                  ? 'border-cgws-copper bg-cgws-parchment border-solid'
-                  : 'border-cgws-copper/40 hover:border-cgws-copper hover:bg-cgws-parchment/50',
+                  ? 'border-cgws-accent bg-cgws-surface border-solid'
+                  : 'border-cgws-accent/40 hover:border-cgws-accent hover:bg-cgws-surface/50',
                 isSubmitting || uploadedFiles.length >= MAX_FILES
                   ? 'opacity-50 cursor-not-allowed'
                   : 'cursor-pointer',
@@ -519,10 +519,10 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-cloud-upload"
-                class="w-8 h-8 mx-auto mb-3 text-cgws-copper/60"
+                class="w-8 h-8 mx-auto mb-3 text-cgws-accent/60"
                 aria-hidden="true"
               />
-              <p class="font-sans font-medium text-cgws-charcoal mb-2">
+              <p class="font-sans font-medium text-cgws-ink mb-2">
                 Glissez vos photos ici
               </p>
               <CgwsButton
@@ -534,7 +534,7 @@ onUnmounted(() => {
               >
                 Parcourir les fichiers
               </CgwsButton>
-              <p class="font-sans text-xs text-cgws-rope mt-3">
+              <p class="font-sans text-xs text-cgws-ink-soft mt-3">
                 JPEG, PNG ou WEBP · {{ MAX_FILES }} photos max · {{ MAX_FILE_SIZE_MB }} MB par fichier
               </p>
             </div>
@@ -555,7 +555,7 @@ onUnmounted(() => {
             <p
               v-if="uploadError"
               role="alert"
-              class="font-sans text-xs text-cgws-rust mt-2"
+              class="font-sans text-xs text-cgws-danger mt-2"
             >
               {{ uploadError }}
             </p>
@@ -570,7 +570,7 @@ onUnmounted(() => {
                 v-for="(url, index) in previewUrls"
                 :key="url"
                 class="relative aspect-square rounded-sm overflow-hidden
-                       bg-cgws-parchment border border-cgws-leather/30"
+                       bg-cgws-surface border border-cgws-hairline"
               >
                 <img
                   :src="url"
@@ -583,9 +583,9 @@ onUnmounted(() => {
                   :aria-label="`Supprimer la photo numéro ${index + 1}`"
                   :disabled="isSubmitting"
                   class="absolute top-1 right-1 w-5 h-5 rounded-full
-                         bg-cgws-rust text-white text-xs font-bold
+                         bg-cgws-danger text-cgws-on-danger text-xs font-bold
                          flex items-center justify-center
-                         hover:bg-cgws-charcoal transition-colors
+                         hover:bg-cgws-brand-espresso transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed"
                   @click="removeFile(index)"
                 >
@@ -601,9 +601,9 @@ onUnmounted(() => {
           <div
             v-if="serverError"
             role="alert"
-            class="bg-cgws-rust/10 border border-cgws-rust rounded-sm p-4 mb-6"
+            class="bg-cgws-danger/10 border border-cgws-danger rounded-sm p-4 mb-6"
           >
-            <p class="font-sans text-sm text-cgws-rust font-medium">
+            <p class="font-sans text-sm text-cgws-danger font-medium">
               {{ serverError }}
             </p>
           </div>
@@ -622,12 +622,12 @@ onUnmounted(() => {
               {{ isSubmitting ? 'ENVOI EN COURS…' : 'ENVOYER MA DEMANDE' }}
             </CgwsButton>
 
-            <p class="font-sans text-sm text-cgws-charcoal/60 text-center">
+            <p class="font-sans text-sm text-cgws-ink/60 text-center">
               Ou contactez-nous directement :
               <!-- TODO: remplacer par le vrai numéro de Camille avant mise en ligne -->
               <a
                 href="tel:+33200000000"
-                class="text-cgws-copper hover:underline transition-colors font-medium"
+                class="text-cgws-accent hover:underline transition-colors font-medium"
               >
                 02 XX XX XX XX
               </a>

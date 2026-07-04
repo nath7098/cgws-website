@@ -42,11 +42,11 @@ const BASE_PILL = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 font-sans font
 
 function consignmentPillClass(status: ConsignmentStatus): string {
   const map: Record<ConsignmentStatus, string> = {
-    pending: `${BASE_PILL} bg-cgws-copper/20 text-cgws-copper`,
-    accepted: `${BASE_PILL} bg-green-100 text-green-700`,
-    rejected: `${BASE_PILL} bg-cgws-rust/15 text-cgws-rust`,
-    sold: `${BASE_PILL} bg-cgws-charcoal/10 text-cgws-charcoal`,
-    returned: `${BASE_PILL} bg-cgws-leather/15 text-cgws-leather`,
+    pending: `${BASE_PILL} bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline`,
+    accepted: `${BASE_PILL} bg-cgws-success/15 text-cgws-success border border-cgws-success/40`,
+    rejected: `${BASE_PILL} bg-cgws-danger text-cgws-on-danger`,
+    sold: `${BASE_PILL} bg-cgws-accent text-cgws-on-accent`,
+    returned: `${BASE_PILL} bg-cgws-danger text-cgws-on-danger`,
   }
   return map[status]
 }
@@ -175,12 +175,12 @@ onUnmounted(() => {
     <!-- Page header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h2 class="font-serif font-bold text-2xl text-cgws-charcoal">
+        <h2 class="font-serif font-bold text-2xl text-cgws-ink">
           Consignations
         </h2>
         <p
           class="font-sans text-sm mt-0.5"
-          :class="pendingCount > 0 ? 'text-cgws-copper font-medium' : 'text-cgws-leather'"
+          :class="pendingCount > 0 ? 'text-cgws-accent font-medium' : 'text-cgws-ink-soft'"
         >
           <template v-if="pendingCount > 0">
             {{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} en attente de traitement
@@ -193,19 +193,19 @@ onUnmounted(() => {
     </div>
 
     <!-- Toolbar -->
-    <div class="bg-white border border-cgws-leather/30 rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
+    <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 flex flex-col sm:flex-row gap-3 mb-4">
       <!-- Search -->
       <div class="relative flex-1 min-w-0">
         <UIcon
           name="i-lucide-search"
-          class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-rope pointer-events-none"
+          class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft pointer-events-none"
           aria-hidden="true"
         />
         <input
           v-model="searchQuery"
           type="search"
           placeholder="Rechercher un déposant…"
-          class="w-full pl-9 pr-3 py-2 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal placeholder:text-cgws-rope outline-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20"
+          class="w-full pl-9 pr-3 py-2 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink placeholder:text-cgws-ink-soft outline-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20"
           aria-label="Rechercher par nom de déposant"
         >
       </div>
@@ -214,7 +214,7 @@ onUnmounted(() => {
       <div class="relative min-w-[180px]">
         <select
           v-model="filterStatus"
-          class="w-full py-2 px-3 pr-9 bg-cgws-cream border border-cgws-leather/40 rounded-sm font-sans text-sm text-cgws-charcoal appearance-none focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 outline-none"
+          class="w-full py-2 px-3 pr-9 bg-cgws-ground border border-cgws-hairline rounded-sm font-sans text-sm text-cgws-ink appearance-none focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 outline-none"
           aria-label="Filtrer par statut"
         >
           <option value="">
@@ -238,7 +238,7 @@ onUnmounted(() => {
         </select>
         <UIcon
           name="i-lucide-chevron-down"
-          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-leather/60"
+          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cgws-ink-soft/60"
           aria-hidden="true"
         />
       </div>
@@ -250,15 +250,15 @@ onUnmounted(() => {
         <div
           v-for="i in 5"
           :key="i"
-          class="bg-white border border-cgws-leather/30 rounded-[4px] p-3 animate-pulse"
+          class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3 animate-pulse"
         >
           <div class="flex items-start justify-between mb-2">
-            <div class="h-4 w-32 bg-cgws-leather/10 rounded" />
-            <div class="h-5 w-20 bg-cgws-leather/10 rounded-full" />
+            <div class="h-4 w-32 bg-cgws-hairline rounded" />
+            <div class="h-5 w-20 bg-cgws-hairline rounded-full" />
           </div>
-          <div class="h-3 w-48 bg-cgws-leather/10 rounded mb-3" />
-          <div class="h-5 w-24 bg-cgws-leather/10 rounded mb-3" />
-          <div class="h-8 w-full bg-cgws-leather/10 rounded" />
+          <div class="h-3 w-48 bg-cgws-hairline rounded mb-3" />
+          <div class="h-5 w-24 bg-cgws-hairline rounded mb-3" />
+          <div class="h-8 w-full bg-cgws-hairline rounded" />
         </div>
       </template>
       <div
@@ -267,16 +267,16 @@ onUnmounted(() => {
       >
         <UIcon
           name="i-lucide-inbox"
-          class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+          class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
           aria-hidden="true"
         />
-        <p class="font-sans text-sm text-cgws-leather italic">
+        <p class="font-sans text-sm text-cgws-ink-soft italic">
           Aucune demande de consignation.
         </p>
         <button
           v-if="filterStatus || searchQuery"
           type="button"
-          class="mt-3 font-sans text-xs text-cgws-copper hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="mt-3 font-sans text-xs text-cgws-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           @click="resetFilters"
         >
           Réinitialiser les filtres
@@ -286,34 +286,34 @@ onUnmounted(() => {
         v-for="item in consignments"
         v-else
         :key="item.id"
-        class="bg-white border border-cgws-leather/30 rounded-[4px] p-4"
-        :class="item.status === 'pending' ? 'bg-cgws-copper/5 border-cgws-copper/30' : ''"
+        class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
+        :class="item.status === 'pending' ? 'bg-cgws-accent/5 border-cgws-accent/30' : ''"
       >
         <div class="flex items-start justify-between gap-2 mb-2">
-          <p class="font-sans text-sm font-medium text-cgws-charcoal">
+          <p class="font-sans text-sm font-medium text-cgws-ink">
             {{ item.depositorName }}
           </p>
           <span :class="consignmentPillClass(item.status)" class="flex-shrink-0">
             <span
               v-if="item.status === 'pending'"
-              class="w-1.5 h-1.5 rounded-full bg-cgws-copper animate-pulse flex-shrink-0"
+              class="w-1.5 h-1.5 rounded-full bg-cgws-accent animate-pulse flex-shrink-0"
               aria-hidden="true"
             />
             {{ CONSIGNMENT_STATUS_LABELS[item.status] }}
           </span>
         </div>
-        <p class="font-sans text-xs text-cgws-leather line-clamp-1 mb-1">
+        <p class="font-sans text-xs text-cgws-ink-soft line-clamp-1 mb-1">
           {{ item.itemDescription }}
         </p>
-        <p class="font-display text-base text-cgws-copper mb-1">
+        <p class="font-display text-base text-cgws-accent mb-1">
           {{ formatPrice(item.askingPrice) }}
         </p>
-        <p class="font-sans text-xs text-cgws-leather mb-3">
+        <p class="font-sans text-xs text-cgws-ink-soft mb-3">
           {{ formatDate(item.createdAt) }}
         </p>
         <NuxtLink
           :to="`/admin/consignations/${item.id}`"
-          class="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-sm bg-cgws-copper/10 text-cgws-copper text-xs font-semibold hover:bg-cgws-copper hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-sm bg-cgws-accent/10 text-cgws-accent text-xs font-semibold hover:bg-cgws-accent hover:text-cgws-on-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           :aria-label="`Voir la demande de ${item.depositorName}`"
         >
           Voir la demande
@@ -328,7 +328,7 @@ onUnmounted(() => {
 
     <!-- Table (sm+) -->
     <div class="hidden sm:block">
-      <div class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden">
+      <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
         <table
           class="w-full text-sm font-sans"
           aria-label="Liste des consignations"
@@ -336,41 +336,41 @@ onUnmounted(() => {
           <caption class="sr-only">
             {{ totalCount }} demande{{ totalCount !== 1 ? 's' : '' }}, demandes en attente affichées en premier
           </caption>
-          <thead class="border-b border-cgws-leather/20 bg-cgws-parchment/40">
+          <thead class="border-b border-cgws-hairline bg-cgws-surface/40">
             <tr>
               <th
                 scope="col"
-                class="py-3 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Déposant
               </th>
               <th
                 scope="col"
-                class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Article décrit
               </th>
               <th
                 scope="col"
-                class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Px demandé
               </th>
               <th
                 scope="col"
-                class="hidden md:table-cell py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="hidden md:table-cell py-3 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Px vente
               </th>
               <th
                 scope="col"
-                class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="hidden lg:table-cell py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Date
               </th>
               <th
                 scope="col"
-                class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                class="py-3 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
               >
                 Statut
               </th>
@@ -382,36 +382,36 @@ onUnmounted(() => {
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-cgws-leather/10">
+          <tbody class="divide-y divide-cgws-hairline">
             <!-- Loading skeleton -->
             <template v-if="isLoading">
               <tr
                 v-for="i in 8"
                 :key="i"
-                class="border-b border-cgws-leather/10 bg-white"
+                class="border-b border-cgws-hairline bg-cgws-surface"
               >
                 <td class="py-3 pl-4 pr-3">
-                  <div class="h-4 w-32 bg-cgws-leather/10 rounded animate-pulse mb-1" />
-                  <div class="h-3 w-44 bg-cgws-leather/10 rounded animate-pulse" />
+                  <div class="h-4 w-32 bg-cgws-hairline rounded animate-pulse mb-1" />
+                  <div class="h-3 w-44 bg-cgws-hairline rounded animate-pulse" />
                 </td>
                 <td class="py-3 px-3">
-                  <div class="h-4 w-40 bg-cgws-leather/10 rounded animate-pulse mb-1" />
-                  <div class="h-3 w-20 bg-cgws-leather/10 rounded animate-pulse" />
+                  <div class="h-4 w-40 bg-cgws-hairline rounded animate-pulse mb-1" />
+                  <div class="h-3 w-20 bg-cgws-hairline rounded animate-pulse" />
                 </td>
                 <td class="py-3 px-3 text-right">
-                  <div class="h-5 w-20 bg-cgws-leather/10 rounded animate-pulse ml-auto" />
+                  <div class="h-5 w-20 bg-cgws-hairline rounded animate-pulse ml-auto" />
                 </td>
                 <td class="hidden md:table-cell py-3 px-3 text-right">
-                  <div class="h-5 w-16 bg-cgws-leather/10 rounded animate-pulse ml-auto" />
+                  <div class="h-5 w-16 bg-cgws-hairline rounded animate-pulse ml-auto" />
                 </td>
                 <td class="hidden lg:table-cell py-3 px-3">
-                  <div class="h-4 w-14 bg-cgws-leather/10 rounded animate-pulse" />
+                  <div class="h-4 w-14 bg-cgws-hairline rounded animate-pulse" />
                 </td>
                 <td class="py-3 px-3">
-                  <div class="h-5 w-20 bg-cgws-leather/10 rounded-full animate-pulse" />
+                  <div class="h-5 w-20 bg-cgws-hairline rounded-full animate-pulse" />
                 </td>
                 <td class="py-3 pl-3 pr-4 text-right">
-                  <div class="h-7 w-16 bg-cgws-leather/10 rounded animate-pulse ml-auto" />
+                  <div class="h-7 w-16 bg-cgws-hairline rounded animate-pulse ml-auto" />
                 </td>
               </tr>
             </template>
@@ -424,16 +424,16 @@ onUnmounted(() => {
               >
                 <UIcon
                   name="i-lucide-inbox"
-                  class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+                  class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
                   aria-hidden="true"
                 />
-                <p class="font-sans text-sm text-cgws-leather italic">
+                <p class="font-sans text-sm text-cgws-ink-soft italic">
                   Aucune demande de consignation.
                 </p>
                 <button
                   v-if="filterStatus || searchQuery"
                   type="button"
-                  class="mt-3 font-sans text-xs text-cgws-copper hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="mt-3 font-sans text-xs text-cgws-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   @click="resetFilters"
                 >
                   Réinitialiser les filtres
@@ -449,49 +449,49 @@ onUnmounted(() => {
               :class="[
                 'transition-colors duration-100',
                 item.status === 'pending'
-                  ? 'bg-cgws-copper/5 hover:bg-cgws-copper/10'
-                  : 'bg-white hover:bg-cgws-parchment/20',
+                  ? 'bg-cgws-accent/5 hover:bg-cgws-accent/10'
+                  : 'bg-cgws-surface hover:bg-cgws-surface-2/60',
               ]"
             >
               <!-- Déposant -->
               <td class="py-3 pl-4 pr-3">
-                <span class="font-sans text-sm font-medium text-cgws-charcoal">
+                <span class="font-sans text-sm font-medium text-cgws-ink">
                   {{ item.depositorName }}
                 </span>
                 <br>
-                <span class="font-sans text-xs text-cgws-leather">
+                <span class="font-sans text-xs text-cgws-ink-soft">
                   {{ item.depositorEmail }}
                 </span>
               </td>
 
               <!-- Article -->
               <td class="py-3 px-3 max-w-[220px]">
-                <span class="font-sans text-sm text-cgws-leather line-clamp-2">
+                <span class="font-sans text-sm text-cgws-ink-soft line-clamp-2">
                   {{ item.itemDescription }}
                 </span>
                 <span
                   v-if="item.brand"
-                  class="font-sans text-xs text-cgws-leather/70 block"
+                  class="font-sans text-xs text-cgws-ink-soft/70 block"
                 >
                   {{ item.brand }}
                 </span>
               </td>
 
               <!-- Prix demandé -->
-              <td class="py-3 px-3 text-right font-display text-base text-cgws-charcoal whitespace-nowrap">
+              <td class="py-3 px-3 text-right font-display text-base text-cgws-ink whitespace-nowrap">
                 {{ formatPrice(item.askingPrice) }}
               </td>
 
               <!-- Prix vente (md+) -->
               <td
                 class="hidden md:table-cell py-3 px-3 text-right font-display text-base whitespace-nowrap"
-                :class="item.agreedPrice ? 'text-cgws-copper' : 'text-cgws-leather/40'"
+                :class="item.agreedPrice ? 'text-cgws-accent' : 'text-cgws-ink-soft/40'"
               >
                 {{ item.agreedPrice ? formatPrice(item.agreedPrice) : '—' }}
               </td>
 
               <!-- Date (lg+) -->
-              <td class="hidden lg:table-cell py-3 px-3 font-sans text-xs text-cgws-leather whitespace-nowrap">
+              <td class="hidden lg:table-cell py-3 px-3 font-sans text-xs text-cgws-ink-soft whitespace-nowrap">
                 {{ formatDate(item.createdAt) }}
               </td>
 
@@ -500,7 +500,7 @@ onUnmounted(() => {
                 <span :class="consignmentPillClass(item.status)">
                   <span
                     v-if="item.status === 'pending'"
-                    class="w-1.5 h-1.5 rounded-full bg-cgws-copper animate-pulse flex-shrink-0"
+                    class="w-1.5 h-1.5 rounded-full bg-cgws-accent animate-pulse flex-shrink-0"
                     aria-hidden="true"
                   />
                   {{ CONSIGNMENT_STATUS_LABELS[item.status] }}
@@ -511,7 +511,7 @@ onUnmounted(() => {
               <td class="py-3 pl-3 pr-4 text-right">
                 <NuxtLink
                   :to="`/admin/consignations/${item.id}`"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-cgws-copper/10 text-cgws-copper text-xs font-semibold hover:bg-cgws-copper hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-cgws-accent/10 text-cgws-accent text-xs font-semibold hover:bg-cgws-accent hover:text-cgws-on-accent transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   :aria-label="`Voir la demande de ${item.depositorName}`"
                 >
                   Voir
@@ -533,7 +533,7 @@ onUnmounted(() => {
       v-if="!isLoading && totalPages > 1"
       class="flex items-center justify-between mt-4 flex-wrap gap-3"
     >
-      <p class="font-sans text-xs text-cgws-leather">
+      <p class="font-sans text-xs text-cgws-ink-soft">
         {{ totalCount }} demande{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} de {{ totalPages }}
       </p>
       <nav
@@ -543,7 +543,7 @@ onUnmounted(() => {
         <button
           type="button"
           :disabled="currentPage === 1"
-          class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30 hover:bg-cgws-leather/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30 hover:bg-cgws-hairline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           aria-label="Page précédente"
           @click="goToPage(currentPage - 1)"
         >
@@ -559,10 +559,10 @@ onUnmounted(() => {
           type="button"
           :aria-current="p === currentPage ? 'page' : undefined"
           :class="[
-            'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper',
+            'w-8 h-8 rounded-sm font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent',
             p === currentPage
-              ? 'bg-cgws-copper text-cgws-charcoal font-semibold'
-              : 'text-cgws-leather hover:bg-cgws-leather/10',
+              ? 'bg-cgws-accent text-cgws-on-accent font-semibold'
+              : 'text-cgws-ink-soft hover:bg-cgws-hairline',
           ]"
           @click="goToPage(p)"
         >
@@ -572,7 +572,7 @@ onUnmounted(() => {
         <button
           type="button"
           :disabled="currentPage === totalPages"
-          class="p-1.5 rounded-sm text-cgws-leather disabled:opacity-30 hover:bg-cgws-leather/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+          class="p-1.5 rounded-sm text-cgws-ink-soft disabled:opacity-30 hover:bg-cgws-hairline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
           aria-label="Page suivante"
           @click="goToPage(currentPage + 1)"
         >
@@ -591,13 +591,13 @@ onUnmounted(() => {
           v-if="toast"
           :role="toast.type === 'error' ? 'alert' : 'status'"
           :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
-          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-tack text-cgws-rope px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
-          :class="toast.type === 'error' ? 'border-cgws-rust' : 'border-cgws-copper'"
+          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-brand-espresso text-cgws-brand-cream px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
+          :class="toast.type === 'error' ? 'border-cgws-danger' : 'border-cgws-accent'"
         >
           <UIcon
             :name="toast.type === 'error' ? 'i-lucide-x-circle' : 'i-lucide-check-circle'"
             class="w-5 h-5 flex-shrink-0"
-            :class="toast.type === 'error' ? 'text-cgws-rust' : 'text-cgws-copper'"
+            :class="toast.type === 'error' ? 'text-cgws-danger' : 'text-cgws-accent'"
             aria-hidden="true"
           />
           <p class="font-sans text-sm">

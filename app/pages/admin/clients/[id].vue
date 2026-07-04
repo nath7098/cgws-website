@@ -104,11 +104,11 @@ const CONSIGNMENT_STATUS_LABELS: Record<ConsignmentStatus, string> = {
 }
 
 const CONSIGNMENT_STATUS_CLASSES: Record<ConsignmentStatus, string> = {
-  pending: 'bg-cgws-parchment text-cgws-leather',
-  accepted: 'bg-cgws-denim/15 text-cgws-denim',
-  sold: 'bg-cgws-copper/15 text-cgws-copper',
-  rejected: 'bg-cgws-rust/15 text-cgws-rust',
-  returned: 'bg-cgws-leather/15 text-cgws-leather',
+  pending: 'bg-cgws-surface text-cgws-ink-soft',
+  accepted: 'bg-cgws-success/15 text-cgws-success border border-cgws-success/40',
+  sold: 'bg-cgws-accent/15 text-cgws-accent',
+  rejected: 'bg-cgws-danger/15 text-cgws-danger',
+  returned: 'bg-cgws-hairline text-cgws-ink-soft',
 }
 
 function consignmentStatusLabel(status: ConsignmentStatus): string {
@@ -116,7 +116,7 @@ function consignmentStatusLabel(status: ConsignmentStatus): string {
 }
 
 function consignmentStatusClass(status: ConsignmentStatus): string {
-  return CONSIGNMENT_STATUS_CLASSES[status] ?? 'bg-cgws-leather/10 text-cgws-leather'
+  return CONSIGNMENT_STATUS_CLASSES[status] ?? 'bg-cgws-hairline text-cgws-ink-soft'
 }
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
@@ -236,9 +236,9 @@ onUnmounted(() => {
     <!-- Back link -->
     <NuxtLink
       to="/admin/clients"
-      class="inline-flex items-center gap-1.5 font-sans text-sm text-cgws-leather
-             hover:text-cgws-copper transition-colors mb-4
-             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+      class="inline-flex items-center gap-1.5 font-sans text-sm text-cgws-ink-soft
+             hover:text-cgws-accent transition-colors mb-4
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
       aria-label="Retour à la liste des clients"
     >
       <UIcon
@@ -256,21 +256,21 @@ onUnmounted(() => {
     >
       <UIcon
         name="i-lucide-user-x"
-        class="w-10 h-10 mx-auto mb-3 text-cgws-leather/30"
+        class="w-10 h-10 mx-auto mb-3 text-cgws-ink-soft/30"
         aria-hidden="true"
       />
-      <p class="font-serif font-semibold text-lg text-cgws-charcoal mb-1">
+      <p class="font-serif font-semibold text-lg text-cgws-ink mb-1">
         Client introuvable
       </p>
-      <p class="font-sans text-sm text-cgws-leather mb-4">
+      <p class="font-sans text-sm text-cgws-ink-soft mb-4">
         Ce client n'existe pas ou a été supprimé.
       </p>
       <NuxtLink
         to="/admin/clients"
-        class="px-4 py-2 rounded-sm bg-cgws-copper text-white
+        class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                font-sans text-sm font-semibold inline-flex items-center gap-2
-               hover:bg-cgws-leather transition-colors
-               focus-visible:ring-2 focus-visible:ring-cgws-copper
+               hover:bg-cgws-edge transition-colors
+               focus-visible:ring-2 focus-visible:ring-cgws-accent
                focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         Retour à la liste
@@ -284,18 +284,18 @@ onUnmounted(() => {
     >
       <UIcon
         name="i-lucide-alert-triangle"
-        class="w-10 h-10 mx-auto mb-3 text-cgws-rust"
+        class="w-10 h-10 mx-auto mb-3 text-cgws-danger"
         aria-hidden="true"
       />
-      <p class="font-sans text-sm text-cgws-leather italic mb-4">
+      <p class="font-sans text-sm text-cgws-ink-soft italic mb-4">
         Erreur de chargement
       </p>
       <button
         type="button"
-        class="px-4 py-2 rounded-sm bg-cgws-copper text-white
+        class="px-4 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
                font-sans text-sm font-semibold inline-flex items-center gap-2
-               hover:bg-cgws-leather transition-colors
-               focus-visible:ring-2 focus-visible:ring-cgws-copper
+               hover:bg-cgws-edge transition-colors
+               focus-visible:ring-2 focus-visible:ring-cgws-accent
                focus-visible:ring-offset-2 focus-visible:outline-none"
         @click="fetchClient"
       >
@@ -307,30 +307,30 @@ onUnmounted(() => {
       <!-- Loading: skeleton header -->
       <div
         v-if="isLoading"
-        class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 mb-4
+        class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 mb-4
                flex flex-col sm:flex-row gap-4 items-start"
       >
-        <div class="w-12 h-12 rounded-full bg-cgws-leather/10 animate-pulse flex-shrink-0" />
+        <div class="w-12 h-12 rounded-full bg-cgws-hairline animate-pulse flex-shrink-0" />
         <div class="flex-1 space-y-2">
-          <div class="h-5 w-48 bg-cgws-leather/10 rounded animate-pulse" />
-          <div class="h-3 w-64 bg-cgws-leather/10 rounded animate-pulse" />
-          <div class="h-3 w-32 bg-cgws-leather/10 rounded animate-pulse" />
+          <div class="h-5 w-48 bg-cgws-hairline rounded animate-pulse" />
+          <div class="h-3 w-64 bg-cgws-hairline rounded animate-pulse" />
+          <div class="h-3 w-32 bg-cgws-hairline rounded animate-pulse" />
         </div>
       </div>
 
       <!-- Client header card -->
       <div
         v-else-if="client"
-        class="bg-white border border-cgws-leather/30 rounded-[4px] p-5 mb-4
+        class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5 mb-4
                flex flex-col sm:flex-row gap-4 items-start"
       >
         <!-- Avatar -->
         <div
-          class="w-12 h-12 rounded-full bg-cgws-copper/15 flex items-center
+          class="w-12 h-12 rounded-full bg-cgws-accent/15 flex items-center
                  justify-center flex-shrink-0"
           aria-hidden="true"
         >
-          <span class="font-display text-2xl text-cgws-copper">
+          <span class="font-display text-2xl text-cgws-accent">
             {{ CLIENT_INITIAL }}
           </span>
         </div>
@@ -339,21 +339,21 @@ onUnmounted(() => {
         <div class="flex-1 min-w-0">
           <!-- Name + stats pills -->
           <div class="flex flex-wrap items-start gap-2 mb-1">
-            <h2 class="font-serif font-bold text-xl text-cgws-charcoal">
+            <h2 class="font-serif font-bold text-xl text-cgws-ink">
               {{ client.name }}
             </h2>
             <!-- Stats pills (sm+) -->
             <div class="hidden sm:flex flex-wrap gap-2">
               <span
                 class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
-                       bg-cgws-copper/10 font-sans text-xs font-medium text-cgws-copper"
+                       bg-cgws-accent/10 font-sans text-xs font-medium text-cgws-accent"
               >
                 {{ purchases.length }} achat{{ purchases.length !== 1 ? 's' : '' }}
               </span>
               <span
                 v-if="consignments.length > 0"
                 class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
-                       bg-cgws-copper/10 font-sans text-xs font-medium text-cgws-copper"
+                       bg-cgws-accent/10 font-sans text-xs font-medium text-cgws-accent"
               >
                 {{ consignments.length }} consignation{{ consignments.length !== 1 ? 's' : '' }}
               </span>
@@ -368,10 +368,10 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-mail"
-                class="w-3.5 h-3.5 text-cgws-leather/50 flex-shrink-0"
+                class="w-3.5 h-3.5 text-cgws-ink-soft/50 flex-shrink-0"
                 aria-hidden="true"
               />
-              <span class="font-sans text-sm text-cgws-leather">{{ client.email }}</span>
+              <span class="font-sans text-sm text-cgws-ink-soft">{{ client.email }}</span>
             </div>
             <div
               v-if="client.phone"
@@ -379,10 +379,10 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-phone"
-                class="w-3.5 h-3.5 text-cgws-leather/50 flex-shrink-0"
+                class="w-3.5 h-3.5 text-cgws-ink-soft/50 flex-shrink-0"
                 aria-hidden="true"
               />
-              <span class="font-sans text-sm text-cgws-leather">{{ client.phone }}</span>
+              <span class="font-sans text-sm text-cgws-ink-soft">{{ client.phone }}</span>
             </div>
             <div
               v-if="client.address"
@@ -390,14 +390,14 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-map-pin"
-                class="w-3.5 h-3.5 text-cgws-leather/50 flex-shrink-0"
+                class="w-3.5 h-3.5 text-cgws-ink-soft/50 flex-shrink-0"
                 aria-hidden="true"
               />
-              <span class="font-sans text-sm text-cgws-leather">{{ client.address }}</span>
+              <span class="font-sans text-sm text-cgws-ink-soft">{{ client.address }}</span>
             </div>
           </div>
 
-          <p class="font-sans text-xs italic text-cgws-leather/70 mt-1">
+          <p class="font-sans text-xs italic text-cgws-ink-soft/70 mt-1">
             Client depuis {{ formatDateLong(client.createdAt) }}
           </p>
         </div>
@@ -410,19 +410,19 @@ onUnmounted(() => {
           <!-- Purchases section -->
           <div
             v-if="!isLoading"
-            class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden"
           >
             <div
-              class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
-                     font-sans text-[10px] uppercase tracking-widest text-cgws-leather
+              class="px-4 py-3 border-b border-cgws-hairline bg-cgws-surface/30
+                     font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft
                      flex items-center justify-between"
             >
               <span>Achats passés ({{ purchases.length }})</span>
               <NuxtLink
                 to="/admin/ventes"
-                class="normal-case tracking-normal text-xs font-normal text-cgws-copper
+                class="normal-case tracking-normal text-xs font-normal text-cgws-accent
                        hover:underline focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper"
+                       focus-visible:ring-cgws-accent"
               >
                 Voir toutes les ventes
               </NuxtLink>
@@ -435,10 +435,10 @@ onUnmounted(() => {
             >
               <UIcon
                 name="i-lucide-shopping-bag"
-                class="w-8 h-8 mx-auto mb-2 text-cgws-leather/30"
+                class="w-8 h-8 mx-auto mb-2 text-cgws-ink-soft/30"
                 aria-hidden="true"
               />
-              <p class="font-sans text-sm text-cgws-leather italic">
+              <p class="font-sans text-sm text-cgws-ink-soft italic">
                 Aucun achat enregistré pour ce client.
               </p>
             </div>
@@ -452,55 +452,55 @@ onUnmounted(() => {
                 class="w-full text-sm font-sans"
                 :aria-label="`Historique des achats de ${client?.name ?? ''}`"
               >
-                <thead class="bg-cgws-parchment/20 border-b border-cgws-leather/10">
+                <thead class="bg-cgws-surface/20 border-b border-cgws-hairline">
                   <tr>
                     <th
                       scope="col"
-                      class="py-2 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                      class="py-2 pl-4 pr-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
                     >
                       Date
                     </th>
                     <th
                       scope="col"
-                      class="py-2 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                      class="py-2 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
                     >
                       Produit
                     </th>
                     <th
                       scope="col"
-                      class="py-2 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                      class="py-2 px-3 text-right font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
                     >
                       Prix
                     </th>
                     <th
                       scope="col"
-                      class="hidden md:table-cell py-2 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+                      class="hidden md:table-cell py-2 px-3 text-left font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
                     >
                       Paiement
                     </th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-cgws-leather/10">
+                <tbody class="divide-y divide-cgws-hairline">
                   <tr
                     v-for="purchase in purchases"
                     :key="purchase.id"
-                    class="sale-history-row hover:bg-cgws-parchment/20 transition-colors"
+                    class="sale-history-row hover:bg-cgws-surface/20 transition-colors"
                   >
-                    <td class="py-2.5 pl-4 pr-3 text-sm text-cgws-leather whitespace-nowrap">
+                    <td class="py-2.5 pl-4 pr-3 text-sm text-cgws-ink-soft whitespace-nowrap">
                       {{ formatDate(purchase.saleDate) }}
                     </td>
                     <td class="py-2.5 px-3 max-w-[180px]">
-                      <span class="block font-sans text-sm text-cgws-charcoal truncate">
+                      <span class="block font-sans text-sm text-cgws-ink truncate">
                         {{ purchase.productTitle }}
                       </span>
-                      <span class="font-sans text-xs text-cgws-leather/70">
+                      <span class="font-sans text-xs text-cgws-ink-soft/70">
                         {{ purchase.productBrand }}
                       </span>
                     </td>
-                    <td class="py-2.5 px-3 text-right font-display text-base text-cgws-copper whitespace-nowrap">
+                    <td class="py-2.5 px-3 text-right font-display text-base text-cgws-accent whitespace-nowrap">
                       {{ formatPrice(purchase.salePrice) }}
                     </td>
-                    <td class="hidden md:table-cell py-2.5 px-3 text-sm text-cgws-leather">
+                    <td class="hidden md:table-cell py-2.5 px-3 text-sm text-cgws-ink-soft">
                       {{ paymentLabel(purchase.paymentMethod) }}
                     </td>
                   </tr>
@@ -512,11 +512,11 @@ onUnmounted(() => {
           <!-- Consignments section -->
           <div
             v-if="!isLoading && consignments.length > 0"
-            class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden"
           >
             <div
-              class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
-                     font-sans text-[10px] uppercase tracking-widest text-cgws-leather"
+              class="px-4 py-3 border-b border-cgws-hairline bg-cgws-surface/30
+                     font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
               Consignations déposées ({{ consignments.length }})
             </div>
@@ -525,7 +525,7 @@ onUnmounted(() => {
               <div
                 v-for="consignment in consignments"
                 :key="consignment.id"
-                class="bg-white border border-cgws-leather/30 rounded-[4px] p-3
+                class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-3
                        flex items-start justify-between gap-3"
               >
                 <div class="min-w-0 flex-1">
@@ -537,10 +537,10 @@ onUnmounted(() => {
                   >
                     {{ consignmentStatusLabel(consignment.status as ConsignmentStatus) }}
                   </span>
-                  <p class="font-sans text-sm font-medium text-cgws-charcoal truncate">
+                  <p class="font-sans text-sm font-medium text-cgws-ink truncate">
                     {{ consignment.itemDescription }}
                   </p>
-                  <p class="font-sans text-xs text-cgws-leather">
+                  <p class="font-sans text-xs text-cgws-ink-soft">
                     {{ consignment.brand || '—' }}
                     · Demandé {{ formatPrice(consignment.askingPrice) }}
                     <template v-if="consignment.agreedPrice">
@@ -550,8 +550,8 @@ onUnmounted(() => {
                 </div>
                 <NuxtLink
                   :to="`/admin/consignations/${consignment.id}`"
-                  class="flex-shrink-0 text-cgws-copper hover:text-cgws-leather transition-colors
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-copper"
+                  class="flex-shrink-0 text-cgws-accent hover:text-cgws-ink-soft transition-colors
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
                   :aria-label="`Voir la fiche de consignation : ${consignment.itemDescription}`"
                 >
                   <UIcon
@@ -569,21 +569,21 @@ onUnmounted(() => {
         <div class="mt-4 lg:mt-0 lg:col-span-1">
           <div
             v-if="!isLoading"
-            class="bg-white border border-cgws-leather/30 rounded-[4px] overflow-hidden"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden"
             aria-label="Notes sur le client"
           >
             <div
-              class="px-4 py-3 border-b border-cgws-leather/20 bg-cgws-parchment/30
-                     font-sans text-[10px] uppercase tracking-widest text-cgws-leather
+              class="px-4 py-3 border-b border-cgws-hairline bg-cgws-surface/30
+                     font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft
                      flex items-center justify-between"
             >
               <span>Notes client</span>
               <button
                 v-if="!isEditingNotes"
                 type="button"
-                class="normal-case tracking-normal text-xs font-normal text-cgws-copper
+                class="normal-case tracking-normal text-xs font-normal text-cgws-accent
                        hover:underline focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-cgws-copper"
+                       focus-visible:ring-cgws-accent"
                 :aria-label="`Modifier les notes de ce client`"
                 :aria-expanded="isEditingNotes"
                 @click="startEditingNotes"
@@ -598,13 +598,13 @@ onUnmounted(() => {
                 <div v-if="!isEditingNotes">
                   <p
                     v-if="client?.notes"
-                    class="min-h-[80px] font-sans text-sm text-cgws-charcoal italic whitespace-pre-wrap"
+                    class="min-h-[80px] font-sans text-sm text-cgws-ink italic whitespace-pre-wrap"
                   >
                     {{ client.notes }}
                   </p>
                   <p
                     v-else
-                    class="min-h-[80px] font-sans text-sm text-cgws-leather/50 italic"
+                    class="min-h-[80px] font-sans text-sm text-cgws-ink-soft/50 italic"
                   >
                     Aucune note pour ce client.
                   </p>
@@ -622,9 +622,9 @@ onUnmounted(() => {
                     id="client-notes"
                     v-model="notesEdit"
                     rows="5"
-                    class="w-full min-h-[120px] px-3 py-2 bg-cgws-cream border border-cgws-leather/40
-                           rounded-sm font-sans text-sm text-cgws-charcoal resize-y
-                           focus:border-cgws-copper focus:ring-2 focus:ring-cgws-copper/20 focus:outline-none"
+                    class="w-full min-h-[120px] px-3 py-2 bg-cgws-ground border border-cgws-hairline
+                           rounded-sm font-sans text-sm text-cgws-ink resize-y
+                           focus:border-cgws-accent focus:ring-2 focus:ring-cgws-accent/20 focus:outline-none"
                     :disabled="isSavingNotes"
                     placeholder="Notes sur ce client…"
                   />
@@ -632,10 +632,10 @@ onUnmounted(() => {
                     <button
                       type="button"
                       :disabled="isSavingNotes"
-                      class="px-3 py-1.5 rounded-sm border border-cgws-leather/40
-                             font-sans text-sm text-cgws-leather
-                             hover:bg-cgws-parchment/40 transition-colors
-                             focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none
+                      class="px-3 py-1.5 rounded-sm border border-cgws-hairline
+                             font-sans text-sm text-cgws-ink-soft
+                             hover:bg-cgws-surface/40 transition-colors
+                             focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none
                              disabled:opacity-40"
                       @click="cancelEditingNotes"
                     >
@@ -644,16 +644,16 @@ onUnmounted(() => {
                     <button
                       type="button"
                       :disabled="isSavingNotes"
-                      class="px-3 py-1.5 rounded-sm bg-cgws-copper text-white
+                      class="px-3 py-1.5 rounded-sm bg-cgws-accent text-cgws-on-accent
                              font-sans text-sm font-semibold
-                             hover:bg-cgws-leather transition-colors
-                             focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none
+                             hover:bg-cgws-edge transition-colors
+                             focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none
                              disabled:opacity-40 inline-flex items-center gap-1.5"
                       @click="saveNotes"
                     >
                       <span
                         v-if="isSavingNotes"
-                        class="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"
+                        class="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin"
                         aria-hidden="true"
                       />
                       Sauvegarder
@@ -667,13 +667,13 @@ onUnmounted(() => {
           <!-- Notes skeleton -->
           <div
             v-else
-            class="bg-white border border-cgws-leather/30 rounded-[4px] p-4"
+            class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4"
           >
-            <div class="h-3 w-24 bg-cgws-leather/10 rounded animate-pulse mb-4" />
+            <div class="h-3 w-24 bg-cgws-hairline rounded animate-pulse mb-4" />
             <div class="space-y-2">
-              <div class="h-3 w-full bg-cgws-leather/10 rounded animate-pulse" />
-              <div class="h-3 w-4/5 bg-cgws-leather/10 rounded animate-pulse" />
-              <div class="h-3 w-3/5 bg-cgws-leather/10 rounded animate-pulse" />
+              <div class="h-3 w-full bg-cgws-hairline rounded animate-pulse" />
+              <div class="h-3 w-4/5 bg-cgws-hairline rounded animate-pulse" />
+              <div class="h-3 w-3/5 bg-cgws-hairline rounded animate-pulse" />
             </div>
           </div>
         </div>
@@ -687,14 +687,14 @@ onUnmounted(() => {
           v-if="toast"
           :role="toast.type === 'error' ? 'alert' : 'status'"
           :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
-          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-tack text-cgws-rope
+          class="fixed top-4 right-4 z-[60] flex items-center gap-3 bg-cgws-brand-espresso text-cgws-brand-cream
                  px-4 py-3 rounded-sm shadow-lg border-l-4 transition-all duration-300"
-          :class="toast.type === 'error' ? 'border-cgws-rust' : 'border-cgws-copper'"
+          :class="toast.type === 'error' ? 'border-cgws-danger' : 'border-cgws-accent'"
         >
           <UIcon
             :name="toast.type === 'error' ? 'i-lucide-x-circle' : 'i-lucide-check-circle'"
             class="w-5 h-5 flex-shrink-0"
-            :class="toast.type === 'error' ? 'text-cgws-rust' : 'text-cgws-copper'"
+            :class="toast.type === 'error' ? 'text-cgws-danger' : 'text-cgws-accent'"
             aria-hidden="true"
           />
           <p class="font-sans text-sm">

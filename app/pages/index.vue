@@ -64,8 +64,10 @@ useHead({
 <template>
   <main>
     <HeroSection />
+    <StarDivider />
     <StatsBar />
+    <StarDivider />
     <OurStorySection />
-    <ConchoDivider />
+    <StarDivider />
   </main>
 </template>

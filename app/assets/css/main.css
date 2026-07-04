@@ -2,23 +2,57 @@
 @import "@nuxt/ui";
 @import './tokens.css';
 
-@theme static {
-  /* CGWS color palette — enables bg-cgws-*, text-cgws-*, border-cgws-* etc. */
-  --color-cgws-tack:      #3D1A06;
-  --color-cgws-leather:   #7B3B1C;
-  --color-cgws-copper:    #B8650A;
-  --color-cgws-rope:      #C8AB82;
-  --color-cgws-parchment: #F0DDB8;
-  --color-cgws-cream:     #FAF3E3;
-  --color-cgws-denim:     #2C4A72;
-  --color-cgws-rust:      #943218;
-  --color-cgws-charcoal:  #1A0B03;
+/* Variant `rugueux:` — cible tout élément descendant de <html data-skin="rugueux">.
+ * Permet des surcharges chromatiques réservées à la peau Rugueux sans dupliquer
+ * de composant (ex. badge consignation : blush en Élégante, accent/15 en Rugueux —
+ * cf. DESIGN_SYSTEM_v3.md §8.2 et US-072 §6). Syntaxe Tailwind v4 officielle
+ * (cf. `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`). */
+@custom-variant rugueux (&:where([data-skin="rugueux"], [data-skin="rugueux"] *));
 
-  /* Typography tokens */
-  --font-display: 'Bebas Neue', cursive;
-  --font-eyebrow: 'Rye', serif;
-  --font-serif:   'Playfair Display', Georgia, serif;
-  --font-sans:    'Inter', system-ui, sans-serif;
+@theme static {
+  /* CGWS v3 role tokens — enable bg-cgws-*, text-cgws-*, border-cgws-* etc.
+   * Indirection to CSS variables defined in tokens.css (:root / [data-skin]) —
+   * this is the same runtime theme-swap pattern Nuxt UI itself uses for
+   * --ui-primary/--ui-bg (see mcp__nuxt-ui-remote "CSS Variables" doc):
+   * @theme only needs to know the variable *name*, resolution happens at
+   * runtime in the browser, so bg-cgws-ground correctly changes color when
+   * [data-skin]/.dark change without a rebuild. */
+  --color-cgws-ground:      var(--cgws-ground);
+  --color-cgws-surface:     var(--cgws-surface);
+  --color-cgws-surface-2:   var(--cgws-surface-2);
+  --color-cgws-edge:        var(--cgws-edge);
+  --color-cgws-hairline:    var(--cgws-hairline);
+  --color-cgws-ink:         var(--cgws-ink);
+  --color-cgws-ink-soft:    var(--cgws-ink-soft);
+  --color-cgws-heading:     var(--cgws-heading);
+  --color-cgws-accent:      var(--cgws-accent);
+  --color-cgws-accent-deco: var(--cgws-accent-deco);
+  --color-cgws-on-accent:   var(--cgws-on-accent);
+  --color-cgws-danger:      var(--cgws-danger);
+  --color-cgws-on-danger:   var(--cgws-on-danger);
+  --color-cgws-success:     var(--cgws-success);
+  --color-cgws-on-success:  var(--cgws-on-success);
+  --color-cgws-denim:       var(--cgws-denim);
+
+  /* Littéraux de marque — fixes, non theme-aware (§2.5) */
+  --color-cgws-brand-cream:     var(--cgws-brand-cream);
+  --color-cgws-brand-parchment: var(--cgws-brand-parchment);
+  --color-cgws-brand-sand:      var(--cgws-brand-sand);
+  --color-cgws-brand-rose:      var(--cgws-brand-rose);
+  --color-cgws-brand-mauve:     var(--cgws-brand-mauve);
+  --color-cgws-brand-blush:     var(--cgws-brand-blush);
+  --color-cgws-brand-chestnut:  var(--cgws-brand-chestnut);
+  --color-cgws-brand-tack:      var(--cgws-brand-tack);
+  --color-cgws-brand-espresso:  var(--cgws-brand-espresso);
+
+  /* Typography tokens — indirection vers --cgws-font-* (tokens.css) pour
+   * générer les utilitaires font-display/-heading/-eyebrow/-serif/-sans
+   * sans référence circulaire (le nom source diffère du nom de sortie). */
+  --font-display: var(--cgws-font-display);
+  --font-heading: var(--cgws-font-heading);
+  --font-eyebrow: var(--cgws-font-eyebrow);
+  --font-serif:   var(--cgws-font-serif);
+  --font-sans:    var(--cgws-font-sans);
 }
 
 *, *::before, *::after {
@@ -27,8 +61,8 @@
 
 html {
   font-family: var(--font-sans);
-  color: var(--cgws-charcoal);
-  background-color: var(--cgws-cream);
+  color: var(--cgws-ink);
+  background-color: var(--cgws-ground);
 }
 
 body {
@@ -50,6 +84,17 @@ body {
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
+}
+
+/* ─── Popup Leaflet — theme-aware (US-075 §B.2) ─────────────
+ * leaflet.css injecte un fond blanc fixe sur .leaflet-popup-content-wrapper /
+ * .leaflet-popup-tip qui n'est couvert par aucune variable --cgws-*, d'où un
+ * "flash blanc" au clic sur le marqueur en Nuit/Rugueux. On aligne le popup
+ * sur le fond de chrome (surface) et le texte fort (ink). */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--cgws-surface);
+  color: var(--cgws-ink);
 }
 
 /* ─── prefers-reduced-motion — global CSS kill-switch ───── */

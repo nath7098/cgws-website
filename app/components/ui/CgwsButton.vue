@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline-light'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline-light' | 'destructive'
   size?: 'md' | 'sm'
   disabled?: boolean
   loading?: boolean
@@ -23,15 +23,31 @@ const props = withDefaults(defineProps<Props>(), {
 const baseClasses =
   'inline-flex items-center justify-center transition-colors duration-150 ease-in-out rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed'
 
+// NOTE US-070 (migration v2 -> v3) : le variant "secondary" reposait en v2 sur
+// cgws-denim, qui n'est désormais défini que pour la peau Rugueux (§2.1/§2.4
+// DESIGN_SYSTEM_v3.md — "denim: contre-accent, Rugueux uniquement"). Ce
+// composant est utilisé en Élégante (contact.vue, ProductInfo.vue,
+// OurStorySection.vue...) où --cgws-denim n'existe pas. Décision prise ici,
+// à confirmer avec product-owner (cf. US-070-design-system-v3.md §6, ligne
+// cgws-denim) : "secondary" devient un outline accent, fonctionnel dans les
+// 3 rendus. Le re-skin définitif du bouton (spacing, motif) est couvert par
+// US-072, pas cette US.
+// Re-skin US-072 §5 : le couple accent/on-accent est conçu AA dans les 3 rendus
+// (doc maître §2.6, 5.6–6.9:1), donc plus de correction ad hoc v2 — hover/active
+// = simples opacités de `accent`. `destructive` (nouveau) = danger/on-danger,
+// AA garanti (§2.6, ≥5.0:1) — réutilisable par toute action irréversible
+// (RejectModal US-075, suppression admin) plutôt que des classes en dur.
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   primary:
-    'bg-cgws-copper text-cgws-charcoal font-display uppercase tracking-widest active:bg-cgws-tack active:text-cgws-rope hover:bg-cgws-leather focus-visible:ring-cgws-copper',
+    'bg-cgws-accent text-cgws-on-accent font-display uppercase tracking-widest hover:bg-cgws-accent/90 active:bg-cgws-accent/80 focus-visible:ring-cgws-accent',
   secondary:
-    'bg-transparent text-cgws-denim border-2 border-cgws-denim font-sans font-semibold uppercase tracking-wide hover:bg-cgws-denim/10 active:bg-cgws-denim/20 focus-visible:ring-cgws-copper',
+    'bg-transparent text-cgws-accent border-2 border-cgws-accent font-sans font-semibold uppercase tracking-wide hover:bg-cgws-accent/10 active:bg-cgws-accent/20 focus-visible:ring-cgws-accent',
+  destructive:
+    'bg-cgws-danger text-cgws-on-danger font-sans font-semibold uppercase tracking-wide hover:bg-cgws-danger/90 active:bg-cgws-danger/80 focus-visible:ring-cgws-danger',
   ghost:
-    'bg-transparent text-cgws-leather font-sans font-medium underline-offset-4 hover:text-cgws-copper hover:underline focus-visible:ring-cgws-copper px-2 py-1 text-sm',
+    'bg-transparent text-cgws-ink-soft font-sans font-medium underline-offset-4 hover:text-cgws-accent hover:underline focus-visible:ring-cgws-accent px-2 py-1 text-sm',
   'outline-light':
-    'bg-transparent text-cgws-rope border-2 border-cgws-rope font-sans font-semibold uppercase tracking-wide hover:bg-cgws-rope/10 hover:text-cgws-cream active:bg-cgws-rope/20 focus-visible:ring-cgws-copper',
+    'bg-transparent text-cgws-brand-cream border-2 border-cgws-brand-cream/70 font-sans font-semibold uppercase tracking-wide hover:bg-cgws-brand-cream/10 active:bg-cgws-brand-cream/20 focus-visible:ring-cgws-brand-cream',
 }
 
 const sizeClasses: Record<NonNullable<Props['size']>, string> = {

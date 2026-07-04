@@ -29,10 +29,10 @@ const STATUS_OPTIONS: Array<{
   label: string
   dotClass: string
 }> = [
-  { value: 'active', label: 'Disponible', dotClass: 'bg-green-500' },
-  { value: 'reserved', label: 'Réservé', dotClass: 'bg-cgws-copper' },
-  { value: 'sold', label: 'Vendu', dotClass: 'bg-cgws-charcoal' },
-  { value: 'inactive', label: 'Inactif', dotClass: 'bg-cgws-leather/60' },
+  { value: 'active', label: 'Disponible', dotClass: 'bg-cgws-success' },
+  { value: 'reserved', label: 'Réservé', dotClass: 'bg-cgws-ink-soft' },
+  { value: 'sold', label: 'Vendu', dotClass: 'bg-cgws-accent' },
+  { value: 'inactive', label: 'Inactif', dotClass: 'bg-cgws-ink-soft/40' },
 ]
 
 // ─── Pill class (identical to US-032 for consistency) ─────────────────────────
@@ -41,10 +41,10 @@ const BASE_PILL = 'px-2.5 py-0.5 font-sans font-medium text-[11px] uppercase tra
 
 function statusPillClass(status: ProductStatus): string {
   const map: Record<ProductStatus, string> = {
-    active: `${BASE_PILL} bg-green-100 text-green-700`,
-    reserved: `${BASE_PILL} bg-cgws-copper/15 text-cgws-copper`,
-    sold: `${BASE_PILL} bg-cgws-charcoal/10 text-cgws-charcoal`,
-    inactive: `${BASE_PILL} bg-cgws-leather/15 text-cgws-leather`,
+    active: `${BASE_PILL} bg-cgws-success/15 text-cgws-success border border-cgws-success/40`,
+    reserved: `${BASE_PILL} bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline`,
+    sold: `${BASE_PILL} bg-cgws-accent text-cgws-on-accent`,
+    inactive: `${BASE_PILL} bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline`,
   }
   return map[status]
 }
@@ -141,12 +141,12 @@ async function selectStatus(status: ProductStatus): Promise<void> {
     class="inline-flex items-center gap-1.5 cursor-pointer rounded-full
            transition-all duration-150 select-none
            focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-cgws-copper focus-visible:ring-offset-2"
+           focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
     :class="[
       statusPillClass(currentStatus),
       isOpen
-        ? 'ring-2 ring-cgws-copper ring-offset-1'
-        : 'hover:ring-2 hover:ring-cgws-copper/50 hover:ring-offset-1',
+        ? 'ring-2 ring-cgws-accent ring-offset-1'
+        : 'hover:ring-2 hover:ring-cgws-accent/50 hover:ring-offset-1',
     ]"
     @click="toggleDropdown"
   >
@@ -170,7 +170,7 @@ async function selectStatus(status: ProductStatus): Promise<void> {
       >
         <!-- Backdrop (mobile only) -->
         <div
-          class="absolute inset-0 bg-cgws-charcoal/40"
+          class="absolute inset-0 bg-cgws-ink/40"
           :class="isMobile ? 'block' : 'hidden'"
           aria-hidden="true"
           @click="close"
@@ -183,7 +183,7 @@ async function selectStatus(status: ProductStatus): Promise<void> {
           role="listbox"
           :aria-label="`Options de statut pour ${productTitle}`"
           :style="popoverStyle"
-          class="absolute z-50 bg-white border border-cgws-leather/30
+          class="absolute z-50 bg-cgws-surface border border-cgws-hairline
                  rounded-[4px] shadow-lg min-w-[180px] py-1
                  focus:outline-none"
           tabindex="-1"
@@ -198,11 +198,11 @@ async function selectStatus(status: ProductStatus): Promise<void> {
             class="w-full flex items-center gap-3 px-3 py-2
                    font-sans text-sm text-left
                    transition-colors duration-100
-                   focus-visible:outline-none focus-visible:bg-cgws-parchment/50
+                   focus-visible:outline-none focus-visible:bg-cgws-surface/50
                    disabled:cursor-default"
             :class="option.value === currentStatus
-              ? 'text-cgws-leather/50 cursor-default'
-              : 'text-cgws-charcoal hover:bg-cgws-parchment/40 cursor-pointer'"
+              ? 'text-cgws-ink-soft/50 cursor-default'
+              : 'text-cgws-ink hover:bg-cgws-surface/40 cursor-pointer'"
             @click="selectStatus(option.value)"
           >
             <span
@@ -214,12 +214,12 @@ async function selectStatus(status: ProductStatus): Promise<void> {
             <UIcon
               v-if="option.value === currentStatus"
               name="i-lucide-check"
-              class="w-3.5 h-3.5 text-cgws-leather/50"
+              class="w-3.5 h-3.5 text-cgws-ink-soft/50"
               aria-hidden="true"
             />
             <span
               v-if="isLoading && pendingStatus === option.value"
-              class="w-3.5 h-3.5 rounded-full border-2 border-cgws-copper
+              class="w-3.5 h-3.5 rounded-full border-2 border-cgws-accent
                      border-t-transparent animate-spin"
               aria-hidden="true"
             />
@@ -233,7 +233,7 @@ async function selectStatus(status: ProductStatus): Promise<void> {
           role="listbox"
           :aria-label="`Options de statut pour ${productTitle}`"
           class="fixed bottom-0 left-0 right-0 z-50
-                 bg-white rounded-t-2xl border-t border-cgws-leather/20
+                 bg-cgws-surface rounded-t-2xl border-t border-cgws-hairline
                  shadow-xl pb-safe"
         >
           <!-- Handle décoratif -->
@@ -241,15 +241,15 @@ async function selectStatus(status: ProductStatus): Promise<void> {
             class="flex justify-center pt-3 pb-2"
             aria-hidden="true"
           >
-            <div class="w-10 h-1 bg-cgws-leather/30 rounded-full" />
+            <div class="w-10 h-1 bg-cgws-hairline rounded-full" />
           </div>
 
           <!-- Titre -->
-          <div class="px-4 pb-3 border-b border-cgws-leather/15">
-            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-leather mb-0.5">
+          <div class="px-4 pb-3 border-b border-cgws-hairline">
+            <p class="font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft mb-0.5">
               Changer le statut
             </p>
-            <p class="font-sans text-sm font-medium text-cgws-charcoal line-clamp-1">
+            <p class="font-sans text-sm font-medium text-cgws-ink line-clamp-1">
               {{ productTitle }}
             </p>
           </div>
@@ -266,10 +266,10 @@ async function selectStatus(status: ProductStatus): Promise<void> {
               class="w-full flex items-center gap-4 px-4 py-3.5
                      font-sans text-sm text-left
                      transition-colors duration-100
-                     focus-visible:outline-none focus-visible:bg-cgws-parchment/50"
+                     focus-visible:outline-none focus-visible:bg-cgws-surface/50"
               :class="option.value === currentStatus
-                ? 'text-cgws-leather/50 cursor-default'
-                : 'text-cgws-charcoal active:bg-cgws-parchment/40'"
+                ? 'text-cgws-ink-soft/50 cursor-default'
+                : 'text-cgws-ink active:bg-cgws-surface/40'"
               @click="selectStatus(option.value)"
             >
               <span
@@ -281,12 +281,12 @@ async function selectStatus(status: ProductStatus): Promise<void> {
               <UIcon
                 v-if="option.value === currentStatus"
                 name="i-lucide-check"
-                class="w-4 h-4 text-cgws-leather/50"
+                class="w-4 h-4 text-cgws-ink-soft/50"
                 aria-hidden="true"
               />
               <span
                 v-if="isLoading && pendingStatus === option.value"
-                class="w-4 h-4 rounded-full border-2 border-cgws-copper
+                class="w-4 h-4 rounded-full border-2 border-cgws-accent
                        border-t-transparent animate-spin"
                 aria-hidden="true"
               />
@@ -297,10 +297,10 @@ async function selectStatus(status: ProductStatus): Promise<void> {
           <div class="px-4 pb-5 pt-1">
             <button
               type="button"
-              class="w-full py-3 rounded-[4px] border border-cgws-leather/40
-                     font-sans text-sm font-medium text-cgws-charcoal
-                     hover:bg-cgws-parchment/40 transition-colors
-                     focus-visible:ring-2 focus-visible:ring-cgws-copper focus-visible:outline-none"
+              class="w-full py-3 rounded-[4px] border border-cgws-hairline
+                     font-sans text-sm font-medium text-cgws-ink
+                     hover:bg-cgws-surface/40 transition-colors
+                     focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
               @click="close"
             >
               Annuler
