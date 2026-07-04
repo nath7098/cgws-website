@@ -1,7 +1,13 @@
 <script setup lang="ts">
-type BadgeVariant = 'new' | 'occasion' | 'consignment' | 'sold' | 'rejected' | 'reserved'
+import type { BadgeVariant } from '~/types'
 
-const props = defineProps<{ variant: BadgeVariant }>()
+const props = defineProps<{
+  variant: BadgeVariant
+  /** Override du libellé affiché ET de l'aria-label. Requis pour les statuts de
+   *  consignation accordés au féminin (US-066 §3.4) — les libellés internes ci-dessous
+   *  restent accordés pour le contexte produit ("Vendu", "Refusé"). */
+  label?: string
+}>()
 
 const labels: Record<BadgeVariant, string> = {
   new: 'Neuf',
@@ -10,7 +16,11 @@ const labels: Record<BadgeVariant, string> = {
   sold: 'Vendu',
   rejected: 'Refusé',
   reserved: 'Réservé',
+  pending: 'En attente',
+  accepted: 'Accepté',
 }
+
+const displayLabel = computed<string>(() => props.label ?? labels[props.variant])
 
 // Mapping conforme à US-072 §6 / DESIGN_SYSTEM_v3.md §4 "Badge statut v3" :
 // - Neuf = outline ink (border /60) · Occasion = neutre surface-2 (jamais danger).
@@ -32,6 +42,11 @@ const variantClasses: Record<BadgeVariant, string> = {
   sold: 'bg-cgws-accent text-cgws-on-accent',
   rejected: 'bg-cgws-danger text-cgws-on-danger',
   reserved: 'bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline',
+  // US-066 §3.4 — statuts consignation :
+  // - pending = neutre (identique à occasion/reserved, paire ink-soft/surface-2 déjà mesurée AA §2.6).
+  // - accepted = pilule success translucide (success/15 + text-success, §4.1 doc maître).
+  pending: 'bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline',
+  accepted: 'bg-cgws-success/15 text-cgws-success border border-cgws-success/40',
 }
 </script>
 
@@ -41,8 +56,8 @@ const variantClasses: Record<BadgeVariant, string> = {
       'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans font-medium text-[11px] uppercase tracking-wider',
       variantClasses[props.variant],
     ]"
-    :aria-label="`Statut : ${labels[props.variant]}`"
+    :aria-label="`Statut : ${displayLabel}`"
   >
-    {{ labels[props.variant] }}
+    {{ displayLabel }}
   </span>
 </template>

@@ -21,6 +21,17 @@ export type ProductCategory =
 export type ConsignmentStatus = 'pending' | 'accepted' | 'rejected' | 'sold' | 'returned'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'check'
 
+// Status/label pill variants shared by CgwsBadge and consignment mappings (US-066)
+export type BadgeVariant =
+  | 'new'
+  | 'occasion'
+  | 'consignment'
+  | 'sold'
+  | 'rejected'
+  | 'reserved'
+  | 'pending'
+  | 'accepted'
+
 export interface Product {
   id: string
   slug: string
@@ -74,6 +85,26 @@ export interface Client {
   phone?: string
   address?: string
   notes?: string
+  createdAt: string
+}
+
+// ─── Depositor space (US-066) ─────────────────────────────────────────────────
+
+// Strict subset of Consignment exposed to a depositor via
+// GET /api/depositor/consignments. Structurally excludes internal `notes` and any
+// raw commission field — the omission is by design, not merely hidden in a template.
+export interface DepositorConsignmentView {
+  id: string
+  itemDescription: string
+  brand: string
+  condition: ProductCondition
+  status: ConsignmentStatus
+  askingPrice: number
+  agreedPrice?: number
+  /** Effective sale price — only present when status === 'sold'. */
+  salePrice?: number
+  /** Net amount owed to the depositor (sale price − commission), computed server-side. Only when 'sold'. */
+  depositorAmount?: number
   createdAt: string
 }
 

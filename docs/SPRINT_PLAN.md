@@ -13,7 +13,9 @@
 | Sprint 3 | 2 sem | Backoffice Produits | 26 | Gestion catalogue admin |
 | Sprint 4 | 2 sem | Backoffice Commerce | 23 | Ventes + consignations + clients |
 | Sprint 5 | 1 sem | Polish & Go-live | 21 | Animations + perf + tests E2E |
-| **TOTAL** | **9 sem** | **6 épics** | **123 pts** | |
+| Sprint 6 | — | Refonte v3 bi-thème | — | Rebrand design system + skin switcher public/admin |
+| Sprint 7 | 1 sem | Features post-refonte | 16 | Import CSV produits + espace déposant (magic link) |
+| **TOTAL** | **9 sem** | **6 épics** | **123 pts** | *(hors Sprint 6/7, ajoutés après le pivot refonte)* |
 
 **Velocity cible** : 13–27 pts/sprint selon durée
 **Capacité** : projet solo/micro-team, sessions de travail le soir + weekends
@@ -971,10 +973,10 @@ Ces US peuvent être ajoutées selon la vélocité et les besoins :
 | US-060 | Newsletter (email capture + Resend list) | 3 pts |
 | US-061 | Galerie Instagram embed (widget derniers posts) | 2 pts |
 | US-062 | Système de favoris (localStorage sans compte) | 3 pts |
-| US-063 | Import CSV produits en masse (admin) | 5 pts |
+| US-063 | ~~Import CSV produits en masse (admin)~~ → **promu Sprint 7**, voir détail ci-dessous | 8 pts |
 | US-064 | Mode sombre (dark/light toggle) | 3 pts |
 | US-065 | PWA offline (service worker, splash screen) | 5 pts |
-| US-066 | Espace déposant (suivi consignation avec code) | 8 pts |
+| US-066 | ~~Espace déposant (suivi consignation avec code)~~ → **promu Sprint 7**, voir détail ci-dessous (magic link plutôt que code) | 8 pts |
 | US-067 | Analytics dashboard (vue sessions, produits vus) | 5 pts |
 
 ---
@@ -1021,3 +1023,162 @@ refactor(scope): description courte [US-XXX]
 - [ ] PR sur develop avec description et screenshots
 - [ ] `/qa` exécuté et rapport vert
 - [ ] Pas de `console.log` ni `TODO` actifs
+
+---
+
+## Épic E7 — Fonctionnalités Post-Refonte
+
+**Sprint 7 · 1 semaine · 16 points**
+**Objectif** : Livrer les deux fonctionnalités repoussées après le pivot refonte v3 (Sprint 6) : l'import CSV en masse pour Camille, et l'espace de suivi en ligne pour les déposants.
+
+**Dépendance transverse** : les deux US ci-dessous supposent un projet Supabase actif (US-002, ouvert depuis Sprint 0 — voir blocage documenté dans `docs/PROGRESS.md`). Le code peut être écrit et testé contre le schéma et les composables existants, comme le reste du projet à ce jour, mais la **validation end-to-end réelle** (upload effectif, envoi effectif d'un magic link) et le **go-live** dépendent d'une décision de Nathan sur le projet Supabase à utiliser. Ne bloque pas l'implémentation, mais bloque la validation `/qa` complète et la mise en production.
+
+---
+
+### US-063 · Import CSV produits en masse · 8 pts
+
+**En tant que** gérante (P1),
+**Je veux** importer plusieurs produits d'un coup depuis un fichier CSV, avec un aperçu obligatoire de ce qui sera créé avant toute écriture en base,
+**Afin de** cataloguer rapidement un lot de produits sans ressaisir chaque fiche une par une, tout en gardant le contrôle avant validation.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je suis sur /admin/produits/import
+When   la page se charge
+Then   une zone de dépôt de fichier CSV (drag & drop + bouton parcourir) est affichée
+And    le format attendu (colonnes, séparateur, encodage) est documenté avec un lien "Télécharger un modèle CSV"
+
+Given  je dépose un fichier CSV valide et bien formé
+When   je clique sur "Prévisualiser l'import"
+Then   aucune écriture n'est faite en base de données à ce stade
+And    un tableau d'aperçu affiche chaque ligne du fichier avec son statut : "Sera créé" (vert) ou "Erreur" (rouge)
+And    un résumé chiffré est visible : "X ligne(s) valide(s) / Y ligne(s) en erreur / Z ligne(s) au total"
+And    chaque ligne en erreur affiche le motif précis à côté (ex. "Catégorie inconnue : bottes", "Prix non numérique : 'à définir'", "Champ requis manquant : titre", "Doublon de slug avec la ligne 4", "Doublon de slug avec un produit existant : selle-bob-lee-15")
+And    le bouton "Valider l'import" n'est actif que si au moins une ligne valide existe
+
+Given  l'aperçu affiche des lignes valides et des lignes en erreur
+When   je clique sur "Valider l'import"
+Then   seules les lignes valides sont créées en base, avec le statut "Disponible" (active) par défaut
+And    chaque produit créé a un slug généré automatiquement (titre + marque, slugifié, unicité garantie)
+And    chaque produit créé a isConsignment = false et images = [] (tableau vide — aucune image n'est importée par ce flux)
+And    un message de fin d'import récapitule "X produit(s) créé(s) avec succès" avec lien vers /admin/produits filtré sur les produits importés
+And    les lignes qui étaient en erreur lors de l'aperçu ne sont pas créées et restent listées comme non importées
+
+Given  le fichier déposé n'est pas un CSV valide (mauvaise extension, encodage non-UTF-8 détecté, colonnes obligatoires manquantes dans l'en-tête)
+When   je clique sur "Prévisualiser l'import"
+Then   aucun tableau d'aperçu ne s'affiche
+And    un message d'erreur bloquant explique la cause précise ("Encodage non reconnu, veuillez exporter en UTF-8", "Colonnes manquantes : prix, categorie", ou "Format de fichier non supporté, un fichier .csv est attendu")
+
+Given  le fichier dépasse la taille maximale autorisée (2 Mo) ou contient plus de 500 lignes de données
+When   je le dépose
+Then   un message d'erreur explicite bloque l'import avant tout traitement ("Fichier trop volumineux (max 2 Mo)" ou "Trop de lignes (max 500 par import)")
+
+Given  le fichier CSV ne contient que l'en-tête, sans aucune ligne de donnée
+When   je clique sur "Prévisualiser l'import"
+Then   un message "Aucune ligne de données trouvée dans le fichier" s'affiche, et le bouton "Valider l'import" reste désactivé
+
+Given  j'ai validé un import et que je reviens sur la page
+When   je dépose un nouveau fichier CSV
+Then   l'aperçu précédent est intégralement réinitialisé (aucun état résiduel de l'import précédent)
+
+Given  entre l'aperçu et la validation, un produit a été créé entre-temps avec un slug identique à une ligne du CSV (situation de concurrence)
+When   je clique sur "Valider l'import"
+Then   le serveur revalide l'unicité des slugs au moment de l'insertion
+And    si un conflit apparaît, cette ligne spécifique est rapportée en échec dans le résultat final au lieu d'écraser ou de dupliquer un produit existant
+And    les autres lignes valides sont tout de même créées (l'import n'échoue pas globalement pour un seul conflit)
+```
+
+**Format CSV canonique proposé (provisoire — à valider par Nathan, voir « Questions pour Nathan »)** :
+
+| Colonne | Requis | Exemple | Validation |
+|---|---|---|---|
+| `titre` | oui | Selle Bob Lee Trail 15" | non vide |
+| `categorie` | oui | selles | doit être une valeur de `ProductCategory` |
+| `marque` | non | Bob Lee | — |
+| `description` | non | Selle western trail, cuir pleine fleur… | — |
+| `prix` | oui | 890.00 | nombre > 0, séparateur décimal point |
+| `etat` | oui | excellent | doit être une valeur de `ProductCondition` (`new`, `excellent`, `good`, `fair`) — ou libellés FR mappés (`neuf`, `excellent`, `bon`, `correct`) |
+| `taille` | non | 15" | — |
+| `stock` | non (défaut 1) | 1 | entier ≥ 0 |
+
+Encodage UTF-8, séparateur virgule `,`, en-tête en première ligne. **Aucune colonne image** — les photos sont ajoutées ensuite par Camille via le formulaire d'édition produit existant (US-032, `/admin/produits/[id]`).
+
+**Tâches techniques :**
+- Réutilise `getAdminSupabase()`, `generateUniqueSlug()`, `slugify()` (`server/utils/adminSupabase.ts`) et `requireAdminAuth(event)`.
+- Nouveau `server/api/admin/products/import/preview.post.ts` : multipart upload, parsing + validation Zod ligne par ligne, **aucune écriture DB**, retourne `{ validRows, errorRows: { line, raw, reason }[], summary }`.
+- Nouveau `server/api/admin/products/import/confirm.post.ts` : reçoit en JSON le tableau `validRows` **exact** retourné par l'étape preview (pas le CSV brut re-uploadé), revalide l'unicité des slugs à l'insertion (protection contre création concurrente entre preview et confirm), insère par lot, retourne `{ created, failed: { row, reason }[] }`. Ce design (preview → renvoi du JSON validé) évite toute session serveur avec état, incompatible avec l'architecture serverless Nitro/Vercel.
+- Parsing CSV : `papaparse` (à ajouter en dépendance) — gère quoting et détection d'encodage.
+- `app/pages/admin/produits/import.vue` + `app/components/admin/ImportPreviewTable.vue`
+- `app/composables/useProductImport.ts` : orchestration preview → confirm côté client
+- Limites : 2 Mo, 500 lignes (constantes partagées front/back)
+
+**Commit** : `feat(admin): bulk CSV product import with mandatory dry-run preview [US-063]`
+
+---
+
+### US-066 · Espace déposant — suivi consignation par magic link · 8 pts
+
+**En tant que** déposant (P3),
+**Je veux** suivre l'état de ma/mes consignation(s) en ligne sans créer de mot de passe,
+**Afin de** savoir où en est mon dépôt (en attente, en vente, vendu…) sans avoir à appeler ou écrire à la boutique.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je visite /espace-deposant
+When   la page se charge
+Then   un formulaire me demande uniquement mon adresse email
+And    un bouton "Recevoir mon lien de connexion" est présent
+
+Given  je saisis une adresse email correspondant à un déposant connu (présente dans consignments.depositor_email)
+When   je soumets le formulaire
+Then   un email contenant un lien magique m'est envoyé via Supabase Auth (signInWithOtp)
+And    un message de confirmation neutre s'affiche : "Si cette adresse est associée à une consignation, un lien de connexion vient de vous être envoyé."
+
+Given  je saisis une adresse email qui ne correspond à aucun déposant connu
+When   je soumets le formulaire
+Then   le même message de confirmation neutre s'affiche (aucune différence observable côté client ou dans les temps de réponse)
+And    aucun email n'est effectivement envoyé et aucune information sur l'existence ou non de l'adresse ne fuite
+
+Given  j'ai reçu l'email et je clique sur le lien magique dans les délais de validité
+When   le lien est ouvert
+Then   une session déposant est créée et je suis redirigé vers /espace-deposant/suivi
+And    je vois la liste de mes consignations : article décrit, marque, état, statut (libellés FR identiques à l'admin), prix demandé, prix accordé (si applicable), date de dépôt
+And    si ma consignation est "sold", je vois également le prix de vente effectif — mais jamais le montant de la commission ni les notes internes de Camille
+And    aucune action de modification (édition, suppression, changement de statut) n'est proposée — l'espace est strictement en lecture seule
+
+Given  le lien magique a expiré ou a déjà été utilisé
+When   je clique dessus
+Then   je suis redirigé vers /espace-deposant avec un message "Ce lien n'est plus valide, veuillez en redemander un"
+
+Given  je suis connecté(e) à mon espace déposant
+When   je clique sur "Se déconnecter"
+Then   ma session est détruite et je suis redirigé(e) vers /espace-deposant
+
+Given  je suis un déposant authentifié avec l'email marie@example.com
+When   ma session est active et que j'accède à /espace-deposant/suivi
+Then   je ne vois QUE les consignations dont depositor_email correspond exactement à marie@example.com
+And    il m'est impossible d'accéder, par manipulation d'URL ou de requête API, aux consignations d'un autre déposant — la vérification est systématiquement effectuée côté serveur, jamais uniquement par un filtre côté client
+
+Given  je n'ai aucune consignation associée à mon email (email connu mais consignations supprimées, ou cas limite)
+When   j'accède à /espace-deposant/suivi
+Then   un état vide s'affiche : "Aucune consignation trouvée pour cette adresse. Contactez CGWS si vous pensez qu'il s'agit d'une erreur."
+
+Given  je ne suis pas connecté(e)
+When   je tente d'accéder directement à /espace-deposant/suivi
+Then   je suis redirigé(e) vers /espace-deposant
+```
+
+**Champs exposés côté déposant (proposition — à confirmer, voir « Questions pour Nathan »)** : article décrit, marque, état, statut, prix demandé, prix accordé, prix de vente effectif (si vendu), date de dépôt. **Explicitement exclus** : notes internes admin, montant de la commission, informations sur d'autres déposants ou d'autres produits du catalogue.
+
+**Tâches techniques :**
+- Auth : `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo } })` côté client, dans un nouveau composable `app/composables/useDepositorAuth.ts` (miroir de `useAdminAuth.ts` mais sans mot de passe).
+- Anti-énumération : ne jamais différencier la réponse front selon que l'email existe ou non dans `consignments`. Le message de succès s'affiche systématiquement après soumission valide du formulaire, indépendamment du résultat réel côté serveur.
+- **Point de sécurité critique** : la policy RLS actuelle `consignments_select_admin` (`supabase/migrations/002_rls_policies.sql`) autorise TOUT utilisateur `authenticated` à lire TOUTES les consignations. Un déposant authentifié via OTP obtient le rôle `authenticated` — il ne doit donc **jamais** interroger `consignments` directement depuis le client. Toute lecture passe par une nouvelle route serveur dédiée `server/api/depositor/consignments.get.ts` qui : (1) vérifie le JWT du déposant via `supabase.auth.getUser(token)`, (2) utilise `getAdminSupabase()` (service role, bypass RLS) pour interroger `consignments` filtré strictement par `depositor_email = user.email` (comparaison exacte, insensible à la casse), (3) ne retourne que les champs listés ci-dessus via un mapping dédié (jamais `notes`, jamais de calcul de commission brut). Ne pas ouvrir de nouvelle policy RLS publique sur `consignments` pour ce besoin.
+- Nouveau middleware `app/middleware/depositor.ts` (distinct de `app/middleware/admin.ts`) protégeant `/espace-deposant/suivi`.
+- Nouvelles pages : `app/pages/espace-deposant/index.vue` (demande de lien), `app/pages/espace-deposant/suivi.vue` (liste lecture seule), route de callback qui échange le token OTP puis redirige vers `/espace-deposant/suivi`.
+- Réutilise `CONSIGNMENT_STATUS_LABELS` déjà défini côté admin (`docs/design-specs/US-040-consignations.md`) pour la cohérence des libellés, adapté au thème public.
+- Email du magic link : template Supabase Auth par défaut, personnalisable ultérieurement — envoi réel dépendant de US-002 (Supabase live).
+
+**Commit** : `feat(depositor): read-only consignment tracking space via magic link auth [US-066]`
