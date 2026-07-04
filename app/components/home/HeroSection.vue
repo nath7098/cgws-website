@@ -1,22 +1,27 @@
 <script setup lang="ts">
 import CgwsButton from '../ui/CgwsButton.vue'
-import SaddleIllustration from './SaddleIllustration.vue'
 
 const TITLE = "L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
 
-interface TitleChar {
+interface TitleLetter {
   char: string
-  isSpace: boolean
   key: number
 }
+interface TitleWord {
+  key: number
+  chars: TitleLetter[]
+}
 
-const titleChars = computed<TitleChar[]>(() =>
-  TITLE.split('').map((char, i) => ({
-    char,
-    isSpace: char === ' ',
-    key: i,
-  })),
-)
+// Groupe les lettres par mot : chaque mot est un wrapper insécable
+// (whitespace-nowrap), les lettres restent des spans .hero-letter individuels
+// pour que le stagger GSAP fonctionne inchangé.
+const titleWords = computed<TitleWord[]>(() => {
+  let k = 0
+  return TITLE.split(' ').map((word, wi) => ({
+    key: wi,
+    chars: word.split('').map((char) => ({ char, key: k++ })),
+  }))
+})
 
 let ctx: { revert: () => void } | undefined
 
@@ -54,13 +59,6 @@ onMounted(async () => {
       y: 24,
       duration: 0.5,
     }, 1.2)
-
-    tl.from('.saddle-illustration-wrapper', {
-      opacity: 0,
-      x: 30,
-      duration: 0.9,
-      ease: 'power1.out',
-    }, 0.4)
 
     tl.from('.hero-scroll-indicator', {
       opacity: 0,
@@ -137,18 +135,6 @@ onUnmounted(() => {
       aria-hidden="true"
     />
 
-    <!-- Saddle illustration (desktop only) -->
-    <div
-      class="saddle-illustration-wrapper absolute z-[2] hidden md:block
-             right-[6%] lg:right-[8%] xl:right-[10%]
-             top-1/2 -translate-y-[55%]
-             w-[200px] lg:w-[260px] xl:w-[300px]
-             opacity-70 md:opacity-75"
-      aria-hidden="true"
-    >
-      <SaddleIllustration />
-    </div>
-
     <!-- Content layer -->
     <div
       class="relative z-[10] h-full flex flex-col justify-end pb-16 md:pb-24 lg:justify-center lg:pb-0
@@ -172,27 +158,40 @@ onUnmounted(() => {
           />
         </svg>
 
-        <!-- Eyebrow (mt-6 = marge ≥24px sous le trait de l'arche) -->
-        <p
-          class="hero-eyebrow font-eyebrow text-[13px] text-cgws-brand-sand uppercase tracking-[0.2em] mt-6 mb-4 md:mb-5"
-        >
-          Sellerie Équestre Western · Brèches, 37
-        </p>
+        <!-- Eyebrow : barre décorative accent-deco + texte marque (mt-6 sous l'arche) -->
+        <div class="hero-eyebrow flex items-center gap-2.5 mt-6 mb-4 md:mb-5">
+          <span
+            class="block w-0.5 h-3 bg-cgws-accent-deco flex-shrink-0"
+            aria-hidden="true"
+          />
+          <p
+            class="font-eyebrow font-semibold text-[11px] md:text-xs text-cgws-brand-sand uppercase tracking-[0.3em]"
+          >
+            Sellerie Équestre Western · Brèches, 37
+          </p>
+        </div>
 
-        <!-- H1 with per-character spans for GSAP stagger -->
+        <!-- H1 : mots insécables (whitespace-nowrap) → lettres animables (.hero-letter) -->
         <h1
           class="font-display font-bold uppercase leading-none text-cgws-brand-cream
                  text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
                  mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
           aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
         >
-          <span
-            v-for="item in titleChars"
-            :key="item.key"
-            class="hero-letter inline-block"
-            :class="item.isSpace ? 'w-[0.25em]' : ''"
-            aria-hidden="true"
-          >{{ item.isSpace ? '' : item.char }}</span>
+          <template v-for="(word, wi) in titleWords" :key="word.key">
+            <span class="inline-block whitespace-nowrap">
+              <span
+                v-for="letter in word.chars"
+                :key="letter.key"
+                class="hero-letter inline-block"
+                aria-hidden="true"
+              >{{ letter.char }}</span>
+            </span><span
+              v-if="wi < titleWords.length - 1"
+              class="hero-letter inline-block w-[0.25em]"
+              aria-hidden="true"
+            />
+          </template>
         </h1>
       </div>
 
