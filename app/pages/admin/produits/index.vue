@@ -29,6 +29,10 @@ const searchQuery = ref('')
 const filterCategory = ref<ProductCategory | ''>('')
 const filterStatus = ref<ProductStatus | ''>('')
 
+// Scoped view of a freshly-imported batch (US-063 — "Voir les produits importés")
+const route = useRoute()
+const importedIds = ref<string>(typeof route.query.ids === 'string' ? route.query.ids : '')
+
 // Sale modal
 const saleModalOpen = ref(false)
 const saleTargetProduct = ref<Product | null>(null)
@@ -132,6 +136,10 @@ async function fetchProducts() {
       page: currentPage.value,
       limit: 20,
     }
+    if (importedIds.value) {
+      params.ids = importedIds.value
+      params.limit = Math.min(100, importedIds.value.split(',').filter(Boolean).length || 20)
+    }
     if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
     if (filterCategory.value) params.category = filterCategory.value
     if (filterStatus.value) params.status = filterStatus.value
@@ -166,12 +174,14 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 watch(searchQuery, () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
+    importedIds.value = ''
     currentPage.value = 1
     fetchProducts()
   }, 300)
 })
 
 watch([filterCategory, filterStatus], () => {
+  importedIds.value = ''
   currentPage.value = 1
   fetchProducts()
 })
@@ -180,7 +190,15 @@ function resetFilters() {
   searchQuery.value = ''
   filterCategory.value = ''
   filterStatus.value = ''
+  importedIds.value = ''
   currentPage.value = 1
+  fetchProducts()
+}
+
+function clearImportedFilter() {
+  importedIds.value = ''
+  currentPage.value = 1
+  void navigateTo({ path: '/admin/produits', query: {} })
   fetchProducts()
 }
 
@@ -263,7 +281,6 @@ function showToast(type: 'success' | 'error', message: string) {
 
 onMounted(() => {
   fetchProducts()
-  const route = useRoute()
   if (route.query.success === 'created') showToast('success', 'Produit créé avec succès !')
   else if (route.query.success === 'updated') showToast('success', 'Produit enregistré avec succès !')
 })
@@ -286,19 +303,56 @@ onUnmounted(() => {
           {{ totalCount }} produit{{ totalCount !== 1 ? 's' : '' }} au catalogue
         </p>
       </div>
-      <CgwsButton
-        variant="primary"
-        size="sm"
-        as="NuxtLink"
-        to="/admin/produits/nouveau"
-      >
+      <div class="flex items-center gap-2">
+        <CgwsButton
+          variant="secondary"
+          size="sm"
+          as="NuxtLink"
+          to="/admin/produits/import"
+        >
+          <UIcon
+            name="i-lucide-upload"
+            class="w-4 h-4 mr-1.5"
+            aria-hidden="true"
+          />
+          Importer CSV
+        </CgwsButton>
+        <CgwsButton
+          variant="primary"
+          size="sm"
+          as="NuxtLink"
+          to="/admin/produits/nouveau"
+        >
+          <UIcon
+            name="i-lucide-plus"
+            class="w-4 h-4 mr-1.5"
+            aria-hidden="true"
+          />
+          Ajouter un produit
+        </CgwsButton>
+      </div>
+    </div>
+
+    <!-- Imported batch banner (US-063) -->
+    <div
+      v-if="importedIds"
+      class="bg-cgws-accent/10 border border-cgws-accent/40 rounded-[4px] p-3 flex items-center justify-between gap-3 flex-wrap"
+    >
+      <p class="font-sans text-sm text-cgws-ink">
         <UIcon
-          name="i-lucide-plus"
-          class="w-4 h-4 mr-1.5"
+          name="i-lucide-list-checks"
+          class="w-4 h-4 inline-block mr-1 -mt-0.5 text-cgws-accent"
           aria-hidden="true"
         />
-        Ajouter un produit
-      </CgwsButton>
+        Affichage des produits importés récemment.
+      </p>
+      <button
+        type="button"
+        class="font-sans text-sm text-cgws-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
+        @click="clearImportedFilter"
+      >
+        Voir tous les produits
+      </button>
     </div>
 
     <!-- Toolbar -->

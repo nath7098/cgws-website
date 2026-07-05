@@ -15,6 +15,18 @@
 | Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
 | Sprint 5 | Terminé ✅ | 4/4 | 21/21 |
 | Sprint 6 | Terminé ✅ | 6/6 | ~31/~31 |
+| Sprint 7 | En cours 🔨 | 1/2 | 8/16 |
+
+---
+
+## Sprint 7 — Features post-refonte (en cours)
+
+**Objectif** : features repoussées après le pivot v3 — **US-066 espace déposant** (magic link, lecture seule) + **US-063 import CSV produits** (dry-run/preview obligatoire). Branche `feature/sprint-7` (créée depuis `develop` après merge du Sprint 6, PR #5). Ordre : US-066 d'abord (traite tôt l'isolation sécurité déposant), puis US-063.
+**Décisions Nathan** (2026-07-04) : (1) **code-only + flag** — le code est bâti contre le schéma/composables existants, la validation e2e et le go-live restent bloqués par Supabase live (US-002) ; (2) **CSV format canonique** (titre, categorie, marque, description, prix, etat, taille, stock ; UTF-8 ; virgule) — à confirmer avec Camille si gabarit existant ; (3) **déposant vendu** : voit prix de vente + **montant net à reverser** (= prix − commission), jamais notes internes ni commission détaillée.
+
+### US-066 — Espace déposant (magic link, lecture seule) — PASS (1re passe) — commit 6969d8e
+
+QA PASS au premier passage (US à forte composante **sécurité**). Spec `docs/design-specs/US-066-espace-deposant.md`. Flux : `useDepositorAuth` (`signInWithOtp`, **`shouldCreateUser:false`** = pas de création de compte + pas d'email vers adresse inconnue), pages `espace-deposant/` (index demande de lien, callback gérant PKCE/`token_hash`/implicit, suivi lecture seule protégé par `middleware/depositor.ts` SSR-safe sans flash), route serveur `server/api/depositor/consignments.get.ts`. **Isolation double-barrière validée QA** : JWT vérifié via `getUser(token)` avant toute lecture → filtre `depositor_email` dérivé EXCLUSIVEMENT du token (jamais d'un param client), `.ilike` avec échappement `%`/`_`/`\` **+** second filtre applicatif JS ; `getAdminSupabase()` service role sans ouvrir de policy RLS publique. **Aucune fuite** : `DepositorConsignmentView` exclut structurellement `notes` internes et commission brute ; **net à reverser calculé côté serveur** (prix − `commission_amount` réel, fallback 20%), aucun taux en dur côté client. **Anti-énumération** : message succès neutre identique email connu/inconnu. **Lecture seule** stricte (aucune mutation, `role="group"`). Composants : `ConsignmentTrackingCard` (nouveau), `CgwsBadge` étendu (prop `label` + variants `pending`/`accepted`, non régressif), `app/utils/consignment.ts` (factorise `CONSIGNMENT_STATUS_LABELS`). vue-tsc ✅ ESLint ✅ build EXIT 0 ✅. **Nécessite Supabase live pour validation e2e** (bloqué US-002) : envoi réel du magic link, pose de session OTP réelle, expiration/réutilisation du lien, `getUser` runtime. **Observations mineures non bloquantes** : duplication résiduelle de `CONSIGNMENT_STATUS_LABELS` côté admin (factorisation admin repoussée) ; N+1 products/sales par consignation vendue (volume faible attendu) ; 2 entrées `ERROR_MESSAGES` rate-limit inatteignables (code mort, comportement anti-énumération correct).
 
 ---
 

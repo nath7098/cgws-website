@@ -1,3 +1,5 @@
+import type { PRODUCT_CATEGORIES, PRODUCT_CONDITIONS } from '#shared/utils/csvImport'
+
 export type ProductStatus = 'active' | 'sold' | 'reserved' | 'inactive'
 export type SortOption = 'relevance' | 'price_asc' | 'price_desc' | 'newest'
 
@@ -10,14 +12,10 @@ export interface CatalogueFilters {
   includeReserved: boolean
   isConsignment: boolean | null
 }
-export type ProductCondition = 'new' | 'excellent' | 'good' | 'fair'
-export type ProductCategory =
-  | 'selles'
-  | 'brides-licols'
-  | 'bottes-chaussures'
-  | 'vetements'
-  | 'accessoires'
-  | 'protections'
+// Derived from the shared single source of truth (US-063) so the CSV import
+// value sets and the domain unions can never diverge.
+export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number]
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
 export type ConsignmentStatus = 'pending' | 'accepted' | 'rejected' | 'sold' | 'returned'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'check'
 
