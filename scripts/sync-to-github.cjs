@@ -13,6 +13,10 @@ const databaseId = process.env.NOTION_DATABASE_ID;
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
 
+// Doit rester IDENTIQUE à sync-to-notion.cjs : marqueur ajouté par ce dernier
+// quand un corps trop long (>~40 000 caractères) a été tronqué côté Notion.
+const BODY_TRUNCATION_NOTE = "(...) contenu tronqué, voir l'issue GitHub";
+
 function getTitle(page) {
   const prop = Object.values(page.properties).find((p) => p.type === "title");
   return prop?.title?.[0]?.plain_text || "";
@@ -29,6 +33,13 @@ function getState(page) {
 
 function getLabels(page) {
   return (page.properties["Labels"]?.multi_select || []).map((l) => l.name);
+}
+
+// Reconstruit le corps complet en concaténant tous les blocs rich_text dans
+// l'ordre, sans séparateur — symétrique du découpage de sync-to-notion.cjs.
+function getBody(page) {
+  const blocks = page.properties["Body"]?.rich_text || [];
+  return blocks.map((b) => b.plain_text ?? b.text?.content ?? "").join("");
 }
 
 async function fetchAllNotionPages() {
@@ -70,22 +81,34 @@ async function main() {
     const notionTitle = getTitle(page);
     const notionState = getState(page);
     const notionLabels = getLabels(page);
+    const notionBody = getBody(page);
+    const githubBody = issue.body || "";
+
+    // Si le corps Notion se termine par le marqueur de troncature, il est
+    // incomplet (issue >~40k caractères) : GitHub reste la source de vérité,
+    // on ne réécrit pas le corps pour ne pas perdre de contenu.
+    const bodyDiffers =
+      !notionBody.endsWith(BODY_TRUNCATION_NOTE) && notionBody !== githubBody;
 
     const needsUpdate =
       (notionTitle && notionTitle !== issue.title) ||
       notionState !== issue.state ||
-      !sameLabels(notionLabels, issue.labels.map((l) => (typeof l === "string" ? l : l.name)));
+      !sameLabels(notionLabels, issue.labels.map((l) => (typeof l === "string" ? l : l.name))) ||
+      bodyDiffers;
 
     if (!needsUpdate) continue;
 
-    await octokit.issues.update({
+    const update = {
       owner,
       repo,
       issue_number: issueNumber,
       title: notionTitle || issue.title,
       state: notionState,
       labels: notionLabels,
-    });
+    };
+    if (bodyDiffers) update.body = notionBody;
+
+    await octokit.issues.update(update);
 
     console.log(`Issue #${issueNumber} mise à jour sur GitHub depuis Notion.`);
   }

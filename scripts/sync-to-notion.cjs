@@ -15,6 +15,36 @@ function truncate(text, max) {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
 }
 
+// Découpage du corps en blocs rich_text Notion.
+// Ces constantes et le format de découpage DOIVENT rester identiques à
+// sync-to-github.cjs pour que la reconstruction soit sans perte.
+const RICH_TEXT_BLOCK_MAX = 2000; // taille max d'un élément rich_text (limite API Notion)
+const BODY_MAX_BLOCKS = 20; // soit ~40 000 caractères au total
+const BODY_TRUNCATION_NOTE = "(...) contenu tronqué, voir l'issue GitHub";
+
+// Découpe un texte en blocs rich_text de 2000 caractères max, recomposables
+// par simple concaténation (aucun séparateur ajouté entre les blocs).
+// Au-delà de BODY_MAX_BLOCKS, tronque en ajoutant BODY_TRUNCATION_NOTE
+// à la fin du dernier bloc plutôt que de dépasser la limite de l'API.
+function buildBodyRichText(body) {
+  const text = body || "";
+  if (text === "") return [];
+
+  const chunks = [];
+  for (let i = 0; i < text.length; i += RICH_TEXT_BLOCK_MAX) {
+    chunks.push(text.slice(i, i + RICH_TEXT_BLOCK_MAX));
+  }
+
+  if (chunks.length > BODY_MAX_BLOCKS) {
+    chunks.length = BODY_MAX_BLOCKS;
+    const room = RICH_TEXT_BLOCK_MAX - BODY_TRUNCATION_NOTE.length;
+    chunks[BODY_MAX_BLOCKS - 1] =
+      chunks[BODY_MAX_BLOCKS - 1].slice(0, room) + BODY_TRUNCATION_NOTE;
+  }
+
+  return chunks.map((content) => ({ text: { content } }));
+}
+
 async function getTitlePropName() {
   const db = await notion.databases.retrieve({ database_id: databaseId });
   const entry = Object.entries(db.properties).find(([, p]) => p.type === "title");
@@ -54,7 +84,7 @@ function buildProperties(titleProp) {
       multi_select: labels.map((name) => ({ name: truncate(name, 100) })),
     },
     Body: {
-      rich_text: [{ text: { content: truncate(process.env.ISSUE_BODY || "", 2000) } }],
+      rich_text: buildBodyRichText(process.env.ISSUE_BODY),
     },
   };
 }
