@@ -2,7 +2,7 @@ name: Sync Notion to GitHub issues
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch: {} # permet de le lancer manuellement pour tester
 
 permissions:
