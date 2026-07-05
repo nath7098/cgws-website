@@ -14,7 +14,7 @@ const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
 
 function getTitle(page) {
-  const prop = page.properties["Name"];
+  const prop = Object.values(page.properties).find((p) => p.type === "title");
   return prop?.title?.[0]?.plain_text || "";
 }
 

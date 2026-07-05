@@ -15,6 +15,13 @@ function truncate(text, max) {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
 }
 
+async function getTitlePropName() {
+  const db = await notion.databases.retrieve({ database_id: databaseId });
+  const entry = Object.entries(db.properties).find(([, p]) => p.type === "title");
+  if (!entry) throw new Error("Aucune propriété de type 'title' trouvée dans la base Notion.");
+  return entry[0];
+}
+
 async function findPageByIssueNumber(issueNumber) {
   const response = await notion.databases.query({
     database_id: databaseId,
@@ -26,12 +33,12 @@ async function findPageByIssueNumber(issueNumber) {
   return response.results[0] || null;
 }
 
-function buildProperties() {
+function buildProperties(titleProp) {
   const labels = JSON.parse(process.env.ISSUE_LABELS || "[]");
   const state = process.env.ISSUE_STATE === "closed" ? "Closed" : "Open";
 
   return {
-    Name: {
+    [titleProp]: {
       title: [{ text: { content: truncate(process.env.ISSUE_TITLE || "(sans titre)", 200) } }],
     },
     "Issue Number": {
@@ -64,7 +71,8 @@ async function main() {
     return;
   }
 
-  const properties = buildProperties();
+  const titleProp = await getTitlePropName();
+  const properties = buildProperties(titleProp);
 
   if (existingPage) {
     await notion.pages.update({ page_id: existingPage.id, properties });
