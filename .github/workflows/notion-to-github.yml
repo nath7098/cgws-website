@@ -19,7 +19,7 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --prefix scripts
 
       - name: Sync Notion changes to GitHub
         env:
