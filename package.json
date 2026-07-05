@@ -13,6 +13,8 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "@octokit/rest": "^20.1.1",
     "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.9.0",
     "@nuxtjs/google-fonts": "^3.2.0",
