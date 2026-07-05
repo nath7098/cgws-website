@@ -11,12 +11,20 @@ export default defineEventHandler(async (event: H3Event) => {
   const search = typeof query.search === 'string' ? query.search.trim() : ''
   const category = typeof query.category === 'string' ? query.category.trim() : ''
   const status = typeof query.status === 'string' ? query.status.trim() : ''
+  // Optional filter by explicit IDs — used by the CSV import result link
+  // ("Voir les produits importés", US-063) to scope the list to a batch.
+  const ids = typeof query.ids === 'string'
+    ? query.ids.split(',').map(s => s.trim()).filter(Boolean)
+    : []
 
   let dbQuery = supabase
     .from('products')
     .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
 
+  if (ids.length > 0) {
+    dbQuery = dbQuery.in('id', ids)
+  }
   if (search) {
     dbQuery = dbQuery.or(`title.ilike.%${search}%,brand.ilike.%${search}%`)
   }

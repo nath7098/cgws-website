@@ -1,3 +1,5 @@
+import type { PRODUCT_CATEGORIES, PRODUCT_CONDITIONS } from '#shared/utils/csvImport'
+
 export type ProductStatus = 'active' | 'sold' | 'reserved' | 'inactive'
 export type SortOption = 'relevance' | 'price_asc' | 'price_desc' | 'newest'
 
@@ -10,16 +12,23 @@ export interface CatalogueFilters {
   includeReserved: boolean
   isConsignment: boolean | null
 }
-export type ProductCondition = 'new' | 'excellent' | 'good' | 'fair'
-export type ProductCategory =
-  | 'selles'
-  | 'brides-licols'
-  | 'bottes-chaussures'
-  | 'vetements'
-  | 'accessoires'
-  | 'protections'
+// Derived from the shared single source of truth (US-063) so the CSV import
+// value sets and the domain unions can never diverge.
+export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number]
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
 export type ConsignmentStatus = 'pending' | 'accepted' | 'rejected' | 'sold' | 'returned'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'check'
+
+// Status/label pill variants shared by CgwsBadge and consignment mappings (US-066)
+export type BadgeVariant =
+  | 'new'
+  | 'occasion'
+  | 'consignment'
+  | 'sold'
+  | 'rejected'
+  | 'reserved'
+  | 'pending'
+  | 'accepted'
 
 export interface Product {
   id: string
@@ -74,6 +83,26 @@ export interface Client {
   phone?: string
   address?: string
   notes?: string
+  createdAt: string
+}
+
+// ─── Depositor space (US-066) ─────────────────────────────────────────────────
+
+// Strict subset of Consignment exposed to a depositor via
+// GET /api/depositor/consignments. Structurally excludes internal `notes` and any
+// raw commission field — the omission is by design, not merely hidden in a template.
+export interface DepositorConsignmentView {
+  id: string
+  itemDescription: string
+  brand: string
+  condition: ProductCondition
+  status: ConsignmentStatus
+  askingPrice: number
+  agreedPrice?: number
+  /** Effective sale price — only present when status === 'sold'. */
+  salePrice?: number
+  /** Net amount owed to the depositor (sale price − commission), computed server-side. Only when 'sold'. */
+  depositorAmount?: number
   createdAt: string
 }
 

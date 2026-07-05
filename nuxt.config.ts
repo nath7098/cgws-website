@@ -104,8 +104,10 @@ export default defineNuxtConfig({
     compressPublicAssets: { gzip: true, brotli: true },
     externals: {
       // pdfmake is a CJS-only package; prevent Nitro from bundling it
-      // so Node.js resolves it at runtime from node_modules
-      external: ['pdfmake'],
+      // so Node.js resolves it at runtime from node_modules.
+      // papaparse ships a UMD bundle Rollup's parser cannot process (US-063),
+      // so it is likewise resolved at runtime rather than bundled.
+      external: ['pdfmake', 'papaparse'],
     },
   },
 })

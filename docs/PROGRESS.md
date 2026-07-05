@@ -15,6 +15,41 @@
 | Sprint 4 | Terminé ✅ | 4/4 | 23/23 |
 | Sprint 5 | Terminé ✅ | 4/4 | 21/21 |
 | Sprint 6 | Terminé ✅ | 6/6 | ~31/~31 |
+| Sprint 7 | Terminé ✅ | 2/2 | 16/16 |
+
+---
+
+## Sprint 7 — Features post-refonte (terminé ✅)
+
+**Objectif** : features repoussées après le pivot v3 — **US-066 espace déposant** (magic link, lecture seule) + **US-063 import CSV produits** (dry-run/preview obligatoire). Branche `feature/sprint-7` (créée depuis `develop` après merge du Sprint 6, PR #5). Ordre : US-066 d'abord (traite tôt l'isolation sécurité déposant), puis US-063. Branche **rebasée sur `develop`** (2026-07-05) pour récupérer les commits Notion (workflow d'issues) ; conflit `package-lock.json` résolu par régénération `npm install` (papaparse + deps Notion coexistent).
+**Décisions Nathan** (2026-07-04) : (1) **code-only + flag** — le code est bâti contre le schéma/composables existants, la validation e2e et le go-live restent bloqués par Supabase live (US-002) ; (2) **CSV format canonique** (titre, categorie, marque, description, prix, etat, taille, stock ; UTF-8 ; virgule) — à confirmer avec Camille si gabarit existant ; (3) **déposant vendu** : voit prix de vente + **montant net à reverser** (= prix − commission), jamais notes internes ni commission détaillée.
+
+### US-066 — Espace déposant (magic link, lecture seule) — PASS (1re passe) — commit 6969d8e
+
+QA PASS au premier passage (US à forte composante **sécurité**). Spec `docs/design-specs/US-066-espace-deposant.md`. Commit final rebasé : `9fbe624`. Flux : `useDepositorAuth` (`signInWithOtp`, **`shouldCreateUser:false`** = pas de création de compte + pas d'email vers adresse inconnue), pages `espace-deposant/` (index demande de lien, callback gérant PKCE/`token_hash`/implicit, suivi lecture seule protégé par `middleware/depositor.ts` SSR-safe sans flash), route serveur `server/api/depositor/consignments.get.ts`. **Isolation double-barrière validée QA** : JWT vérifié via `getUser(token)` avant toute lecture → filtre `depositor_email` dérivé EXCLUSIVEMENT du token (jamais d'un param client), `.ilike` avec échappement `%`/`_`/`\` **+** second filtre applicatif JS ; `getAdminSupabase()` service role sans ouvrir de policy RLS publique. **Aucune fuite** : `DepositorConsignmentView` exclut structurellement `notes` internes et commission brute ; **net à reverser calculé côté serveur** (prix − `commission_amount` réel, fallback 20%), aucun taux en dur côté client. **Anti-énumération** : message succès neutre identique email connu/inconnu. **Lecture seule** stricte (aucune mutation, `role="group"`). Composants : `ConsignmentTrackingCard` (nouveau), `CgwsBadge` étendu (prop `label` + variants `pending`/`accepted`, non régressif), `app/utils/consignment.ts` (factorise `CONSIGNMENT_STATUS_LABELS`). vue-tsc ✅ ESLint ✅ build EXIT 0 ✅. **Nécessite Supabase live pour validation e2e** (bloqué US-002) : envoi réel du magic link, pose de session OTP réelle, expiration/réutilisation du lien, `getUser` runtime. **Observations mineures non bloquantes** : duplication résiduelle de `CONSIGNMENT_STATUS_LABELS` côté admin (factorisation admin repoussée) ; N+1 products/sales par consignation vendue (volume faible attendu) ; 2 entrées `ERROR_MESSAGES` rate-limit inatteignables (code mort, comportement anti-énumération correct).
+
+### US-063 — Import CSV produits en masse (admin) — PASS (1re passe) — commit 7b31abb
+
+QA PASS au premier passage. Spec `docs/design-specs/US-063-import-csv.md`. **Architecture stateless deux étapes** compatible serverless Nitro/Vercel : preview (dry-run) → confirm (renvoi du JSON validé, jamais de re-upload ni de session serveur). **Source de vérité unique partagée** `shared/utils/csvImport.ts` (importable via `#shared/utils/csvImport` côté app ET serveur) : limites (2 Mo / 500 lignes), value sets `PRODUCT_CATEGORIES`/`PRODUCT_CONDITIONS` (dont dérivent désormais les unions `app/types/index.ts`, plus de divergence possible), alias FR d'état (`neuf`/`bon`/`correct`), validation Zod-free pure `validateCsvRow`, `slugifyForImport` miroir du `slugify` serveur. **Preview** (`server/api/admin/products/import/preview.post.ts`) : `requireAdminAuth` d'abord, `TextDecoder('utf-8',{fatal:true})` pour rejeter le non-UTF-8, papaparse chargé via `createRequire` (bundle UMD non inlinable par Rollup, même pattern que pdfmake), **aucune écriture DB** (seul un `SELECT` de contrôle doublons), motifs d'erreur au mot près des exemples Gherkin, détection doublons slug intra-fichier ("avec la ligne X") **et** contre la base. **Confirm** (`confirm.post.ts`) : re-validation Zod du tableau `validRows` (jamais confiance au client), insert ligne par ligne, `is_consignment:false`/`images:[]`/`status:active`, **contrainte UNIQUE Postgres comme arbitre** (pas de `generateUniqueSlug` auto-suffixant qui masquerait le conflit) → sur `23505` la ligne part en `failed`, les autres sont créées (pas d'échec global — exigé par le Gherkin). UI : `import.vue` + `CsvDropzone` (drag&drop clavier, garde-fous client extension/taille/lignes avant réseau) + `ImportPreviewTable` (table desktop / cartes mobile, statut porté par icône+texte+couleur). Lien résultat `/admin/produits?ids=…` scopant le lot importé (`index.get.ts` filtre `ids`, bannière dédiée dans `produits/index.vue`). vue-tsc ✅ ESLint (fichiers US) ✅ build EXIT 0 ✅. **Nécessite Supabase live pour validation e2e** (bloqué US-002) : upload effectif, insert réel, déclenchement réel de la contrainte UNIQUE en concurrence. **Observations mineures non bloquantes** : ordre d'énumération des colonnes manquantes suit `REQUIRED_CSV_COLUMNS` (cosmétique) ; lint global du repo signale 1 erreur préexistante hors périmètre dans `scripts/sync-to-github.cjs` (commit Notion de `develop`, `err` inutilisé — non traité ici).
+
+---
+
+## Résumé Sprint 7 — Features post-refonte
+
+**Vélocité** : 16/16 pts réalisés (100%) | **Statut** : ✅ Terminé — en attente validation humaine (mode checkpoint) et ouverture Supabase live (US-002) pour recette e2e + go-live.
+
+### US complétées
+| US | Titre | Résultat | Commit |
+|----|-------|----------|--------|
+| US-066 | Espace déposant (magic link, lecture seule) | ✅ PASS 1re passe | 9fbe624 |
+| US-063 | Import CSV produits en masse (admin) | ✅ PASS 1re passe | 7b31abb |
+
+### Dépendance bloquante commune (non imputable au sprint)
+Les deux US sont **code-complete + QA PASS statique** mais leur **validation end-to-end réelle et le go-live restent bloqués par l'absence de projet Supabase actif (US-002)** : envoi effectif du magic link + pose de session OTP (US-066), upload/insert réel + contrainte UNIQUE en concurrence (US-063). Décision Nathan requise sur le projet Supabase à utiliser.
+
+### Prochaines étapes
+- Décision Nathan : ouvrir Supabase live (US-002) → recette e2e des deux US.
+- PR `feature/sprint-7` → `develop` puis `develop` → `main` (déclenche déploiement Vercel).
 
 ---
 
