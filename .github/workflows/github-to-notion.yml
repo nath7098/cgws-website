@@ -16,7 +16,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: scripts/..
 
       - name: Sync to Notion
         env:
@@ -29,4 +28,4 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_ACTION: ${{ github.event.action }}
           ISSUE_LABELS: ${{ toJson(github.event.issue.labels.*.name) }}
-        run: node scripts/sync-to-notion.js
+        run: node scripts/sync-to-notion.cjs

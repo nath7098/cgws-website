@@ -1,0 +1,11 @@
+{
+  "name": "cgws-notion-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Synchronisation GitHub Issues <-> Notion pour cgws-website",
+  "type": "commonjs",
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "@octokit/rest": "^20.1.1"
+  }
+}
