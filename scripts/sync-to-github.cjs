@@ -1,5 +1,7 @@
-// Relit la base Notion (toutes les pages) et pousse titre / état / labels
-// vers les issues GitHub correspondantes si elles diffèrent.
+// Relit la base Notion (toutes les pages) et pousse titre / état / labels / corps
+// vers les issues GitHub correspondantes si elles diffèrent. Les pages sans
+// "Issue Number" donnent lieu à la création d'une nouvelle issue GitHub, dont le
+// numéro est ensuite réécrit dans Notion (pour éviter les doublons au prochain cron).
 // Déclenché par le workflow .github/workflows/notion-to-github.yml (cron)
 // Variables d'environnement attendues :
 //   NOTION_API_KEY, NOTION_DATABASE_ID
@@ -42,6 +44,15 @@ function getBody(page) {
   return blocks.map((b) => b.plain_text ?? b.text?.content ?? "").join("");
 }
 
+// Réécrit le numéro d'issue GitHub dans la page Notion, pour lier définitivement
+// la page à l'issue et empêcher toute recréation au prochain passage du cron.
+async function setIssueNumber(pageId, issueNumber) {
+  await notion.pages.update({
+    page_id: pageId,
+    properties: { "Issue Number": { number: issueNumber } },
+  });
+}
+
 async function fetchAllNotionPages() {
   const pages = [];
   let cursor = undefined;
@@ -67,7 +78,36 @@ async function main() {
 
   for (const page of pages) {
     const issueNumber = getIssueNumber(page);
-    if (!issueNumber) continue; // ligne créée manuellement sans lien vers une issue, on ignore
+    const notionTitle = getTitle(page);
+    const notionState = getState(page);
+    const notionLabels = getLabels(page);
+    const notionBody = getBody(page);
+
+    // Page sans issue liée -> on crée l'issue GitHub puis on écrit son numéro dans Notion.
+    if (!issueNumber) {
+      if (!notionTitle) {
+        console.warn("Page Notion sans titre ni Issue Number, ignorée (titre requis pour créer une issue).");
+        continue;
+      }
+
+      const created = await octokit.issues.create({
+        owner,
+        repo,
+        title: notionTitle,
+        body: notionBody || undefined,
+        labels: notionLabels,
+      });
+      const newNumber = created.data.number;
+
+      // issues.create ouvre toujours l'issue : si Notion la veut fermée, on la ferme.
+      if (notionState === "closed") {
+        await octokit.issues.update({ owner, repo, issue_number: newNumber, state: "closed" });
+      }
+
+      await setIssueNumber(page.id, newNumber);
+      console.log(`Issue #${newNumber} créée sur GitHub depuis Notion.`);
+      continue;
+    }
 
     let issue;
     try {
@@ -78,10 +118,6 @@ async function main() {
       continue;
     }
 
-    const notionTitle = getTitle(page);
-    const notionState = getState(page);
-    const notionLabels = getLabels(page);
-    const notionBody = getBody(page);
     const githubBody = issue.body || "";
 
     // Si le corps Notion se termine par le marqueur de troncature, il est
