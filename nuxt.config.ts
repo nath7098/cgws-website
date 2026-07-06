@@ -55,15 +55,16 @@ export default defineNuxtConfig({
       supabase: {
         name: 'supabase',
         provider: '~/providers/supabase-provider.ts',
-        options: {
-          baseUrl: `${process.env.NUXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/object/public/product-images`,
-        }
-      }
-    },
-    // Supabase Storage image transformation provider
-    // Uses the render endpoint which supports resize, format conversion, and quality
-    supabase: {
-      baseURL: `${process.env.NUXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/render/image/public/product-images`,
+        // Pas d'options.baseURL ici (issue #6). La valeur serait figée au BUILD
+        // depuis process.env.NUXT_PUBLIC_SUPABASE_URL, non garanti côté Vercel au
+        // build → l'URL d'image devenait relative/cassée alors que les données du
+        // catalogue passaient (elles, résolues au RUNTIME via runtimeConfig).
+        // Le provider résout donc baseURL au runtime via useRuntimeConfig().
+        // L'ancien bloc top-level `supabase: { baseURL: render/image/... }` est
+        // supprimé : il baked une URL de build et détournait vers l'endpoint de
+        // transformation.
+        options: {},
+      },
     },
   },
 
