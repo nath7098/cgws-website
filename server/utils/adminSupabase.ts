@@ -2,14 +2,28 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from '~/types/database.types'
 
 /**
+ * Nettoie une valeur de credential (URL / clé) avant de la passer au client
+ * Supabase, comme `useSupabase()` côté public. Une variable d'env Vercel sale
+ * (BOM UTF-8 U+FEFF collé en tête de l'URL, caractère non-Latin1 dans la clé —
+ * voir issue #16) fait échouer TOUTES les requêtes du client admin en
+ * production (503/headers invalides), alors que la même clé fonctionne en
+ * local. On retire tout ce qui n'est pas de l'ASCII imprimable pour rendre le
+ * service role robuste à un env var mal saisi. Symétrique de `sanitizeCredential`
+ * dans `app/composables/useSupabase.ts`.
+ */
+function sanitizeCredential(value: string): string {
+  return value.replace(/[^\x21-\x7E]/g, '')
+}
+
+/**
  * Returns a Supabase admin client using the service role key.
  * Bypasses RLS — use only for server-side admin operations.
  */
 export function getAdminSupabase() {
   const config = useRuntimeConfig()
   return createClient<Database>(
-    config.public.supabaseUrl as string,
-    config.supabaseServiceRoleKey as string,
+    sanitizeCredential(config.public.supabaseUrl as string),
+    sanitizeCredential(config.supabaseServiceRoleKey as string),
   )
 }
 
