@@ -788,7 +788,11 @@ export async function sendOrderConfirmationEmail(
   const resend = new Resend(apiKey)
 
   await resend.emails.send({
-    from: 'CGWS <noreply@cgws.fr>',
+    // Le domaine cgws.fr n'est pas encore vérifié dans Resend : on utilise le
+    // domaine de test `onboarding@resend.dev` (n'envoie qu'à l'adresse du
+    // compte Resend). À remplacer par 'CGWS <noreply@cgws.fr>' une fois le
+    // domaine vérifié — idem pour les autres emails transactionnels du fichier.
+    from: 'CGWS <onboarding@resend.dev>',
     to: [data.customerEmail],
     subject: 'Confirmation de votre commande — CGWS',
     html: buildOrderConfirmationHtml(data),
