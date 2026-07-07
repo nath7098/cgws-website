@@ -378,3 +378,28 @@ Corrections QA : polygones SVG passés de fill hardcodé à class="fill-cgws-cop
 
 **Ce qui est implémenté sans blocage** : migrations SQL (supabase/migrations/), RLS policies, seed data, composable useSupabase.ts, .env.example.
 **Ce qui attend ton feu vert** : `apply_migration` sur le vrai projet Supabase, création bucket storage "product-images", utilisateur admin test.
+
+---
+
+## Épic E8 — Commerce en ligne (Panier & Paiement)
+
+**Hors sprint · issue #2 (priorité haute) · dév sur modèle fable 5**
+**Objectif** : un visiteur peut ajouter des articles au panier et payer en ligne via Stripe (livraison ou retrait boutique), en invité.
+
+### US complétées
+| US | Titre | Résultat | Commit |
+|----|-------|----------|--------|
+| US-080 | Panier persistant (store Pinia + drawer) | ✅ QA PASS 1re passe | _(voir branche feature/US-080)_ |
+| US-081 | Checkout Stripe hébergé + orders + webhook | ✅ QA PASS 1re passe | _(voir branche feature/US-080)_ |
+
+**Décisions produit** (arbitrées par Nathan) : Stripe Checkout hébergé (pas Elements) · livraison **+** retrait au choix · guest checkout (pas de compte) · tables `orders`/`order_items` + webhook idempotent.
+
+**Qualité** : `vue-tsc` 0 err · `eslint` 0 err · tests unitaires panier 18/18 · invariants QA OK (prix serveur, idempotence webhook, signature raw body, RLS verrouillée, non-fuite données, SSR/hydratation, a11y contraste ≥ 4.5:1, 0 `any`).
+
+### Points de blocage ouverts (E8)
+1. **Clés Stripe absentes** : `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` à renseigner (env Vercel). Endpoint webhook : `POST /api/checkout/webhook` (événements `checkout.session.completed` + `checkout.session.expired`).
+2. **Migration `004_orders.sql`** à appliquer sur le projet Supabase (dépend du blocage US-002 Supabase live ci-dessus).
+3. **`SHIPPING_FLAT_RATE` = 9,90 €** : placeholder à confirmer par Camille (impossible d'inventer un tarif transporteur réel — selle 10-20 kg).
+4. **Validation e2e réelle** (paiement carte test, réception webhook signé, emails Resend, rejeu webhook, concurrence) : à faire une fois Supabase + Stripe live.
+
+**À arbitrer plus tard** (non bloquant) : réservation temporaire au panier (deux acheteurs peuvent créer chacun une commande `pending` sur la même pièce unique sans verrou — acceptable à faible trafic) ; quantité toujours = 1 par ligne (modèle pièce unique).

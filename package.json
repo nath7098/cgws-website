@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "test:unit": "vitest run tests/unit"
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",
@@ -30,6 +31,7 @@
     "pdfmake": "^0.3.11",
     "resend": "^6.16.0",
     "sortablejs": "^1.15.7",
+    "stripe": "^22.3.0",
     "swiper": "^14.0.1",
     "tailwindcss": "^4.3.2",
     "vue": "^3.5.38",
@@ -47,6 +49,7 @@
     "eslint": "^9.39.4",
     "prettier": "^3.9.4",
     "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
     "vue-tsc": "^3.3.5"
   }
 }

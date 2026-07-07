@@ -125,6 +125,116 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          price: number
+          product_id: string | null
+          quantity: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          price: number
+          product_id?: string | null
+          quantity?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          price?: number
+          product_id?: string | null
+          quantity?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'order_items_order_id_fkey'
+            columns: ['order_id']
+            isOneToOne: false
+            referencedRelation: 'orders'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'order_items_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: false
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          currency: string | null
+          customer_name: string
+          email: string
+          fulfillment_method: string
+          id: string
+          phone: string | null
+          shipping_address: Json | null
+          shipping_cost: number | null
+          status: string
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          subtotal: number | null
+          total: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_name: string
+          email: string
+          fulfillment_method: string
+          id?: string
+          phone?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_name?: string
+          email?: string
+          fulfillment_method?: string
+          id?: string
+          phone?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'orders_client_id_fkey'
+            columns: ['client_id']
+            isOneToOne: false
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       products: {
         Row: {
           brand: string | null
