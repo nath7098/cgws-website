@@ -628,3 +628,169 @@ export async function sendConsignmentSaleEmail(
     html: buildConsignmentSaleHtml(data),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Order confirmation email (confirmation de commande en ligne — US-071)
+// ---------------------------------------------------------------------------
+
+export interface OrderConfirmationEmailData {
+  customerName: string
+  customerEmail: string
+  orderId: string
+  items: Array<{ title: string, price: number, quantity: number }>
+  subtotal: number
+  shippingCost: number
+  total: number
+  fulfillmentMethod: 'shipping' | 'pickup'
+  shippingAddress?: {
+    street: string
+    postalCode: string
+    city: string
+    country: string
+  }
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function buildOrderConfirmationHtml(data: OrderConfirmationEmailData): string {
+  const formatEur = (amount: number): string =>
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
+
+  const itemRows = data.items
+    .map(
+      item => `<tr>
+              <td>${escapeHtml(item.title)}</td>
+              <td style="text-align:right;white-space:nowrap;">${formatEur(item.price)}</td>
+            </tr>`,
+    )
+    .join('\n            ')
+
+  const fulfillmentBlock
+    = data.fulfillmentMethod === 'pickup'
+      ? `<tr>
+              <th>Mode de réception</th>
+              <td>Retrait à la boutique — Brèches (37). Nous vous contacterons pour convenir d'un créneau de retrait.</td>
+            </tr>`
+      : `<tr>
+              <th>Mode de réception</th>
+              <td>Livraison à domicile</td>
+            </tr>
+            ${data.shippingAddress
+              ? `<tr>
+              <th>Adresse de livraison</th>
+              <td>${escapeHtml(data.shippingAddress.street)}<br />${escapeHtml(data.shippingAddress.postalCode)} ${escapeHtml(data.shippingAddress.city)}<br />${escapeHtml(data.shippingAddress.country)}</td>
+            </tr>`
+              : ''}`
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmation de votre commande — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .table th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #7B3B1C; background: #F0DDB8; border: 1px solid #1A0B03; padding: 8px 12px; text-align: left; font-family: Georgia, serif; }
+    .table td { font-size: 14px; color: #1A0B03; background: #FAF3E3; border: 1px solid #1A0B03; padding: 8px 12px; }
+    .total-cell { font-size: 22px; color: #B8650A; font-weight: 700; }
+    .note { font-size: 13px; color: #1A0B03; opacity: 0.7; margin: 24px 0 0; font-style: italic; line-height: 1.6; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .divider { border: none; border-top: 1px solid #C8AB82; margin: 16px 0; }
+    .paid-badge { display: inline-block; background: #B8650A; color: #FAF3E3; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 2px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">SELLERIE WESTERN · BRÈCHES · INDRE-ET-LOIRE</p>
+      <h1 class="header-h1">CGWS</h1>
+    </div>
+
+    <div class="body">
+      <div class="body-inner">
+        <span class="paid-badge">Commande confirmée</span>
+        <p class="greeting">Bonjour ${escapeHtml(data.customerName)},</p>
+        <p class="intro">
+          Merci pour votre commande ! Votre paiement a bien été reçu.
+          Voici le récapitulatif de vos articles.
+        </p>
+
+        <hr class="divider" />
+
+        <table class="table">
+          <thead>
+            <tr><th colspan="2">VOS ARTICLES</th></tr>
+          </thead>
+          <tbody>
+            ${itemRows}
+            <tr>
+              <th>Sous-total</th>
+              <td style="text-align:right;">${formatEur(data.subtotal)}</td>
+            </tr>
+            <tr>
+              <th>Frais de port</th>
+              <td style="text-align:right;">${data.shippingCost > 0 ? formatEur(data.shippingCost) : 'Gratuit (retrait boutique)'}</td>
+            </tr>
+            <tr>
+              <th>Total payé</th>
+              <td class="total-cell" style="text-align:right;">${formatEur(data.total)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="table">
+          <thead>
+            <tr><th colspan="2">VOTRE COMMANDE</th></tr>
+          </thead>
+          <tbody>
+            ${fulfillmentBlock}
+            <tr>
+              <th>Référence</th>
+              <td style="font-size:11px;color:#7B3B1C;">${escapeHtml(data.orderId)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="note">
+          Une question sur votre commande ? Répondez simplement à cet email ou
+          contactez-nous : <a href="mailto:contact@cgws.fr" style="color:#B8650A;font-weight:700;">contact@cgws.fr</a>.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendOrderConfirmationEmail(
+  apiKey: string,
+  data: OrderConfirmationEmailData,
+): Promise<void> {
+  if (!apiKey) return
+
+  const resend = new Resend(apiKey)
+
+  await resend.emails.send({
+    from: 'CGWS <noreply@cgws.fr>',
+    to: [data.customerEmail],
+    subject: 'Confirmation de votre commande — CGWS',
+    html: buildOrderConfirmationHtml(data),
+  })
+}

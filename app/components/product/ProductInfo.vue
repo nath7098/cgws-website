@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Product, ProductCategory, ProductCondition } from '~/types'
+import { useCartStore } from '~/stores/cart'
 
 interface Props {
   product: Product
@@ -7,7 +8,33 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const cart = useCartStore()
+const toast = useToast()
+
 const isSold = computed(() => props.product.status === 'sold')
+const isPurchasable = computed(() => props.product.status === 'active')
+
+// US-070 — feedback d'ajout : toast succès, ou toast neutre si la pièce
+// (unique, stock 1) est déjà dans le panier — la quantité reste à 1.
+function addToCart(): void {
+  const added = cart.add(props.product)
+  if (added) {
+    toast.add({
+      title: 'Ajouté au panier',
+      description: props.product.title,
+      icon: 'i-lucide-shopping-basket',
+      color: 'success',
+    })
+  }
+  else {
+    toast.add({
+      title: 'Déjà dans votre panier',
+      description: 'Cet article est une pièce unique — un seul exemplaire par commande.',
+      icon: 'i-lucide-info',
+      color: 'neutral',
+    })
+  }
+}
 
 const conditionBadgeVariant = computed((): 'sold' | 'reserved' | 'new' | 'occasion' => {
   if (isSold.value) return 'sold'
@@ -158,31 +185,45 @@ onUnmounted(() => {
     </div>
 
     <!-- CTA zone -->
-    <div class="product-info-cta flex flex-col sm:flex-row gap-3 mt-2">
-      <!-- État actif : boutons téléphone + message -->
+    <div class="product-info-cta flex flex-col gap-3 mt-2">
+      <!-- État actif : achat en ligne (US-070) + téléphone + message -->
       <template v-if="!isSold">
         <CgwsButton
+          v-if="isPurchasable"
           variant="primary"
           size="md"
-          as="a"
-          href="tel:+33247561234"
-          class="flex-1 sm:flex-none"
-          :aria-label="`Appeler CGWS pour acquérir ${product.title}`"
+          class="w-full justify-center"
+          :aria-label="`Ajouter ${product.title} au panier`"
+          @click="addToCart"
         >
-          <UIcon name="i-lucide-phone" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
-          Appeler pour acquérir
+          <UIcon name="i-lucide-shopping-basket" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
+          Ajouter au panier
         </CgwsButton>
 
-        <CgwsButton
-          variant="secondary"
-          size="md"
-          as="NuxtLink"
-          to="/contact"
-          class="flex-1 sm:flex-none"
-          :aria-label="`Contacter CGWS par message pour ${product.title}`"
-        >
-          Contacter par message
-        </CgwsButton>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <CgwsButton
+            :variant="isPurchasable ? 'secondary' : 'primary'"
+            size="md"
+            as="a"
+            href="tel:+33247561234"
+            class="flex-1 justify-center"
+            :aria-label="`Appeler CGWS pour acquérir ${product.title}`"
+          >
+            <UIcon name="i-lucide-phone" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
+            Appeler la boutique
+          </CgwsButton>
+
+          <CgwsButton
+            variant="secondary"
+            size="md"
+            as="NuxtLink"
+            to="/contact"
+            class="flex-1 justify-center"
+            :aria-label="`Contacter CGWS par message pour ${product.title}`"
+          >
+            Contacter par message
+          </CgwsButton>
+        </div>
       </template>
 
       <!-- État vendu : bouton désactivé -->

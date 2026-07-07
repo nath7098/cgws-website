@@ -7,6 +7,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     supabaseServiceRoleKey: process.env.NUXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY ?? '',
     resendApiKey: process.env.RESEND_API_KEY ?? '',
+    // Stripe — serveur uniquement (jamais dans public : checkout hébergé, zéro clé côté client)
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
     // TODO: set CGWS_CAMILLE_EMAIL env var in production (replace placeholder)
     camilleEmail: process.env.CGWS_CAMILLE_EMAIL ?? 'nathcouton@gmail.com',
     public: {

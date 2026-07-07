@@ -1,4 +1,5 @@
 import type { PRODUCT_CATEGORIES, PRODUCT_CONDITIONS } from '#shared/utils/csvImport'
+import type { FULFILLMENT_METHODS, ORDER_STATUSES } from '#shared/utils/checkout'
 
 export type ProductStatus = 'active' | 'sold' | 'reserved' | 'inactive'
 export type SortOption = 'relevance' | 'price_asc' | 'price_desc' | 'newest'
@@ -206,6 +207,88 @@ export interface ClientPurchase {
   salePrice: number
   paymentMethod: PaymentMethod
   saleDate: string
+}
+
+// ─── Panier & Checkout Stripe (US-070 / US-071) ───────────────────────────────
+
+// Derived from the shared single source of truth (#shared/utils/checkout) so the
+// cart store, the server routes and the domain unions can never diverge.
+export type FulfillmentMethod = (typeof FULFILLMENT_METHODS)[number]
+export type OrderStatus = (typeof ORDER_STATUSES)[number]
+
+/** Ligne de panier — snapshot d'affichage du produit au moment de l'ajout.
+ *  1 ligne = 1 exemplaire (pièces uniques, pas de quantité). */
+export interface CartItem {
+  productId: string
+  slug: string
+  title: string
+  brand: string
+  price: number
+  image: string | null
+  size?: string
+  addedAt: string
+}
+
+export interface ShippingAddress {
+  street: string
+  postalCode: string
+  city: string
+  country: string
+}
+
+export interface OrderItem {
+  id: string
+  orderId: string
+  /** null si le produit a été supprimé depuis (snapshot title/price conservé). */
+  productId: string | null
+  title: string
+  price: number
+  quantity: number
+}
+
+export interface Order {
+  id: string
+  email: string
+  customerName: string
+  phone?: string
+  fulfillmentMethod: FulfillmentMethod
+  shippingAddress?: ShippingAddress
+  status: OrderStatus
+  subtotal: number
+  shippingCost: number
+  total: number
+  currency: string
+  stripeSessionId?: string
+  stripePaymentIntent?: string
+  clientId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Récapitulatif public renvoyé par GET /api/orders/[id] (page success).
+ *  Volontairement restreint — pas de payment_intent ni de client_id. */
+export interface OrderRecap {
+  id: string
+  status: OrderStatus
+  customerName: string
+  email: string
+  fulfillmentMethod: FulfillmentMethod
+  shippingAddress: ShippingAddress | null
+  subtotal: number
+  shippingCost: number
+  total: number
+  items: Array<{ title: string, price: number, quantity: number }>
+  createdAt: string
+}
+
+/** Payload POST /api/checkout/session (guest checkout — aucun compte). */
+export interface CheckoutPayload {
+  email: string
+  name: string
+  phone?: string
+  fulfillmentMethod: FulfillmentMethod
+  address?: ShippingAddress
+  productIds: string[]
 }
 
 // ─── Reporting (US-043) ───────────────────────────────────────────────────────

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { useScrollHeader } from '~/composables/useScrollHeader'
+import { useCartStore } from '~/stores/cart'
 import MobileMenu from './MobileMenu.vue'
+import CartDrawer from '../cart/CartDrawer.vue'
 
 const { isScrolled } = useScrollHeader(50)
 const isMobileMenuOpen = ref(false)
+const isCartOpen = ref(false)
+const cart = useCartStore()
 const route = useRoute()
 
 type NavLink = { label: string; to: string }
@@ -100,6 +104,31 @@ watch(route, () => {
 
       <button
         type="button"
+        class="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9
+               text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
+        aria-label="Ouvrir le panier"
+        aria-haspopup="dialog"
+        @click="isCartOpen = true"
+      >
+        <UIcon name="i-lucide-shopping-basket" class="w-5 h-5" aria-hidden="true" />
+        <!-- Compteur : ClientOnly — le panier vit dans localStorage, inconnu au SSR
+             (évite tout hydration mismatch, cf. app/stores/cart.ts). -->
+        <ClientOnly>
+          <span
+            v-if="cart.count > 0"
+            class="absolute top-0.5 right-0.5 lg:-top-1 lg:-right-1 min-w-[18px] h-[18px] px-1
+                   flex items-center justify-center rounded-full
+                   bg-cgws-accent text-cgws-on-accent font-sans font-bold text-[10px] tabular-nums leading-none"
+          >
+            {{ cart.count }}
+            <span class="sr-only">article{{ cart.count > 1 ? 's' : '' }} dans le panier</span>
+          </span>
+        </ClientOnly>
+      </button>
+
+      <button
+        type="button"
         class="lg:hidden flex items-center justify-center w-11 h-11 -mr-2.5
                text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:rounded-sm"
@@ -117,5 +146,6 @@ watch(route, () => {
     </div>
 
     <MobileMenu v-model:open="isMobileMenuOpen" />
+    <CartDrawer v-model:open="isCartOpen" />
   </header>
 </template>

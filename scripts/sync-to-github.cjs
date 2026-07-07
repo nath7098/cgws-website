@@ -113,7 +113,7 @@ async function main() {
     try {
       const res = await octokit.issues.get({ owner, repo, issue_number: issueNumber });
       issue = res.data;
-    } catch (err) {
+    } catch {
       console.warn(`Issue #${issueNumber} introuvable sur GitHub, ignorée.`);
       continue;
     }
