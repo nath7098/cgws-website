@@ -1,0 +1,255 @@
+<script setup lang="ts">
+import CgwsButton from '../ui/CgwsButton.vue'
+
+const TITLE = "L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
+
+interface TitleLetter {
+  char: string
+  key: number
+}
+interface TitleWord {
+  key: number
+  chars: TitleLetter[]
+}
+
+// Groupe les lettres par mot : chaque mot est un wrapper insécable
+// (whitespace-nowrap), les lettres restent des spans .hero-letter individuels
+// pour que le stagger GSAP fonctionne inchangé.
+const titleWords = computed<TitleWord[]>(() => {
+  let k = 0
+  return TITLE.split(' ').map((word, wi) => ({
+    key: wi,
+    chars: word.split('').map((char) => ({ char, key: k++ })),
+  }))
+})
+
+let ctx: { revert: () => void } | undefined
+
+onMounted(async () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const { gsap } = await import('gsap')
+  const { ScrollTrigger } = await import('gsap/ScrollTrigger')
+  gsap.registerPlugin(ScrollTrigger)
+
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+
+    tl.from('.hero-eyebrow', {
+      opacity: 0,
+      y: -8,
+      duration: 0.5,
+    }, 0)
+
+    tl.from('.hero-letter', {
+      opacity: 0,
+      y: 30,
+      stagger: 0.035,
+      duration: 0.45,
+    }, 0.15)
+
+    tl.from('.hero-subtitle', {
+      opacity: 0,
+      y: 16,
+      duration: 0.6,
+    }, 0.8)
+
+    tl.from('.hero-ctas', {
+      opacity: 0,
+      y: 24,
+      duration: 0.5,
+    }, 1.2)
+
+    tl.from('.hero-scroll-indicator', {
+      opacity: 0,
+      duration: 0.4,
+    }, 1.6)
+
+    gsap.to('.hero-scroll-indicator', {
+      y: 6,
+      duration: 1.2,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+      delay: 2,
+    })
+
+    ScrollTrigger.create({
+      start: 'top -80px',
+      once: true,
+      onEnter: () => {
+        gsap.to('.hero-scroll-indicator', {
+          opacity: 0,
+          duration: 0.3,
+          pointerEvents: 'none',
+        })
+      },
+    })
+
+    // Parallax scrub — desktop only (avoids GPU jank on mobile)
+    if (window.innerWidth >= 768) {
+      gsap.to('.hero-bg-img', {
+        y: '30%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.hero-section',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      })
+    }
+  })
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
+</script>
+
+<template>
+  <section
+    class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-ground"
+    aria-label="Accueil CGWS — Sellerie équestre western"
+  >
+    <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
+    <NuxtPicture
+      src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80&auto=format&fit=crop"
+      alt=""
+      class="absolute inset-0 h-full w-full"
+      :img-attrs="{
+        class: 'hero-bg-img h-full w-full object-cover object-[center_top] md:object-[center_40%]',
+        fetchpriority: 'high',
+      }"
+      :width="1920"
+      :height="1080"
+      loading="eager"
+      format="webp"
+      quality="85"
+      sizes="xs:100vw sm:100vw md:100vw lg:100vw"
+    />
+
+    <!-- Gradient overlay -->
+    <div
+      class="absolute inset-0 z-[1] bg-gradient-to-t from-cgws-brand-espresso/90 via-cgws-brand-espresso/40 to-cgws-brand-espresso/10"
+      aria-hidden="true"
+    />
+
+    <!-- Content layer -->
+    <div
+      class="relative z-[10] h-full flex flex-col justify-end pb-16 md:pb-24 lg:justify-center lg:pb-0
+             px-[clamp(1rem,4vw,2rem)] max-w-[1280px] mx-auto w-full"
+    >
+      <!-- Bloc titre (eyebrow + H1) encadré par l'arche fine ornementale -->
+      <div class="hero-title-block relative">
+        <!-- Arche fine décorative (accent-deco ornemental, aria-hidden) -->
+        <svg
+          class="pointer-events-none absolute -top-6 left-0 h-auto w-full
+                 max-w-[420px] sm:max-w-[520px] lg:max-w-[620px]"
+          viewBox="0 0 520 160"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M20 160 C20 60 120 8 260 8 C400 8 500 60 500 160"
+            stroke="var(--cgws-accent-deco)"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+
+        <!-- Eyebrow : barre décorative accent-deco + texte marque (mt-6 sous l'arche) -->
+        <div class="hero-eyebrow flex items-center gap-2.5 mt-6 mb-4 md:mb-5">
+          <span
+            class="block w-0.5 h-3 bg-cgws-accent-deco flex-shrink-0"
+            aria-hidden="true"
+          />
+          <p
+            class="font-eyebrow font-semibold text-[11px] md:text-xs text-cgws-brand-sand uppercase tracking-[0.3em]"
+          >
+            Sellerie Équestre Western · Brèches, 37
+          </p>
+        </div>
+
+        <!-- H1 : mots insécables (whitespace-nowrap) → lettres animables (.hero-letter) -->
+        <h1
+          class="font-display font-bold uppercase leading-none text-cgws-brand-cream
+                 text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
+                 mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
+          aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
+        >
+          <template v-for="(word, wi) in titleWords" :key="word.key">
+            <span class="inline-block whitespace-nowrap">
+              <span
+                v-for="letter in word.chars"
+                :key="letter.key"
+                class="hero-letter inline-block"
+                aria-hidden="true"
+              >{{ letter.char }}</span>
+            </span><span
+              v-if="wi < titleWords.length - 1"
+              class="hero-letter inline-block w-[0.25em]"
+              aria-hidden="true"
+            />
+          </template>
+        </h1>
+      </div>
+
+      <!-- Subtitle -->
+      <p
+        class="hero-subtitle font-serif italic text-cgws-brand-sand
+               text-[17px] md:text-[19px] lg:text-[21px]
+               leading-relaxed mb-8 md:mb-10 max-w-[45ch] md:max-w-[38ch]"
+      >
+        Équipements authentiques pour cavaliers passionnés —
+        neuf, occasion et consignation.
+      </p>
+
+      <!-- CTAs -->
+      <div class="hero-ctas flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <CgwsButton
+          as="NuxtLink"
+          to="/catalogue"
+          variant="primary"
+          size="md"
+          class="w-full sm:w-auto"
+        >
+          Découvrir le catalogue
+        </CgwsButton>
+
+        <CgwsButton
+          as="NuxtLink"
+          to="/consignation"
+          variant="outline-light"
+          size="md"
+          class="w-full sm:w-auto"
+        >
+          Service consignation
+        </CgwsButton>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div
+      class="hero-scroll-indicator absolute bottom-7 left-1/2 -translate-x-1/2 z-[10]
+             flex flex-col items-center gap-1"
+      role="presentation"
+      aria-label="Défiler vers le bas"
+    >
+      <span class="font-eyebrow text-[10px] text-cgws-brand-sand/60 uppercase tracking-widest">
+        Découvrir
+      </span>
+      <svg
+        width="16"
+        height="24"
+        viewBox="0 0 16 24"
+        fill="none"
+        aria-hidden="true"
+        class="text-cgws-brand-sand"
+      >
+        <path d="M2 8 L8 14 L14 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <path d="M2 14 L8 20 L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />
+      </svg>
+    </div>
+  </section>
+</template>

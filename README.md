@@ -73,3 +73,25 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Synchronisation GitHub ↔ Notion
+
+Deux scripts dans `scripts/` maintiennent une base Notion et les issues GitHub en miroir :
+
+- `sync-to-notion.cjs` — pousse une issue vers Notion à chaque événement GitHub
+  (workflow `.github/workflows/github-to-notion.yml`).
+- `sync-to-github.cjs` — relit la base Notion et répercute les changements
+  vers les issues GitHub, toutes les 10 min via cron
+  (workflow `.github/workflows/notion-to-github.yml`).
+
+Les champs **titre**, **état**, **labels** et **corps (Body)** sont synchronisés
+dans les deux sens ; en cas de différence, **Notion fait foi**.
+
+### Limites connues
+
+- Le corps (Body) est stocké dans Notion en blocs `rich_text` de 2000 caractères
+  (limite de l'API Notion). La synchro en découpe / recompose automatiquement le
+  texte, jusqu'à **~40 000 caractères** (20 blocs). Au-delà, le contenu est tronqué
+  côté Notion avec la mention « (...) contenu tronqué, voir l'issue GitHub » ;
+  dans ce cas, GitHub reste la source de vérité et le corps de l'issue n'est pas
+  réécrit depuis Notion.

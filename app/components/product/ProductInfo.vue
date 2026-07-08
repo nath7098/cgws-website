@@ -1,0 +1,242 @@
+<script setup lang="ts">
+import type { Product, ProductCategory, ProductCondition } from '~/types'
+import { useCartStore } from '~/stores/cart'
+
+interface Props {
+  product: Product
+}
+
+const props = defineProps<Props>()
+
+const cart = useCartStore()
+const toast = useToast()
+
+const isSold = computed(() => props.product.status === 'sold')
+const isPurchasable = computed(() => props.product.status === 'active')
+
+// US-070 — feedback d'ajout : toast succès, ou toast neutre si la pièce
+// (unique, stock 1) est déjà dans le panier — la quantité reste à 1.
+function addToCart(): void {
+  const added = cart.add(props.product)
+  if (added) {
+    toast.add({
+      title: 'Ajouté au panier',
+      description: props.product.title,
+      icon: 'i-lucide-shopping-basket',
+      color: 'success',
+    })
+  }
+  else {
+    toast.add({
+      title: 'Déjà dans votre panier',
+      description: 'Cet article est une pièce unique — un seul exemplaire par commande.',
+      icon: 'i-lucide-info',
+      color: 'neutral',
+    })
+  }
+}
+
+const conditionBadgeVariant = computed((): 'sold' | 'reserved' | 'new' | 'occasion' => {
+  if (isSold.value) return 'sold'
+  if (props.product.status === 'reserved') return 'reserved'
+  return props.product.condition === 'new' ? 'new' : 'occasion'
+})
+
+const showConsignmentBadge = computed(
+  () => props.product.isConsignment && !isSold.value,
+)
+
+const conditionLabel: Record<ProductCondition, string> = {
+  new: 'Article neuf — jamais utilisé',
+  excellent: 'Excellent état — très légèrement utilisé',
+  good: "Bon état — légères marques d'usage",
+  fair: "État correct — marques d'usure visibles",
+}
+
+const categoryLabel: Record<ProductCategory, string> = {
+  selles: 'Selles',
+  'brides-licols': 'Brides & Licols',
+  'bottes-chaussures': 'Bottes & Chaussures',
+  vetements: 'Vêtements',
+  accessoires: 'Accessoires',
+  protections: 'Protections',
+}
+
+const priceColorClass = computed(() =>
+  isSold.value ? 'text-cgws-ink-soft' : 'text-cgws-accent',
+)
+
+let ctx: { revert: () => void } | undefined
+
+onMounted(async () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const { gsap } = await import('gsap')
+
+  ctx = gsap.context(() => {
+    gsap.from([
+      '.product-info-badges',
+      '.product-info-title',
+      '.product-info-meta',
+      '.product-info-price',
+      '.product-info-details',
+      '.product-info-description',
+      '.product-info-consignment',
+      '.product-info-cta',
+    ], {
+      opacity: 0,
+      x: 16,
+      duration: 0.45,
+      ease: 'power2.out',
+      stagger: 0.07,
+      delay: 0.2,
+      clearProps: 'all',
+    })
+  })
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
+</script>
+
+<template>
+  <div class="flex flex-col gap-5">
+    <!-- Badges row -->
+    <div class="product-info-badges flex flex-wrap items-center gap-2">
+      <CgwsBadge :variant="conditionBadgeVariant" />
+      <CgwsBadge v-if="showConsignmentBadge" variant="consignment" />
+    </div>
+
+    <!-- H1 — unique sur la page -->
+    <h1
+      class="product-info-title font-serif font-bold text-[24px] sm:text-[28px] lg:text-[36px] text-cgws-ink leading-tight mt-1"
+    >
+      {{ product.title }}
+    </h1>
+
+    <!-- Marque · Catégorie -->
+    <p class="product-info-meta font-sans text-sm text-cgws-ink-soft flex items-center gap-2">
+      <span>{{ product.brand }}</span>
+      <span aria-hidden="true">·</span>
+      <span>{{ categoryLabel[product.category] }}</span>
+    </p>
+
+    <!-- Séparateur -->
+    <hr class="border-t border-cgws-hairline my-1" aria-hidden="true">
+
+    <!-- Prix -->
+    <p class="product-info-price font-display text-[48px] tabular-nums leading-none mt-1" :class="priceColorClass">
+      <span class="sr-only">Prix : </span>
+      <span :aria-label="`${product.price.toFixed(0)} euros`">
+        {{ product.price.toFixed(0) }} €
+      </span>
+    </p>
+
+    <!-- État + Taille -->
+    <div class="product-info-details flex flex-col gap-1.5">
+      <!-- Condition -->
+      <p class="font-sans font-medium text-sm text-cgws-ink-soft flex items-center gap-1.5">
+        <UIcon name="i-lucide-tag" class="w-3.5 h-3.5 text-cgws-accent/70 flex-shrink-0" aria-hidden="true" />
+        {{ conditionLabel[product.condition] }}
+      </p>
+
+      <!-- Taille (conditionnelle) -->
+      <p
+        v-if="product.size"
+        class="font-sans text-sm text-cgws-ink-soft flex items-center gap-1.5"
+      >
+        <UIcon name="i-lucide-ruler" class="w-3.5 h-3.5 text-cgws-ink-soft/50 flex-shrink-0" aria-hidden="true" />
+        <span class="sr-only">Taille : </span>Taille : {{ product.size }}
+      </p>
+    </div>
+
+    <!-- Séparateur -->
+    <hr class="border-t border-cgws-hairline my-1" aria-hidden="true">
+
+    <!-- Description complète -->
+    <p
+      class="product-info-description font-sans text-base text-cgws-ink leading-relaxed whitespace-pre-wrap"
+    >
+      {{ product.description }}
+    </p>
+
+    <!-- Encart consignation -->
+    <div
+      v-if="product.isConsignment && !isSold"
+      class="product-info-consignment bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4 flex flex-col gap-3"
+      role="note"
+      aria-label="Information consignation"
+    >
+      <div class="self-start">
+        <CgwsBadge variant="consignment" />
+      </div>
+      <p class="font-sans text-[13px] text-cgws-ink-soft leading-relaxed">
+        Cet article est proposé en consignation par un particulier. Son prix a été convenu avec CGWS.
+      </p>
+      <!-- eslint-disable link-checker/valid-route, link-checker/valid-sitemap-link -->
+      <NuxtLink
+        to="/consignation"
+        class="font-sans font-medium text-[13px] text-cgws-accent hover:text-cgws-ink-soft transition-colors duration-150 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-accent rounded-sm self-start"
+      >
+        En savoir plus sur la consignation
+      </NuxtLink>
+      <!-- eslint-enable link-checker/valid-route, link-checker/valid-sitemap-link -->
+    </div>
+
+    <!-- CTA zone -->
+    <div class="product-info-cta flex flex-col gap-3 mt-2">
+      <!-- État actif : achat en ligne (US-070) + téléphone + message -->
+      <template v-if="!isSold">
+        <CgwsButton
+          v-if="isPurchasable"
+          variant="primary"
+          size="md"
+          class="w-full justify-center"
+          :aria-label="`Ajouter ${product.title} au panier`"
+          @click="addToCart"
+        >
+          <UIcon name="i-lucide-shopping-basket" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
+          Ajouter au panier
+        </CgwsButton>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <CgwsButton
+            :variant="isPurchasable ? 'secondary' : 'primary'"
+            size="md"
+            as="a"
+            href="tel:+33247561234"
+            class="flex-1 justify-center"
+            :aria-label="`Appeler CGWS pour acquérir ${product.title}`"
+          >
+            <UIcon name="i-lucide-phone" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
+            Appeler la boutique
+          </CgwsButton>
+
+          <CgwsButton
+            variant="secondary"
+            size="md"
+            as="NuxtLink"
+            to="/contact"
+            class="flex-1 justify-center"
+            :aria-label="`Contacter CGWS par message pour ${product.title}`"
+          >
+            Contacter par message
+          </CgwsButton>
+        </div>
+      </template>
+
+      <!-- État vendu : bouton désactivé -->
+      <CgwsButton
+        v-else
+        variant="primary"
+        size="md"
+        disabled
+        class="w-full cursor-not-allowed"
+        aria-disabled="true"
+      >
+        Article vendu
+      </CgwsButton>
+    </div>
+  </div>
+</template>
