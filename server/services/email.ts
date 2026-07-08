@@ -1,6 +1,25 @@
 import { Resend } from 'resend'
 
 // ---------------------------------------------------------------------------
+// Helper d'envoi — le SDK Resend ne throw PAS en cas d'erreur API : il
+// retourne { data, error }. Sans inspection explicite, les échecs sont
+// silencieux (aucun log en production). Ce helper logge chaque issue.
+// ---------------------------------------------------------------------------
+
+async function sendViaResend(
+  resend: Resend,
+  payload: Parameters<Resend['emails']['send']>[0],
+  label: string,
+): Promise<void> {
+  const { data, error } = await resend.emails.send(payload)
+  if (error) {
+    console.error(`[email] ${label} FAILED:`, error.name, error.message)
+    return
+  }
+  console.info(`[email] ${label} sent — id: ${data?.id ?? 'unknown'}`)
+}
+
+// ---------------------------------------------------------------------------
 // Contact email
 // ---------------------------------------------------------------------------
 
@@ -126,13 +145,13 @@ export async function sendContactEmail(
   const resend = new Resend(apiKey)
   const subjectLabel = subjectLabels[data.subject] ?? data.subject
 
-  await resend.emails.send({
+  await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
     to: [recipientEmail],
     replyTo: data.senderEmail,
     subject: `[CGWS Contact] ${subjectLabel} — ${data.senderName}`,
     html: buildContactEmailHtml(data),
-  })
+  }, 'contact')
 }
 
 export interface ConsignmentEmailData {
@@ -260,12 +279,12 @@ export async function sendConsignmentConfirmation(
 
   const resend = new Resend(apiKey)
 
-  await resend.emails.send({
+  await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
     to: [data.depositorEmail],
     subject: 'Votre demande de consignation est bien reçue — CGWS',
     html: buildConsignmentConfirmationHtml(data),
-  })
+  }, 'consignment-confirmation')
 }
 
 // ---------------------------------------------------------------------------
@@ -380,12 +399,12 @@ export async function sendConsignmentAcceptEmail(
 
   const resend = new Resend(apiKey)
 
-  await resend.emails.send({
+  await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
     to: [data.depositorEmail],
     subject: 'Votre consignation a été acceptée — CGWS',
     html: buildConsignmentAcceptHtml(data),
-  })
+  }, 'consignment-accept')
 }
 
 export interface ConsignmentRejectEmailData {
@@ -482,12 +501,12 @@ export async function sendConsignmentRejectEmail(
 
   const resend = new Resend(apiKey)
 
-  await resend.emails.send({
+  await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
     to: [data.depositorEmail],
     subject: 'Votre demande de consignation — CGWS',
     html: buildConsignmentRejectHtml(data),
-  })
+  }, 'consignment-reject')
 }
 
 // ---------------------------------------------------------------------------
@@ -621,12 +640,12 @@ export async function sendConsignmentSaleEmail(
 
   const resend = new Resend(apiKey)
 
-  await resend.emails.send({
+  await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
     to: [data.depositorEmail],
     subject: 'Votre article a été vendu — CGWS',
     html: buildConsignmentSaleHtml(data),
-  })
+  }, 'consignment-sale')
 }
 
 // ---------------------------------------------------------------------------
@@ -787,7 +806,7 @@ export async function sendOrderConfirmationEmail(
 
   const resend = new Resend(apiKey)
 
-  await resend.emails.send({
+  await sendViaResend(resend, {
     // Le domaine cgws.fr n'est pas encore vérifié dans Resend : on utilise le
     // domaine de test `onboarding@resend.dev` (n'envoie qu'à l'adresse du
     // compte Resend). À remplacer par 'CGWS <noreply@cgws.fr>' une fois le
@@ -796,5 +815,5 @@ export async function sendOrderConfirmationEmail(
     to: [data.customerEmail],
     subject: 'Confirmation de votre commande — CGWS',
     html: buildOrderConfirmationHtml(data),
-  })
+  }, 'order-confirmation')
 }
