@@ -6,6 +6,7 @@ import { addCartLine, removeCartLine, computeSubtotal } from '#shared/utils/chec
 import { useSupabase } from '~/composables/useSupabase'
 
 const CART_STORAGE_KEY = 'cgws-cart'
+const PENDING_ORDER_KEY = 'cgws-pending-order'
 
 function toCartItem(product: Product): CartItem {
   return {
@@ -34,6 +35,12 @@ function toCartItem(product: Product): CartItem {
  */
 export const useCartStore = defineStore('cart', () => {
   const items = skipHydrate(useLocalStorage<CartItem[]>(CART_STORAGE_KEY, [], { deep: true }))
+
+  /** ID de la dernière commande `pending` créée pour ce panier. Persisté pour
+   *  pouvoir libérer ses réservations si l'acheteur revient sur /checkout après
+   *  avoir abandonné (il ne se bloque pas sur ses propres pièces). Vidé après
+   *  paiement réussi (clear) ou remplacé à chaque nouvelle session. */
+  const pendingOrderId = skipHydrate(useLocalStorage<string | null>(PENDING_ORDER_KEY, null))
 
   /** IDs des produits du panier devenus indisponibles (vendus/réservés/retirés
    *  entre-temps). Non persisté — recalculé via refreshAvailability(). */
@@ -76,6 +83,12 @@ export const useCartStore = defineStore('cart', () => {
   function clear(): void {
     items.value = []
     unavailableIds.value = []
+    pendingOrderId.value = null
+  }
+
+  /** Mémorise (ou efface) la commande pending associée au panier courant. */
+  function setPendingOrder(orderId: string | null): void {
+    pendingOrderId.value = orderId
   }
 
   /**
@@ -106,6 +119,7 @@ export const useCartStore = defineStore('cart', () => {
 
   return {
     items,
+    pendingOrderId,
     unavailableIds,
     count,
     isEmpty,
@@ -116,6 +130,7 @@ export const useCartStore = defineStore('cart', () => {
     add,
     remove,
     clear,
+    setPendingOrder,
     refreshAvailability,
   }
 })

@@ -50,7 +50,7 @@ export default defineEventHandler(async (event: H3Event): Promise<{ order: Order
       status: order.status as OrderStatus,
       customerName: order.customer_name,
       email: order.email,
-      fulfillmentMethod: order.fulfillment_method as FulfillmentMethod,
+      fulfillmentMethod: (order.fulfillment_method as FulfillmentMethod | null) ?? null,
       shippingAddress: (order.shipping_address as ShippingAddress | null) ?? null,
       subtotal: Number(order.subtotal ?? 0),
       shippingCost: Number(order.shipping_cost ?? 0),

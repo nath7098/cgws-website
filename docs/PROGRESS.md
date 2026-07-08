@@ -403,3 +403,55 @@ Corrections QA : polygones SVG passés de fill hardcodé à class="fill-cgws-cop
 4. **Validation e2e réelle** (paiement carte test, réception webhook signé, emails Resend, rejeu webhook, concurrence) : à faire une fois Supabase + Stripe live.
 
 **À arbitrer plus tard** (non bloquant) : réservation temporaire au panier (deux acheteurs peuvent créer chacun une commande `pending` sur la même pièce unique sans verrou — acceptable à faible trafic) ; quantité toujours = 1 par ligne (modèle pièce unique).
+
+---
+
+## US-082 — Rework E8 : Checkout Stripe embarqué + réservation des pièces uniques — PASS (2e passe)
+
+**2026-07-08 · branche `feature/US-082-embedded-checkout` · décisions Nathan** : checkout **embarqué** (plutôt que redirection hébergée) · **tous moyens de paiement** éligibles (Dashboard-driven, plus de `payment_method_types` figé) · **réservation** des pièces uniques (correction de la double-vente actée « à arbitrer » en E8) · **livraison/adresse déléguées à Stripe** (`shipping_address_collection` + `shipping_options`).
+
+**Architecture** : le formulaire CGWS de coordonnées/adresse/mode de réception est SUPPRIMÉ — Stripe collecte tout dans le Checkout embarqué (`ui_mode: 'embedded_page'`, monté via `@stripe/stripe-js` dans `/checkout`, `return_url` → `/checkout/success?session_id=…`). Le serveur ne reçoit plus que `{ productIds, previousOrderId? }` ; les coordonnées sont rapatriées au paiement par le webhook (`customer_details`, `collected_information.shipping_details`), d'où la migration **005** (orders `email`/`customer_name`/`fulfillment_method` nullable + `products.reserved_until`/`reserved_order_id`). Mode de réception déduit du shipping choisi dans Stripe (coût > 0 ⇒ livraison ; retrait Brèches = option 0 €).
+
+**Réservation anti double-vente** : à la création de session, verrou atomique `active → reserved` (update conditionnel `eq status active`) + `reserved_order_id` (ne touche jamais une réservation manuelle admin) ; course perdue ⇒ rollback complet + 409. `expires_at` session 35 min aligné sur `reserved_until`. Libération sur `expired`/`async_payment_failed` (webhook) et sur retour au checkout après abandon (`previousOrderId` → release, l'acheteur ne se bloque pas lui-même).
+
+**Fulfillment partagé** (`server/utils/fulfillment.ts`) : source de vérité unique appelée par le webhook (`completed`/`async_payment_succeeded`) ET par la landing page (`GET /api/checkout/session-status`) — reco Stripe. Idempotence conservée (update conditionnel `pending → paid`). Paiements asynchrones gérés (`completed`+`unpaid` ne fulfille pas). Produits `reserved → sold` + `sales` (CA admin) + emails, comme avant.
+
+**QA** : FAIL 1re passe (bloquant : insert `order_items` perdu à la réécriture de `session.post.ts` → fulfillment à vide, produits bloqués `reserved`, aucune vente/email ; + code mort `reservedIds`) → fix → **PASS 2e passe**. vue-tsc 0 err · ESLint 0 err · tests unitaires 18/18 · build EXIT 0 · 0 `any`.
+
+**Fichiers** : migration `005_orders_reservation.sql` ; `server/utils/fulfillment.ts` (nouveau) ; `server/api/checkout/{session.post,webhook.post,session-status.get}.ts` ; `server/api/orders/[id].get.ts` (null-safe) ; `app/composables/useCheckout.ts` ; `app/pages/checkout/{index,success}.vue` ; `app/stores/cart.ts` (`pendingOrderId`) ; `app/types/index.ts` ; `nuxt.config.ts` (+`public.stripePublishableKey`) ; dépendance `@stripe/stripe-js@8`.
+
+**Actions requises avant mise en service** (Nathan) :
+1. Appliquer la migration `005_orders_reservation.sql` sur le projet Supabase prod.
+2. Ajouter `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (pk_…) en env Vercel.
+3. Mettre à jour l'endpoint webhook Stripe : ajouter les événements `checkout.session.async_payment_succeeded` + `checkout.session.async_payment_failed` (en plus de `completed`/`expired`).
+4. Test e2e en mode test Stripe (compte « environnement de test cgws » connecté au MCP) : carte 4242…, vérif produit `reserved→sold`, ligne `sales`, emails.
+
+**Non bloquant, acté** : `GET /api/orders/[id]` orphelin côté front (conservé) ; `previousOrderId` non authentifié (UUID non devinable, risque faible, cohérent avec le modèle de sécurité existant) ; `SHIPPING_FLAT_RATE` 9,90 € toujours placeholder Camille.
+
+---
+
+## Go-live v0 (PR #19) + hotfixes production post-E8
+
+**Statut prod (2026-07-08, confirmé Nathan)** : `develop` a été **squash-mergé dans `main`** (commit unique `15c26e7` « v0 (#19) »), puis `develop` **recréé depuis `main`** → les deux branches sont alignées sur `v0`. Tout l'historique détaillé ci-dessus (Sprints 0→7 + Epic E8) est collapsé dans ce commit unique ; **`git log` ne montre plus que `v0` + `iniital setup`** (la reconstitution fine passe par le reflog). **Tout le code est déployé en production** via Vercel (auto-deploy sur `main`).
+
+**Conséquence sur US-002 (Supabase live)** : le blocage historique est **levé de facto**. Un projet Supabase réel tourne en production — attesté par la série de hotfixes runtime ci-dessous qui ne pouvaient se manifester que contre une vraie instance. Le journal antérieur mentionne encore US-002 « bloqué » : c'est de l'historique, **ne plus le considérer comme ouvert**.
+
+### Hotfixes runtime appliqués après l'Epic E8 (non journalisés individuellement à l'époque — rattrapage documentaire)
+
+Tous mergés dans `develop` puis inclus dans le squash `v0`. Reconstitués depuis le reflog + lecture du code en place :
+
+| Sujet | Fichier(s) | Nature du fix |
+|-------|-----------|---------------|
+| **Images Supabase cassées (issue #6)** | `~/providers/supabase-provider.ts`, `nuxt.config.ts` | baseURL du provider `nuxt/image` mal résolue en prod → images produit 404. Provider Supabase custom + `render/image/...` corrigé. |
+| **Crash header clé Supabase** | `app/composables/useSupabase.ts`, `server/utils/adminSupabase.ts` | Env var Vercel « sale » (BOM UTF-8 `U+FEFF` en tête d'URL / caractère non-Latin1 dans la clé, **issue #16**) → **toutes** les requêtes échouaient (503/headers invalides) en prod alors que la même clé marchait en local. Fix : `sanitizeCredential()` (retire tout hors ASCII imprimable `\x21-\x7E`) **symétrique** côté client public ET client admin service-role. |
+| **BOM dans image provider** | provider image | Même famille de bug (BOM) côté résolution d'URL image. |
+| **Sanitisation credentials admin** | `server/utils/adminSupabase.ts` | `getAdminSupabase()` applique `sanitizeCredential` sur `supabaseUrl` + `supabaseServiceRoleKey`. |
+| **Email de confirmation commande** | `server/services/email.ts` | Expéditeur de l'email **acheteur** basculé sur `CGWS <onboarding@resend.dev>` (domaine de test Resend, n'envoie qu'à l'adresse du compte) car `cgws.fr` **pas encore vérifié dans Resend**. ⚠️ Les autres templates (consignation, contact, vente) sont restés en `noreply@cgws.fr` — **incohérence à traiter** : ils échoueront tant que le domaine n'est pas vérifié. |
+
+### Points de blocage encore réellement ouverts (mis à jour)
+
+1. ~~US-002 Supabase live~~ → **RÉSOLU** (projet Supabase en prod).
+2. **Domaine Resend `cgws.fr` non vérifié** : seul l'email de confirmation commande a été rabattu sur `onboarding@resend.dev` ; les 4 autres templates pointent toujours `noreply@cgws.fr` et n'enverront pas. À vérifier le domaine dans Resend puis réunifier l'expéditeur.
+3. **`SHIPPING_FLAT_RATE = 9,90 €`** : toujours un placeholder non confirmé par Camille.
+4. **Clés Stripe prod** (`STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`) : présence/validité en env Vercel à confirmer ; endpoint webhook `POST /api/checkout/webhook`.
+5. **Contenus réels Camille** : textes légaux, coordonnées, vraies photos, CGV/SIRET — inchangé.

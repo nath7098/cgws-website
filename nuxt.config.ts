@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     supabaseServiceRoleKey: process.env.NUXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY ?? '',
     resendApiKey: process.env.RESEND_API_KEY ?? '',
-    // Stripe — serveur uniquement (jamais dans public : checkout hébergé, zéro clé côté client)
+    // Stripe secret — serveur uniquement (clé secrète + secret de webhook)
     stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
     stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
     // TODO: set CGWS_CAMILLE_EMAIL env var in production (replace placeholder)
@@ -16,6 +16,9 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://cgws.fr',
+      // Stripe publishable key — nécessaire côté client pour monter le
+      // Checkout embarqué (pk_...). Publique par nature (aucun secret).
+      stripePublishableKey: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
     },
   },
 
