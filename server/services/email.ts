@@ -1,6 +1,20 @@
 import { Resend } from 'resend'
 
 // ---------------------------------------------------------------------------
+// Construction du client — nettoie la clé API avant `new Resend()` : une env
+// var Vercel polluée (BOM U+FEFF, caractère non-ASCII — voir issue #16)
+// produit un header Authorization invalide et fait échouer TOUS les envois en
+// production alors que la même clé fonctionne en local. Même pattern que
+// `sanitizeCredential` dans `server/utils/adminSupabase.ts`.
+// ---------------------------------------------------------------------------
+
+function createResendClient(apiKey: string): Resend | null {
+  const sanitized = apiKey.replace(/[^\x21-\x7E]/g, '')
+  if (!sanitized) return null
+  return new Resend(sanitized)
+}
+
+// ---------------------------------------------------------------------------
 // Helper d'envoi — le SDK Resend ne throw PAS en cas d'erreur API : il
 // retourne { data, error }. Sans inspection explicite, les échecs sont
 // silencieux (aucun log en production). Ce helper logge chaque issue.
@@ -140,9 +154,9 @@ export async function sendContactEmail(
   data: ContactEmailData,
   recipientEmail: string,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
   const subjectLabel = subjectLabels[data.subject] ?? data.subject
 
   await sendViaResend(resend, {
@@ -275,9 +289,8 @@ export async function sendConsignmentConfirmation(
   apiKey: string,
   data: ConsignmentEmailData,
 ): Promise<void> {
-  if (!apiKey) return
-
-  const resend = new Resend(apiKey)
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
   await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
@@ -395,9 +408,8 @@ export async function sendConsignmentAcceptEmail(
   apiKey: string,
   data: ConsignmentAcceptEmailData,
 ): Promise<void> {
-  if (!apiKey) return
-
-  const resend = new Resend(apiKey)
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
   await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
@@ -497,9 +509,8 @@ export async function sendConsignmentRejectEmail(
   apiKey: string,
   data: ConsignmentRejectEmailData,
 ): Promise<void> {
-  if (!apiKey) return
-
-  const resend = new Resend(apiKey)
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
   await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
@@ -636,9 +647,8 @@ export async function sendConsignmentSaleEmail(
   apiKey: string,
   data: ConsignmentSaleEmailData,
 ): Promise<void> {
-  if (!apiKey) return
-
-  const resend = new Resend(apiKey)
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
   await sendViaResend(resend, {
     from: 'CGWS <noreply@cgws.fr>',
@@ -802,9 +812,8 @@ export async function sendOrderConfirmationEmail(
   apiKey: string,
   data: OrderConfirmationEmailData,
 ): Promise<void> {
-  if (!apiKey) return
-
-  const resend = new Resend(apiKey)
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
   await sendViaResend(resend, {
     // Le domaine cgws.fr n'est pas encore vérifié dans Resend : on utilise le

@@ -181,39 +181,50 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
     }
 
     if (consignmentData && apiKey) {
-      sendConsignmentSaleEmail(apiKey, {
-        depositorName: consignmentData.depositor_name,
-        depositorEmail: consignmentData.depositor_email,
-        itemDescription: consignmentData.item_description,
-        salePrice: Number(item.price),
-        commissionAmount,
-        agreedPrice: consignmentData.agreed_price !== null ? Number(consignmentData.agreed_price) : null,
-        consignmentId: consignmentData.id,
-      }).catch(() => {
-        // Non-bloquant — l'échec d'email n'affecte pas la confirmation.
-      })
+      // Awaité impérativement : en serverless (Vercel), un fire-and-forget est
+      // gelé/tué dès que la réponse part — l'email n'est jamais envoyé.
+      try {
+        await sendConsignmentSaleEmail(apiKey, {
+          depositorName: consignmentData.depositor_name,
+          depositorEmail: consignmentData.depositor_email,
+          itemDescription: consignmentData.item_description,
+          salePrice: Number(item.price),
+          commissionAmount,
+          agreedPrice: consignmentData.agreed_price !== null ? Number(consignmentData.agreed_price) : null,
+          consignmentId: consignmentData.id,
+        })
+      }
+      catch {
+        // Non-bloquant : l'échec d'email n'affecte pas la confirmation.
+      }
     }
   }
 
-  // ─── Email de confirmation acheteur (non-bloquant) ─────────────────────────
+  // ─── Email de confirmation acheteur (non-bloquant mais AWAITÉ) ─────────────
+  // En serverless (Vercel), un fire-and-forget est gelé/tué dès que la réponse
+  // part — l'email n'est jamais envoyé. On await, le try/catch conserve la
+  // sémantique non-bloquante.
   if (apiKey && order.email) {
-    sendOrderConfirmationEmail(apiKey, {
-      customerName: order.customer_name ?? '',
-      customerEmail: order.email,
-      orderId: order.id,
-      items: (orderItems ?? []).map(item => ({
-        title: item.title,
-        price: Number(item.price),
-        quantity: 1,
-      })),
-      subtotal: Number(order.subtotal ?? 0),
-      shippingCost: Number(order.shipping_cost ?? 0),
-      total: Number(order.total ?? 0),
-      fulfillmentMethod: order.fulfillment_method as FulfillmentMethod,
-      shippingAddress: (order.shipping_address as ShippingAddress | null) ?? undefined,
-    }).catch(() => {
-      // Non-bloquant.
-    })
+    try {
+      await sendOrderConfirmationEmail(apiKey, {
+        customerName: order.customer_name ?? '',
+        customerEmail: order.email,
+        orderId: order.id,
+        items: (orderItems ?? []).map(item => ({
+          title: item.title,
+          price: Number(item.price),
+          quantity: 1,
+        })),
+        subtotal: Number(order.subtotal ?? 0),
+        shippingCost: Number(order.shipping_cost ?? 0),
+        total: Number(order.total ?? 0),
+        fulfillmentMethod: order.fulfillment_method as FulfillmentMethod,
+        shippingAddress: (order.shipping_address as ShippingAddress | null) ?? undefined,
+      })
+    }
+    catch {
+      // Non-bloquant : l'échec d'email n'affecte pas la confirmation.
+    }
   }
 }
 
