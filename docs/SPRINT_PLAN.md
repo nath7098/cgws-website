@@ -15,7 +15,8 @@
 | Sprint 5 | 1 sem | Polish & Go-live | 21 | Animations + perf + tests E2E |
 | Sprint 6 | — | Refonte v3 bi-thème | — | Rebrand design system + skin switcher public/admin |
 | Sprint 7 | 1 sem | Features post-refonte | 16 | Import CSV produits + espace déposant (magic link) |
-| **TOTAL** | **9 sem** | **6 épics** | **123 pts** | *(hors Sprint 6/7, ajoutés après le pivot refonte)* |
+| Sprint 8 | 1 sem | Qualité & Dette technique | 20 | Typecheck réel à 0 erreur, CI verte, tests chemin de paiement, emails unifiés, nettoyage |
+| **TOTAL** | **9 sem** | **6 épics** | **123 pts** | *(hors Sprint 6/7/8, ajoutés après le pivot refonte et la recette US-082)* |
 
 **Velocity cible** : 13–27 pts/sprint selon durée
 **Capacité** : projet solo/micro-team, sessions de travail le soir + weekends
@@ -1182,3 +1183,299 @@ Then   je suis redirigé(e) vers /espace-deposant
 - Email du magic link : template Supabase Auth par défaut, personnalisable ultérieurement — envoi réel dépendant de US-002 (Supabase live).
 
 **Commit** : `feat(depositor): read-only consignment tracking space via magic link auth [US-066]`
+
+---
+
+## Épic E9 — Qualité & Dette Technique
+
+**Sprint 8 · 1 semaine · 20 points**
+**Objectif** : Résorber la dette révélée par la recette US-082 (voir `docs/PROGRESS.md` § « US-082 — Recette prod & correctifs ») : le gate TypeScript ne vérifiait rien depuis le début du projet, la CI e2e est rouge en permanence, le chemin de l'argent (fulfillment/réservation/webhook) n'a aucun test, l'expéditeur email est incohérent, et plusieurs items de code mort/dupliqué se sont accumulés. À la fin du sprint : `npm run typecheck && npm run lint && npm run test:unit && npm run build` passe en EXIT 0, la CI n'est plus jamais rouge par défaut, et la logique de paiement est couverte par des tests unitaires.
+
+| US | Titre | Points |
+|----|-------|--------|
+| US-090 | Gate TypeScript réel à zéro erreur | 5 |
+| US-091 | CI verte + tests du chemin de paiement | 8 |
+| US-092 | Emails : expéditeur centralisé et configurable | 2 |
+| US-093 | Nettoyage code mort et duplications | 5 |
+| **Total** | | **20** |
+
+**Ordre impératif** : US-090 d'abord (les autres US se valident contre un typecheck qui vérifie réellement), puis US-091, US-092, US-093.
+
+---
+
+### US-090 · Gate TypeScript réel à zéro erreur · 5 pts
+
+**En tant que** développeur,
+**Je veux** un `npm run typecheck` qui vérifie réellement tout le code (app + server + .vue) et passe à zéro erreur,
+**Afin de** ne plus jamais valider une US sur un faux positif — tous les « typecheck ✅ » historiques étaient illusoires (tsconfig « solution » racine avec `files:[]`).
+
+**Contexte dette** : le script a déjà été basculé sur `nuxi typecheck` (commit `7c4dfac`), ce qui a révélé **11 erreurs préexistantes**. Cette US les corrige toutes à la source et fiabilise `database.types.ts` (aujourd'hui maintenu à la main, désaligné à chaque migration).
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  le dépôt à jour sur la branche de travail
+When   je lance `npm run typecheck`
+Then   la commande exécute `nuxi typecheck` (jamais vue-tsc sur le tsconfig « solution » racine)
+And    elle se termine en EXIT 0 avec zéro erreur TypeScript
+
+Given  j'introduis volontairement une erreur de type dans un composant .vue (ex. const x: number = 'a')
+When   je relance `npm run typecheck`
+Then   la commande échoue (EXIT ≠ 0) et rapporte l'erreur avec fichier et ligne
+And    l'erreur volontaire est ensuite retirée — preuve que le gate vérifie réellement les fichiers .vue
+
+Given  les 11 erreurs préexistantes listées dans le tableau ci-dessous
+When   `npm run typecheck` passe en EXIT 0
+Then   chaque erreur est corrigée à la source (typage correct ou API correcte)
+And    aucune erreur n'a été masquée : `git diff` de l'US n'introduit AUCUN `any`, `as any`, `@ts-ignore` ni `@ts-expect-error`
+
+Given  le fichier app/types/database.types.ts (maintenu à la main jusqu'ici)
+When   je le régénère via `supabase gen types typescript` (CLI) ou le MCP supabase (generate_typescript_types)
+Then   le fichier commité est identique à la sortie générée (diff vide entre le fichier et la génération)
+And    il reflète l'intégralité des migrations appliquées en prod (001 → 006, dont orders.email/customer_name/fulfillment_method nullable, products.reserved_until/reserved_order_id)
+And    la procédure de régénération est documentée dans docs/DEV_GUIDE.md (commande exacte, prérequis, et la règle « à relancer après CHAQUE nouvelle migration, dans le même commit »)
+
+Given  toutes les corrections appliquées
+When   je lance `npm run lint` puis `npm run build` puis `npm run test:unit`
+Then   les trois commandes se terminent en EXIT 0 (les fixes de types ne changent aucun comportement runtime)
+```
+
+**Les 11 corrections attendues** (fichier:ligne au moment du constat — les lignes peuvent avoir bougé) :
+
+| # | Fichier | Erreur | Correction attendue |
+|---|---------|--------|---------------------|
+| 1 | `app/components/cart/CartDrawer.vue:43` | `'aria-label'` non accepté par les props du `:close` de USlideover/UButton | Utiliser la forme supportée par Nuxt UI v3 (vérifier via MCP nuxt-ui-remote) sans perdre l'accessibilité du bouton fermer |
+| 2 | `app/composables/useSeo.ts:48` | `ogType: 'product'` absent de l'union unhead | Typage conforme unhead v2 (og:type product via la clé/cast documenté unhead, pas de `as any`) |
+| 3 | `app/pages/catalogue/[slug].vue:72` | idem ogType | idem #2 |
+| 4 | `app/pages/catalogue/[slug].vue:81` | `children` dans `useHead` script | API unhead v2 : `innerHTML` |
+| 5 | `app/pages/index.vue:27` | idem `children` | `innerHTML` |
+| 6 | `app/pages/admin/ventes/index.vue:304` | `visibleOnce` inconnu des Options @vueuse/motion | Typage/usage conforme à la doc @vueuse/motion (directive `v-motion` avec `visible-once` ou typage des options) |
+| 7 | `app/providers/supabase-provider.ts:10` | `useRuntimeConfig` non auto-importé dans un provider Nuxt Image | Import explicite (`#imports` ou API prévue pour les providers — vérifier via MCP nuxt-remote) |
+| 8 | `server/api/admin/categories/[id].put.ts:121` | `.update(Record<string, unknown>)` rejeté | Payload typé sur le type `Update` généré de la table (issu de database.types.ts régénéré) |
+| 9 | `server/api/admin/consignments/[id].patch.ts:61` | idem | idem #8 |
+| 10 | `server/api/admin/clients/[id].get.ts:82` | `mapConsignmentRow` retourne `condition: string` au lieu de l'union `ProductCondition` | Narrowing/validation vers l'union (pas de cast aveugle) |
+| 11 | `server/api/admin/exports/consignment-receipt.get.ts:350` | `setResponseHeader('Content-Length', String(...))` attend un number | Passer un `number` |
+
+**Tâches techniques :**
+- Corriger les 11 erreurs une à une, en consultant les MCP `nuxt-remote`/`nuxt-ui-remote`/`context7` pour les APIs unhead v2, Nuxt UI v3 et @vueuse/motion (règle absolue CLAUDE.md)
+- Régénérer `app/types/database.types.ts` via `supabase gen types typescript` ou MCP supabase, comparer au schéma prod (migrations 001→006)
+- Répercuter les éventuels désalignements révélés par les types régénérés (les erreurs supplémentaires révélées font partie du périmètre : l'objectif est zéro erreur, pas « les 11 »)
+- Documenter la procédure de régénération dans `docs/DEV_GUIDE.md`
+
+**Commit** : `fix(types): real typecheck gate at zero errors with generated DB types [US-090]`
+
+---
+
+### US-091 · CI verte + tests du chemin de paiement · 8 pts
+
+**En tant que** développeur,
+**Je veux** une CI qui n'est plus jamais rouge par défaut et des tests unitaires sur toute la logique de paiement (fulfillment, réservation, webhook),
+**Afin de** détecter les régressions sur le chemin de l'argent — aujourd'hui couvert par ZÉRO test alors que c'est le code le plus critique du site.
+
+**Contexte dette** : la CI e2e (`.github/workflows/e2e.yml`) est rouge en permanence pour deux raisons indépendantes : `npm ci` cassé (package-lock, dépendance crossws sous npm 10) et secrets GitHub `SUPABASE_URL`/`SUPABASE_ANON_KEY` absents. Les seuls tests existants sont les 18 tests unitaires panier (`tests/unit/cart.spec.ts`) ; rien sur `server/utils/fulfillment.ts` ni sur la réservation/release ni sur le routage du webhook.
+
+**Critères d'acceptation :**
+
+```gherkin
+# --- Bloc A : réparation npm ci ---
+
+Given  un environnement vierge (CI ubuntu-latest Node 20, ou clone frais local avec node_modules supprimé)
+When   `npm ci` s'exécute
+Then   l'installation se termine en EXIT 0 (package-lock.json réparé/régénéré, résolution crossws fonctionnelle sous npm 10)
+And    `npm run build` passe ensuite en EXIT 0 sur ce node_modules issu de `npm ci` (aucun `npm install` de rattrapage)
+
+# --- Bloc B : workflow e2e jamais rouge par défaut ---
+
+Given  le workflow .github/workflows/e2e.yml déclenché sur push
+When   les secrets GitHub SUPABASE_URL / SUPABASE_ANON_KEY sont ABSENTS du dépôt
+Then   le job e2e est explicitement SKIPPED (pas exécuté, pas échoué) avec une justification visible dans le run
+       ("Secrets Supabase absents — e2e skippés, voir docs/DEV_GUIDE.md § CI")
+And    le run global du workflow se termine au VERT — plus jamais rouge à cause des secrets manquants
+
+Given  les secrets GitHub sont renseignés
+When   le workflow s'exécute
+Then   les tests e2e Playwright tournent réellement (build + `playwright test`) et le résultat reflète les vrais tests
+
+Given  Nathan veut activer les e2e en CI
+When   il consulte docs/DEV_GUIDE.md
+Then   une section « CI » liste les noms EXACTS des secrets GitHub à créer, où trouver chaque valeur,
+       et la commande pour vérifier localement (`npm ci && npm run build`)
+
+# --- Bloc C : tests unitaires fulfillment (mock Supabase + mock Resend, aucun réseau) ---
+
+Given  une commande "pending" et une session Stripe payée (payment_status "paid")
+When   fulfillOrder (server/utils/fulfillment.ts) est invoqué
+Then   la commande passe "pending" → "paid" via update CONDITIONNEL (filtre eq status pending)
+And    chaque produit de la commande est marqué "sold" via le mécanisme de verrou (cf. bloc D)
+And    une ligne sales est créée par produit et les emails de confirmation sont déclenchés (mocks appelés)
+
+Given  la même commande déjà passée à "paid" (l'update conditionnel pending→paid ne matche aucune ligne)
+When   fulfillOrder est rejoué (rejeu de webhook OU double appel webhook + session-status — cas réel documenté)
+Then   AUCUNE écriture supplémentaire : zéro update produit, zéro nouvelle ligne sales, zéro email
+And    l'appel se termine sans erreur (idempotence totale, le webhook doit toujours pouvoir répondre 200)
+
+Given  une session Stripe avec un shipping choisi dont le coût est > 0
+When   le fulfillment persiste la commande
+Then   fulfillment_method enregistré = "shipping"
+
+Given  une session Stripe avec l'option retrait Brèches à 0 €
+When   le fulfillment persiste la commande
+Then   fulfillment_method enregistré = "pickup"
+
+Given  un événement checkout.session.completed avec payment_status "unpaid" (paiement asynchrone en cours)
+When   le webhook le traite
+Then   AUCUN fulfillment n'est déclenché (la commande reste "pending", les produits restent réservés)
+
+# --- Bloc D : tests unitaires réservation / release (RPC reserve_product_unit / release_product_unit mockées) ---
+
+Given  la création de session checkout sur des produits disponibles
+When   la réservation réussit pour tous les produits (RPC reserve_product_unit renvoie succès)
+Then   la session est créée et la commande référence les produits réservés
+
+Given  la réservation échoue sur UN produit (course perdue : RPC renvoie échec/0 ligne)
+When   la création de session se poursuit
+Then   TOUTES les réservations déjà acquises pour cette commande sont restituées (rollback complet)
+And    l'API répond 409 sans créer de session Stripe
+
+Given  un produit "sold" au paiement
+When   fulfillOrder marque les produits vendus
+Then   le passage à "sold" n'est effectué QUE si la commande détient le verrou (reserved_order_id = commande courante)
+And    une commande qui ne détient pas/plus le verrou ne marque PAS le produit "sold"
+
+Given  une commande abandonnée déjà libérée (barrière pending→cancelled déjà franchie)
+When   la release est rejouée (webhook expired + retour checkout avec previousOrderId, ou double événement)
+Then   la restitution n'est PAS appliquée une seconde fois (aucun double incrément de stock)
+
+Given  un événement checkout.session.expired ou async_payment_failed
+When   le webhook le traite
+Then   la release des produits de la commande est déclenchée (et elle seule — pas de fulfillment)
+
+# --- Bloc E : exécution ---
+
+Given  la suite complète
+When   je lance `npm run test:unit`
+Then   tous les tests passent (les 18 tests panier existants + les nouveaux blocs C/D), EXIT 0
+And    aucun test n'effectue d'appel réseau réel (Supabase, Stripe et Resend intégralement mockés)
+```
+
+**Périmètre explicitement exclu** (à consigner en commentaire de tête des specs de test) : l'atomicité SQL réelle des fonctions `reserve_product_unit`/`release_product_unit` (migration 006) ne se teste pas en unitaire avec des mocks — elle relève de la recette e2e contre une vraie base. Les tests unitaires couvrent l'ORCHESTRATION serveur (appels, ordres, rollbacks, idempotence applicative, routage des événements webhook).
+
+**Tâches techniques :**
+- Réparer `package-lock.json` (régénération contrôlée) et vérifier `npm ci` sur environnement propre
+- `e2e.yml` : condition de skip sur présence des secrets (mécanisme au choix, résultat exigé : run vert + skip visible et justifié)
+- `tests/unit/fulfillment.spec.ts` + `tests/unit/reservation.spec.ts` (ou découpage équivalent) — vitest, mock du client Supabase (chaînage `from().update().eq()…` et `rpc()`), mock Resend/`sendViaResend`, fixtures de sessions Stripe (completed paid/unpaid, expired, async_payment_failed)
+- Si `server/utils/fulfillment.ts` ou les handlers webhook nécessitent une injection de dépendances pour être testables, le refactor minimal fait partie de l'US (sans changement de comportement — couvert par les tests eux-mêmes)
+- Documenter les secrets CI dans `docs/DEV_GUIDE.md` § CI
+
+**Commit** : `test(payments): green CI and unit coverage for fulfillment, reservation and webhook routing [US-091]`
+
+---
+
+### US-092 · Emails — expéditeur centralisé et configurable · 2 pts
+
+**En tant que** gérante (P1),
+**Je veux** que tous les emails du site partent d'un expéditeur unique, configurable sans toucher au code,
+**Afin de** basculer proprement sur `noreply@cgws.fr` le jour où le domaine sera vérifié dans Resend — aujourd'hui 5 templates sur 6 pointent un domaine non vérifié et échouent systématiquement.
+
+**Contexte dette** : dans `server/services/email.ts`, 5 templates ont `from: 'CGWS <noreply@cgws.fr>'` (domaine NON vérifié dans Resend → échec garanti) et seul order-confirmation utilise `onboarding@resend.dev`.
+
+**⚠️ Prérequis externe HORS US** : la vérification DNS du domaine `cgws.fr` dans Resend est une action manuelle de Nathan (enregistrements DNS chez le registrar). Cette US ne la couvre PAS et n'en dépend pas : elle livre le mécanisme de bascule, pas la bascule elle-même.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  la variable d'environnement CGWS_EMAIL_FROM n'est PAS définie
+When   n'importe lequel des 6 templates de server/services/email.ts construit un email
+Then   l'expéditeur utilisé est le fallback 'CGWS <onboarding@resend.dev>' (seul expéditeur qui fonctionne aujourd'hui)
+
+Given  CGWS_EMAIL_FROM='CGWS <noreply@cgws.fr>' est définie dans l'environnement (Vercel ou .env local)
+When   le serveur (re)démarre et qu'un email est envoyé par n'importe quel template
+Then   l'expéditeur utilisé est la valeur de la variable
+And    la bascule complète des 6 templates s'est faite par ce SEUL changement d'env var — zéro modification de code, zéro redéploiement de code
+
+Given  le code de server/services/email.ts
+When   je cherche les expéditeurs codés en dur : `rg "noreply@cgws.fr|onboarding@resend.dev" server/`
+Then   il ne reste qu'UNE occurrence : le fallback dans la résolution centralisée de l'expéditeur
+And    les 6 templates (consignation reçue, consignation acceptée, consignation refusée, notification vente déposant, contact, confirmation commande) référencent tous cette source unique
+
+Given  les logs d'envoi existants (helper sendViaResend, commit f46cd12)
+When   un email part avec l'un ou l'autre expéditeur
+Then   le comportement de log (id Resend ou erreur) est inchangé
+```
+
+**Tâches techniques :**
+- Résolution centralisée dans `server/services/email.ts` (une fonction/constante unique), lue depuis `runtimeConfig` avec mapping explicite sur `process.env.CGWS_EMAIL_FROM` (nom exact demandé par Nathan), fallback `'CGWS <onboarding@resend.dev>'`
+- Remplacer les 6 `from:` (lignes ~163, 296, 415, 516, 654, 823 au moment du constat)
+- Documenter `CGWS_EMAIL_FROM` dans la section variables d'environnement de `docs/DEV_GUIDE.md` (avec la note « nécessite domaine vérifié Resend avant de pointer cgws.fr »)
+
+**Commit** : `refactor(email): centralize configurable sender with safe fallback [US-092]`
+
+---
+
+### US-093 · Nettoyage code mort et duplications · 5 pts
+
+**En tant que** développeur,
+**Je veux** purger le code mort et les duplications actés lors des QA des sprints 6/7 et de la recette US-082,
+**Afin de** réduire la surface de maintenance et les risques de divergence (libellés, couleurs, sécurité déposant).
+
+**Critères d'acceptation** (chaque item de dette = un scénario, la QA les déroule tous) :
+
+```gherkin
+# Item 1 — endpoint orphelin
+Given  server/api/orders/[id].get.ts (plus consommé — la page success utilise /api/checkout/session-status)
+When   le fichier est supprimé
+Then   `rg "orders/\[id\]|/api/orders/" app server tests` ne retourne plus AUCUNE référence à cet endpoint
+And    le parcours checkout success reste fonctionnel (session-status inchangé)
+
+# Item 2 — duplication des libellés de statut consignation
+Given  les 3 redéfinitions locales de CONSIGNMENT_STATUS_LABELS dans l'admin
+       (app/pages/admin/clients/[id].vue, app/pages/admin/consignations/[id].vue, app/pages/admin/consignations/index.vue)
+When   elles sont remplacées par l'import de la source canonique app/utils/consignment.ts
+Then   `rg "CONSIGNMENT_STATUS_LABELS.*=" app` ne montre qu'UNE définition (app/utils/consignment.ts)
+And    les libellés FR affichés dans l'admin sont strictement identiques à avant
+
+# Item 3 — code mort espace déposant
+Given  app/composables/useDepositorAuth.ts et ses 2 entrées ERROR_MESSAGES rate-limit inatteignables
+       (over_email_send_rate_limit, over_request_rate_limit — jamais atteintes par design anti-énumération, acté QA US-066)
+When   le code mort est supprimé (et resolveErrorMessage simplifié si la map devient vide)
+Then   le message neutre affiché au déposant est STRICTEMENT inchangé dans tous les cas
+And    le comportement anti-énumération est préservé (aucune différence email connu/inconnu)
+
+# Item 4 — boutons bruts hors design system
+Given  la modale de suppression produit (app/pages/admin/produits/index.vue) et SaleModal/SaleForm
+When   les <button> stylés à la main sont remplacés par CgwsButton
+       (variant "destructive" pour « Supprimer définitivement », variant "primary" pour « Enregistrer la vente »)
+Then   plus aucun <button> avec classes de style ad hoc ne subsiste dans ces fichiers pour ces actions
+And    les états loading/disabled et les spinners existants sont conservés à l'identique
+
+# Item 5 — RevenueChart non theme-aware
+Given  RevenueChart.vue et ses couleurs Chart.js en hex figés
+When   les couleurs sont résolues depuis les tokens CSS de peau (lecture des variables --cgws-* au runtime)
+Then   le graphique respecte les 3 rendus (elegante-jour, elegante-nuit, rugueux)
+And    un changement de peau via le switcher met le graphique à jour sans rechargement de page
+And    la distinction visuelle CA propre vs CA consignation reste lisible (contraste vérifié dans les 3 rendus)
+
+# Item 6 — N+1 espace déposant
+Given  server/api/depositor/consignments.get.ts et son N+1 (requêtes products + sales PAR consignation vendue)
+When   la route est refactorée en requêtes par lot (.in() sur les ids collectés)
+Then   le nombre de requêtes Supabase est CONSTANT (borné, indépendant du nombre de consignations)
+And    la réponse JSON est strictement identique champ à champ (dont le net à reverser calculé serveur)
+And    AUCUNE fuite nouvelle : toujours zéro notes internes, zéro commission brute, filtre depositor_email
+       toujours dérivé exclusivement du JWT (les barrières de sécurité US-066 sont intouchées)
+
+# Gate final
+Given  l'ensemble des nettoyages appliqués
+When   je lance `npm run typecheck && npm run lint && npm run test:unit && npm run build`
+Then   les quatre commandes passent en EXIT 0
+```
+
+**Dépendances** : US-090 (le gate typecheck doit être réel pour que le nettoyage soit validé dessus) ; l'item 6 gagne à être couvert par un test unitaire si l'infrastructure de mock d'US-091 est disponible (souhaitable, non exigé).
+
+**Tâches techniques :**
+- Suppressions : `server/api/orders/[id].get.ts`, entrées mortes `ERROR_MESSAGES`
+- Factorisation : imports depuis `app/utils/consignment.ts` (3 fichiers admin)
+- `CgwsButton` : vérifier les variants existants (`destructive` livré en US-072) avant remplacement
+- `RevenueChart.vue` : `getComputedStyle(document.documentElement).getPropertyValue('--cgws-…')` + réactivité au changement de `data-skin` (watch sur `useCgwsSkin()` / re-render du chart)
+- `depositor/consignments.get.ts` : collecte des `consignment_id`/`product_id` puis `.in()` groupé, mapping inchangé
+
+**Commit** : `refactor(cleanup): remove dead code, dedupe labels, theme-aware chart, fix depositor N+1 [US-093]`
