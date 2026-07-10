@@ -229,7 +229,13 @@ export interface CartItem {
   addedAt: string
 }
 
-export interface ShippingAddress {
+/**
+ * `type` (et non `interface`) à dessein : les alias objet ont une signature
+ * d'index implicite qui les rend structurellement assignables à `Json`
+ * (colonne jsonb `orders.shipping_address`) — aucun cast nécessaire côté
+ * fulfillment. Une interface ne l'est pas.
+ */
+export type ShippingAddress = {
   street: string
   postalCode: string
   city: string
@@ -266,13 +272,16 @@ export interface Order {
 }
 
 /** Récapitulatif public renvoyé par GET /api/orders/[id] (page success).
- *  Volontairement restreint — pas de payment_intent ni de client_id. */
+ *  Volontairement restreint — pas de payment_intent ni de client_id.
+ *  Les coordonnées (nom/email) et le mode de réception sont collectés par
+ *  Stripe et rapatriés par le webhook : ils sont `null` tant que le paiement
+ *  n'est pas confirmé (commande encore `pending`). */
 export interface OrderRecap {
   id: string
   status: OrderStatus
-  customerName: string
-  email: string
-  fulfillmentMethod: FulfillmentMethod
+  customerName: string | null
+  email: string | null
+  fulfillmentMethod: FulfillmentMethod | null
   shippingAddress: ShippingAddress | null
   subtotal: number
   shippingCost: number
@@ -281,14 +290,24 @@ export interface OrderRecap {
   createdAt: string
 }
 
-/** Payload POST /api/checkout/session (guest checkout — aucun compte). */
+/** Payload POST /api/checkout/session (checkout embarqué invité, aucun compte).
+ *  Les coordonnées et l'adresse ne sont plus saisies côté CGWS : Stripe les
+ *  collecte dans le formulaire embarqué. On envoie uniquement les produits, et
+ *  éventuellement la commande précédente à libérer (retour sur le panier après
+ *  un abandon, pour ne pas se bloquer soi-même sur ses propres réservations). */
 export interface CheckoutPayload {
-  email: string
-  name: string
-  phone?: string
-  fulfillmentMethod: FulfillmentMethod
-  address?: ShippingAddress
   productIds: string[]
+  previousOrderId?: string
+}
+
+/** Statut renvoyé par GET /api/checkout/session-status (page de retour).
+ *  `status` = statut de la session Stripe, `paymentStatus` = état du paiement
+ *  (valeurs Stripe natives ; `unpaid` + status `complete` = paiement asynchrone
+ *  en cours de traitement). */
+export interface CheckoutSessionStatus {
+  status: 'open' | 'complete' | 'expired'
+  paymentStatus: 'paid' | 'unpaid' | 'no_payment_required'
+  order: OrderRecap | null
 }
 
 // ─── Reporting (US-043) ───────────────────────────────────────────────────────

@@ -1,105 +1,83 @@
 import { z } from 'zod'
 import type { H3Event } from 'h3'
+import type Stripe from 'stripe'
 import {
-  FULFILLMENT_METHODS,
-  computeShippingCost,
+  SHIPPING_FLAT_RATE,
   computeSubtotal,
-  computeTotal,
   toStripeAmount,
 } from '#shared/utils/checkout'
 
 // ---------------------------------------------------------------------------
-// Validation schema — guest checkout (aucun compte)
+// Checkout embarqué (E8 rework)
+//
+// Le formulaire de paiement Stripe est monté DANS la page /checkout. Cette
+// route :
+//   1. libère l'éventuelle réservation d'une commande précédente abandonnée
+//      (l'acheteur ne se bloque pas sur ses propres pièces),
+//   2. revalide la disponibilité et RÉSERVE atomiquement UNE UNITÉ de stock
+//      par produit (RPC `reserve_product_unit` : stock - 1 ; le produit ne
+//      passe `reserved` que sur la dernière unité) pour éviter la double-vente,
+//   3. crée une commande `pending` (les coordonnées + l'adresse seront
+//      collectées par Stripe et rapatriées par le webhook),
+//   4. crée une session Checkout `embedded_page` et renvoie son `client_secret`.
+//
+// Aucun prix ne vient du client : tout est recalculé depuis la base. Les
+// moyens de paiement (CB, Apple Pay, Google Pay, Link…) sont pilotés par le
+// Dashboard (aucun `payment_method_types` figé). Le mode de réception
+// (retrait / livraison) est une `shipping_option` Stripe.
 // ---------------------------------------------------------------------------
 
-const addressSchema = z.object({
-  street: z.string().min(3, 'Adresse invalide').max(200),
-  postalCode: z.string().min(3, 'Code postal invalide').max(12),
-  city: z.string().min(1, 'Ville requise').max(100),
-  country: z.string().min(2, 'Pays requis').max(80),
+const RESERVATION_MINUTES = 35 // ≥ 30 min imposé par Stripe pour expires_at
+
+const bodySchema = z.object({
+  productIds: z
+    .array(z.string().uuid('Identifiant produit invalide'))
+    .min(1, 'Votre panier est vide')
+    .max(30, 'Panier trop volumineux'),
+  previousOrderId: z.string().uuid().optional(),
 })
-
-const checkoutSchema = z
-  .object({
-    email: z.string().email('Adresse email invalide'),
-    name: z.string().min(2, 'Le nom est requis (min. 2 caractères)').max(120),
-    phone: z
-      .string()
-      .regex(/^[0-9+\s\-()]{7,20}$/, 'Numéro de téléphone invalide')
-      .optional()
-      .or(z.literal('')),
-    fulfillmentMethod: z.enum(FULFILLMENT_METHODS, {
-      error: 'Mode de réception invalide',
-    }),
-    address: addressSchema.optional(),
-    productIds: z
-      .array(z.string().uuid('Identifiant produit invalide'))
-      .min(1, 'Votre panier est vide')
-      .max(30, 'Panier trop volumineux'),
-  })
-  .superRefine((value, ctx) => {
-    if (value.fulfillmentMethod === 'shipping' && !value.address) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['address'],
-        message: 'Adresse de livraison requise pour une expédition',
-      })
-    }
-  })
-
-// ---------------------------------------------------------------------------
-// Event handler — revalidation dispo → order pending + items → session Stripe
-// ---------------------------------------------------------------------------
 
 export default defineEventHandler(async (event: H3Event) => {
   const config = useRuntimeConfig()
   const supabase = getAdminSupabase()
-  const body = await readBody(event)
+  const rawBody = await readBody(event)
 
-  // ─── Validate input ────────────────────────────────────────────────────────
-
-  const parseResult = checkoutSchema.safeParse(body)
-  if (!parseResult.success) {
-    const flat = parseResult.error.flatten()
+  const parsed = bodySchema.safeParse(rawBody)
+  if (!parsed.success) {
     const firstError
-      = Object.values(flat.fieldErrors).flat()[0]
-        ?? flat.formErrors[0]
-        ?? 'Données invalides'
+      = Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Données invalides'
     throw createError({ statusCode: 422, statusMessage: firstError })
   }
 
-  const input = parseResult.data
-  const productIds = [...new Set(input.productIds)]
+  const { productIds: rawIds, previousOrderId } = parsed.data
+  const productIds = [...new Set(rawIds)]
 
-  // ─── Revalidate availability server-side (pièces uniques, stock 1) ─────────
+  // ─── 0) Libère la réservation d'une commande précédente abandonnée ─────────
+  if (previousOrderId) {
+    await releaseOrderReservation(previousOrderId)
+  }
 
+  // ─── 1) Revalide la disponibilité (status actif ET au moins 1 en stock) ────
   const { data: products, error: productsError } = await supabase
     .from('products')
-    .select('id, title, price, status, images')
+    .select('id, title, price, status, stock, images')
     .in('id', productIds)
 
   if (productsError) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Erreur lors de la vérification des articles',
-    })
+    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la vérification des articles' })
   }
 
   const foundById = new Map((products ?? []).map(p => [p.id, p]))
   const unavailable: Array<{ id: string, title: string }> = []
-
   for (const id of productIds) {
     const product = foundById.get(id)
-    if (!product) {
-      unavailable.push({ id, title: 'Article introuvable' })
-    }
-    else if (product.status !== 'active') {
-      unavailable.push({ id, title: product.title })
-    }
+    if (!product) unavailable.push({ id, title: 'Article introuvable' })
+    // `stock ?? 0` : cohérent avec la barrière `stock >= 1` de la RPC — un
+    // stock NULL est invendable en ligne plutôt que survendu.
+    else if (product.status !== 'active' || (product.stock ?? 0) < 1) unavailable.push({ id, title: product.title })
   }
 
   if (unavailable.length > 0) {
-    // Aucune session Stripe n'est créée si UN SEUL article n'est plus dispo.
     const titles = unavailable.map(u => u.title).join(', ')
     throw createError({
       statusCode: 409,
@@ -109,66 +87,81 @@ export default defineEventHandler(async (event: H3Event) => {
   }
 
   const orderedProducts = productIds.map(id => foundById.get(id)!)
+  const subtotal = computeSubtotal(orderedProducts.map(p => ({ price: Number(p.price) })))
 
-  // ─── Compute totals (prix DB — jamais ceux envoyés par le client) ──────────
-
-  const lines = orderedProducts.map(p => ({ price: Number(p.price) }))
-  const subtotal = computeSubtotal(lines)
-  const shippingCost = computeShippingCost(input.fulfillmentMethod)
-  const total = computeTotal(subtotal, input.fulfillmentMethod)
-
-  // ─── Create pending order + snapshot items ─────────────────────────────────
-
+  // ─── 2) Crée la commande pending (coordonnées remplies par le webhook) ─────
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .insert({
-      email: input.email,
-      customer_name: input.name.trim(),
-      phone: input.phone?.trim() || null,
-      fulfillment_method: input.fulfillmentMethod,
-      shipping_address: input.fulfillmentMethod === 'shipping' ? input.address ?? null : null,
-      status: 'pending',
-      subtotal,
-      shipping_cost: shippingCost,
-      total,
-      currency: 'eur',
-    })
+    .insert({ status: 'pending', subtotal, currency: 'eur' })
     .select('id')
     .single()
 
   if (orderError || !order) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Erreur lors de la création de la commande',
-    })
+    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la création de la commande' })
   }
 
-  const { error: itemsError } = await supabase
-    .from('order_items')
-    .insert(
-      orderedProducts.map(product => ({
-        order_id: order.id,
-        product_id: product.id,
-        title: product.title,
-        price: Number(product.price),
-        quantity: 1,
-      })),
-    )
-
+  // ─── 2bis) Insère les lignes de commande (source pour le fulfillment) ──────
+  // Les produits ne sont pas encore réservés à ce stade (le verrou arrive à
+  // l'étape 3) : en cas d'échec, un simple delete de la commande suffit — les
+  // order_items suivent via ON DELETE CASCADE, aucune réservation à libérer.
+  const { error: itemsError } = await supabase.from('order_items').insert(
+    orderedProducts.map(product => ({
+      order_id: order.id,
+      product_id: product.id,
+      title: product.title,
+      price: Number(product.price),
+      quantity: 1,
+    })),
+  )
   if (itemsError) {
     await supabase.from('orders').delete().eq('id', order.id)
+    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la création de la commande' })
+  }
+
+  // ─── 3) Réserve atomiquement UNE unité de stock par produit ────────────────
+  // RPC `reserve_product_unit` (migration 006) : `stock = stock - 1` sous la
+  // barrière `status = 'active' AND stock >= 1`. Le produit ne passe
+  // `reserved` (+ verrou reserved_order_id) que si c'était la dernière unité —
+  // un multi-stock reste `active` et achetable par d'autres.
+  const expiresAtSec = Math.floor(Date.now() / 1000) + RESERVATION_MINUTES * 60
+  const reservedUntil = new Date(expiresAtSec * 1000).toISOString()
+  const raceLostTitles: string[] = []
+  const reservedIds: string[] = []
+
+  for (const product of orderedProducts) {
+    const { data: reserved } = await supabase.rpc('reserve_product_unit', {
+      p_product_id: product.id,
+      p_order_id: order.id,
+      p_reserved_until: reservedUntil,
+    })
+
+    // Succès = la RPC retourne une ligne (new_stock). 0 ligne = course perdue
+    // (dernière unité prise entre la revalidation et le verrou).
+    if (reserved && reserved.length > 0) reservedIds.push(product.id)
+    else raceLostTitles.push(product.title)
+  }
+
+  // Course perdue sur au moins un produit → rollback CIBLÉ : on ne restitue
+  // que les unités effectivement réservées (`releaseOrderReservation` lirait
+  // les order_items et ré-incrémenterait aussi les produits jamais réservés),
+  // puis on supprime la commande et on refuse la session.
+  if (raceLostTitles.length > 0) {
+    for (const id of reservedIds) {
+      await supabase.rpc('release_product_unit', { p_product_id: id, p_order_id: order.id })
+    }
+    await supabase.from('orders').delete().eq('id', order.id)
     throw createError({
-      statusCode: 500,
-      statusMessage: 'Erreur lors de la création de la commande',
+      statusCode: 409,
+      statusMessage: `Article(s) plus disponible(s) : ${raceLostTitles.join(', ')}`,
+      data: { unavailable: raceLostTitles.map(title => ({ id: '', title })) },
     })
   }
 
-  // ─── Create Stripe Checkout session (hébergée — redirection) ──────────────
-
+  // ─── 4) Crée la session Checkout embarquée ─────────────────────────────────
   const siteUrl = (config.public.siteUrl as string).replace(/\/$/, '')
   const stripe = getStripe()
 
-  const lineItems = orderedProducts.map((product) => {
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderedProducts.map((product) => {
     const firstImage = product.images?.[0]
     return {
       quantity: 1,
@@ -177,51 +170,59 @@ export default defineEventHandler(async (event: H3Event) => {
         unit_amount: toStripeAmount(Number(product.price)),
         product_data: {
           name: product.title,
-          // Stripe exige des URLs absolues https pour les visuels
           ...(firstImage && /^https:\/\//.test(firstImage) ? { images: [firstImage] } : {}),
         },
       },
     }
   })
 
-  if (shippingCost > 0) {
-    lineItems.push({
-      quantity: 1,
-      price_data: {
-        currency: 'eur',
-        unit_amount: toStripeAmount(shippingCost),
-        product_data: { name: 'Frais de port' },
+  // Le choix retrait / livraison est une shipping_option Stripe. Livraison en
+  // premier (option par défaut) car c'est le cas majoritaire en ligne.
+  const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
+    {
+      shipping_rate_data: {
+        type: 'fixed_amount',
+        fixed_amount: { amount: toStripeAmount(SHIPPING_FLAT_RATE), currency: 'eur' },
+        display_name: 'Livraison à domicile',
       },
-    })
-  }
+    },
+    {
+      shipping_rate_data: {
+        type: 'fixed_amount',
+        fixed_amount: { amount: 0, currency: 'eur' },
+        display_name: 'Retrait à la boutique — Brèches (37)',
+      },
+    },
+  ]
 
   try {
     const session = await stripe.checkout.sessions.create({
+      ui_mode: 'embedded_page',
       mode: 'payment',
-      payment_method_types: ['card'],
-      customer_email: input.email,
-      client_reference_id: order.id,
       line_items: lineItems,
+      phone_number_collection: { enabled: true },
+      shipping_address_collection: {
+        allowed_countries: ['FR', 'BE', 'CH', 'LU', 'DE', 'ES', 'IT'],
+      },
+      shipping_options: shippingOptions,
+      client_reference_id: order.id,
       metadata: { order_id: order.id },
-      success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/checkout?cancelled=1`,
+      expires_at: expiresAtSec,
+      return_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     })
 
-    if (!session.url) {
-      throw new Error('Session Stripe sans URL de redirection')
+    if (!session.client_secret) {
+      throw new Error('Session Stripe sans client_secret')
     }
 
-    await supabase
-      .from('orders')
-      .update({ stripe_session_id: session.id })
-      .eq('id', order.id)
+    await supabase.from('orders').update({ stripe_session_id: session.id }).eq('id', order.id)
 
     setResponseStatus(event, 201)
-    return { url: session.url, orderId: order.id }
+    return { clientSecret: session.client_secret, orderId: order.id }
   }
   catch {
-    // La session n'a pas pu être créée — on ne laisse pas traîner une commande
-    // orpheline (les order_items suivent via ON DELETE CASCADE).
+    // Session non créée → on ne laisse ni commande orpheline ni pièce verrouillée.
+    await releaseOrderReservation(order.id)
     await supabase.from('orders').delete().eq('id', order.id)
     throw createError({
       statusCode: 502,

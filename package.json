@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "vue-tsc --noEmit",
+    "typecheck": "nuxi typecheck",
     "test:unit": "vitest run tests/unit"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/seo": "^5.3.1",
     "@pinia/nuxt": "^0.11.3",
+    "@stripe/stripe-js": "^8.11.0",
     "@supabase/supabase-js": "^2.108.2",
     "@takumi-rs/core": "^2.0.0-beta.14",
     "@vueuse/motion": "^3.0.3",
