@@ -229,7 +229,13 @@ export interface CartItem {
   addedAt: string
 }
 
-export interface ShippingAddress {
+/**
+ * `type` (et non `interface`) à dessein : les alias objet ont une signature
+ * d'index implicite qui les rend structurellement assignables à `Json`
+ * (colonne jsonb `orders.shipping_address`) — aucun cast nécessaire côté
+ * fulfillment. Une interface ne l'est pas.
+ */
+export type ShippingAddress = {
   street: string
   postalCode: string
   city: string

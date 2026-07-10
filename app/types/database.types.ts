@@ -175,9 +175,9 @@ export type Database = {
           client_id: string | null
           created_at: string | null
           currency: string | null
-          customer_name: string
-          email: string
-          fulfillment_method: string
+          customer_name: string | null
+          email: string | null
+          fulfillment_method: string | null
           id: string
           phone: string | null
           shipping_address: Json | null
@@ -193,9 +193,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string | null
           currency?: string | null
-          customer_name: string
-          email: string
-          fulfillment_method: string
+          customer_name?: string | null
+          email?: string | null
+          fulfillment_method?: string | null
           id?: string
           phone?: string | null
           shipping_address?: Json | null
@@ -211,9 +211,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string | null
           currency?: string | null
-          customer_name?: string
-          email?: string
-          fulfillment_method?: string
+          customer_name?: string | null
+          email?: string | null
+          fulfillment_method?: string | null
           id?: string
           phone?: string | null
           shipping_address?: Json | null
@@ -235,6 +235,41 @@ export type Database = {
           },
         ]
       }
+      product_status_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          new_status: string
+          old_status: string | null
+          product_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_status: string
+          old_status?: string | null
+          product_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_status?: string
+          old_status?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'product_status_history_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: false
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       products: {
         Row: {
           brand: string | null
@@ -247,6 +282,8 @@ export type Database = {
           images: string[] | null
           is_consignment: boolean | null
           price: number
+          reserved_order_id: string | null
+          reserved_until: string | null
           size: string | null
           slug: string
           status: string | null
@@ -265,6 +302,8 @@ export type Database = {
           images?: string[] | null
           is_consignment?: boolean | null
           price: number
+          reserved_order_id?: string | null
+          reserved_until?: string | null
           size?: string | null
           slug: string
           status?: string | null
@@ -283,6 +322,8 @@ export type Database = {
           images?: string[] | null
           is_consignment?: boolean | null
           price?: number
+          reserved_order_id?: string | null
+          reserved_until?: string | null
           size?: string | null
           slug?: string
           status?: string | null
@@ -356,7 +397,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      release_product_unit: {
+        Args: {
+          p_order_id: string
+          p_product_id: string
+        }
+        Returns: undefined
+      }
+      reserve_product_unit: {
+        Args: {
+          p_order_id: string
+          p_product_id: string
+          p_reserved_until: string
+        }
+        Returns: {
+          new_stock: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

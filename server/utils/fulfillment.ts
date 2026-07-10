@@ -119,7 +119,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
 
     const { data: product } = await supabase
       .from('products')
-      .select('id, title, status, is_consignment, consignment_id')
+      .select('id, title, is_consignment, consignment_id')
       .eq('id', item.product_id)
       .single()
 
@@ -160,21 +160,29 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
       notes: `Vente en ligne — commande ${orderId}`,
     })
 
-    // Produit → sold : lève aussi la réservation (status ≠ 'reserved').
-    if (product.status !== 'sold') {
-      await supabase
-        .from('products')
-        .update({
-          status: 'sold',
-          reserved_until: null,
-          reserved_order_id: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', item.product_id)
+    // Le stock a DÉJÀ été décrémenté à la réservation (RPC reserve_product_unit,
+    // création de session) — on n'y touche plus ici. Le produit ne passe `sold`
+    // que si CETTE commande détenait le verrou de dernière unité (update
+    // conditionnel status='reserved' AND reserved_order_id=orderId). Un produit
+    // multi-stock encore en vente (resté 'active'), ou verrouillé par une autre
+    // commande, n'est pas touché.
+    const { data: soldProducts } = await supabase
+      .from('products')
+      .update({
+        status: 'sold',
+        reserved_until: null,
+        reserved_order_id: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', item.product_id)
+      .eq('status', 'reserved')
+      .eq('reserved_order_id', orderId)
+      .select('id')
 
+    if (soldProducts && soldProducts.length > 0) {
       await supabase.from('product_status_history').insert({
         product_id: item.product_id,
-        old_status: product.status ?? 'active',
+        old_status: 'reserved',
         new_status: 'sold',
         changed_by: 'stripe-webhook',
       })
@@ -229,24 +237,42 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
 }
 
 /**
- * Libère la réservation des produits d'une commande abandonnée / expirée /
- * échouée et passe la commande en `cancelled`. Idempotent et ciblé : ne
- * réactive QUE les produits encore `reserved` par CETTE commande — un produit
- * déjà vendu, ou réservé manuellement par l'admin (reserved_order_id ≠ order),
- * n'est jamais touché.
+ * Libère la réservation d'une commande abandonnée / expirée / échouée :
+ * restitue UNE unité de stock par ligne de commande (RPC `release_product_unit`)
+ * et passe la commande en `cancelled`.
+ *
+ * Idempotent par la transition de commande : seule la transition
+ * `pending → cancelled` (update conditionnel) donne le droit de restituer le
+ * stock. Un release rejoué (webhook `expired` + retour panier, double appel…)
+ * ne matche aucune ligne et ne double-incrémente JAMAIS ; une commande déjà
+ * payée n'est pas touchée. Côté produit, la RPC ne déverrouille le statut que
+ * si CETTE commande détenait le verrou de dernière unité — une réservation
+ * manuelle admin (reserved_order_id ≠ order) n'est jamais réactivée.
  */
 export async function releaseOrderReservation(orderId: string): Promise<void> {
   const supabase = getAdminSupabase()
 
-  await supabase
-    .from('products')
-    .update({ status: 'active', reserved_until: null, reserved_order_id: null })
-    .eq('reserved_order_id', orderId)
-    .eq('status', 'reserved')
-
-  await supabase
+  // ─── 1) Barrière d'idempotence : pending → cancelled, ou rien ──────────────
+  const { data: cancelled } = await supabase
     .from('orders')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
     .eq('id', orderId)
     .eq('status', 'pending')
+    .select('id')
+
+  if (!cancelled || cancelled.length === 0) return
+
+  // ─── 2) Restitue une unité de stock par ligne de commande ──────────────────
+  const { data: items } = await supabase
+    .from('order_items')
+    .select('product_id')
+    .eq('order_id', orderId)
+
+  for (const item of items ?? []) {
+    if (!item.product_id) continue
+    await supabase.rpc('release_product_unit', {
+      p_product_id: item.product_id,
+      p_order_id: orderId,
+    })
+  }
 }

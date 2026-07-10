@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "vue-tsc --noEmit",
+    "typecheck": "nuxi typecheck",
     "test:unit": "vitest run tests/unit"
   },
   "dependencies": {

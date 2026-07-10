@@ -14,8 +14,9 @@ import {
 // route :
 //   1. libère l'éventuelle réservation d'une commande précédente abandonnée
 //      (l'acheteur ne se bloque pas sur ses propres pièces),
-//   2. revalide la disponibilité et RÉSERVE atomiquement chaque produit
-//      (active → reserved) pour éviter la double-vente d'une pièce unique,
+//   2. revalide la disponibilité et RÉSERVE atomiquement UNE UNITÉ de stock
+//      par produit (RPC `reserve_product_unit` : stock - 1 ; le produit ne
+//      passe `reserved` que sur la dernière unité) pour éviter la double-vente,
 //   3. crée une commande `pending` (les coordonnées + l'adresse seront
 //      collectées par Stripe et rapatriées par le webhook),
 //   4. crée une session Checkout `embedded_page` et renvoie son `client_secret`.
@@ -56,10 +57,10 @@ export default defineEventHandler(async (event: H3Event) => {
     await releaseOrderReservation(previousOrderId)
   }
 
-  // ─── 1) Revalide la disponibilité (pièces uniques, stock 1) ────────────────
+  // ─── 1) Revalide la disponibilité (status actif ET au moins 1 en stock) ────
   const { data: products, error: productsError } = await supabase
     .from('products')
-    .select('id, title, price, status, images')
+    .select('id, title, price, status, stock, images')
     .in('id', productIds)
 
   if (productsError) {
@@ -71,7 +72,9 @@ export default defineEventHandler(async (event: H3Event) => {
   for (const id of productIds) {
     const product = foundById.get(id)
     if (!product) unavailable.push({ id, title: 'Article introuvable' })
-    else if (product.status !== 'active') unavailable.push({ id, title: product.title })
+    // `stock ?? 0` : cohérent avec la barrière `stock >= 1` de la RPC — un
+    // stock NULL est invendable en ligne plutôt que survendu.
+    else if (product.status !== 'active' || (product.stock ?? 0) < 1) unavailable.push({ id, title: product.title })
   }
 
   if (unavailable.length > 0) {
@@ -115,26 +118,37 @@ export default defineEventHandler(async (event: H3Event) => {
     throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la création de la commande' })
   }
 
-  // ─── 3) Réserve atomiquement chaque produit (active → reserved) ────────────
+  // ─── 3) Réserve atomiquement UNE unité de stock par produit ────────────────
+  // RPC `reserve_product_unit` (migration 006) : `stock = stock - 1` sous la
+  // barrière `status = 'active' AND stock >= 1`. Le produit ne passe
+  // `reserved` (+ verrou reserved_order_id) que si c'était la dernière unité —
+  // un multi-stock reste `active` et achetable par d'autres.
   const expiresAtSec = Math.floor(Date.now() / 1000) + RESERVATION_MINUTES * 60
   const reservedUntil = new Date(expiresAtSec * 1000).toISOString()
   const raceLostTitles: string[] = []
+  const reservedIds: string[] = []
 
   for (const product of orderedProducts) {
-    const { data: locked } = await supabase
-      .from('products')
-      .update({ status: 'reserved', reserved_until: reservedUntil, reserved_order_id: order.id })
-      .eq('id', product.id)
-      .eq('status', 'active') // barrière anti double-réservation
-      .select('id')
+    const { data: reserved } = await supabase.rpc('reserve_product_unit', {
+      p_product_id: product.id,
+      p_order_id: order.id,
+      p_reserved_until: reservedUntil,
+    })
 
-    if (!locked || locked.length === 0) raceLostTitles.push(product.title)
+    // Succès = la RPC retourne une ligne (new_stock). 0 ligne = course perdue
+    // (dernière unité prise entre la revalidation et le verrou).
+    if (reserved && reserved.length > 0) reservedIds.push(product.id)
+    else raceLostTitles.push(product.title)
   }
 
-  // Un produit a été réservé/vendu entre la revalidation et le verrou → on
-  // annule tout (release cible cette commande) et on refuse la session.
+  // Course perdue sur au moins un produit → rollback CIBLÉ : on ne restitue
+  // que les unités effectivement réservées (`releaseOrderReservation` lirait
+  // les order_items et ré-incrémenterait aussi les produits jamais réservés),
+  // puis on supprime la commande et on refuse la session.
   if (raceLostTitles.length > 0) {
-    await releaseOrderReservation(order.id)
+    for (const id of reservedIds) {
+      await supabase.rpc('release_product_unit', { p_product_id: id, p_order_id: order.id })
+    }
     await supabase.from('orders').delete().eq('id', order.id)
     throw createError({
       statusCode: 409,
