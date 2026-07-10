@@ -430,6 +430,23 @@ Corrections QA : polygones SVG passés de fill hardcodé à class="fill-cgws-cop
 
 ---
 
+## US-082 — Recette prod & correctifs (2026-07-09/10)
+
+Recette e2e réelle par Nathan sur https://cgws.vercel.app (mode test Stripe). **Checkout embarqué, réservation, webhook et fulfillment validés en conditions réelles.** Quatre problèmes trouvés et corrigés dans la foulée (boucle dev/QA à chaque fois) :
+
+1. **Link imposé + modal d'identité intempestive** → Link désactivé dans la configuration des moyens de paiement du compte Stripe (`payment_method_configurations`, `link → off`, via API — le MCP Stripe n'expose pas cette ressource). Effet immédiat.
+2. **Emails Resend jamais envoyés — cause 1 (observabilité)** : le SDK Resend ne throw pas (`{ data, error }` ignoré) → échecs 100 % silencieux. Fix commit `f46cd12` : helper `sendViaResend` loggant chaque envoi (id ou erreur) dans les logs Vercel.
+3. **Emails — cause 2 (serverless)** : envois fire-and-forget non awaités → **lambda Vercel gelée dès la réponse partie, requête Resend tuée en vol** (`application_error Unable to fetch data`, apparaissant sous une AUTRE requête 20 s plus tard). Fix commit `7ca0b2f` : tous les envois serveur awaités dans try/catch (non-bloquant conservé, webhook répond toujours 200) + sanitize de la clé (défense issue #16). **Cause 3** : `RESEND_API_KEY` de prod invalide (`validation_error API key is invalid`) → nouvelle clé fournie par Nathan, remplacée sur Vercel (Prod+Preview) + `.env.local`. **Emails confirmés reçus.** ⚠️ Incident Resend le 2026-07-09 au soir (dashboard + status page down, API up) — sans lien avec notre bug.
+4. **Bug multi-stock** : acheter 1 exemplaire d'un produit en stock N vendait TOUT le produit (modèle « pièce unique » appliqué aveuglément). Fix commit `7c4dfac` + **migration `006_stock_reservation_functions.sql`** (appliquée en prod) : fonctions SQL atomiques `reserve_product_unit`/`release_product_unit` — stock décrémenté à la réservation, statut `reserved` seulement sur la dernière unité (owner `reserved_order_id`), `sold` au paiement seulement si la commande détient le verrou, restitution idempotente (barrière `pending→cancelled`). REVOKE EXECUTE FROM PUBLIC (le revoke nominatif seul était inefficace — grant implicite Postgres). **Edge case acté non traité** : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité et paie ensuite → produit `sold` avec stock résiduel 1 (réactivation admin nécessaire) — rare, arbitrage produit ultérieur.
+
+**Découverte majeure de la QA** : `npm run typecheck` (`vue-tsc --noEmit` sur le tsconfig racine « solution » `files:[]`) **ne vérifiait RIEN depuis le début du projet** — tous les « typecheck ✅ » historiques étaient des faux positifs. Script remplacé par `nuxi typecheck` (commit `7c4dfac`). **Dette révélée : 11 erreurs préexistantes hors périmètre** (CartDrawer aria-label UButton, useSeo ogType, useHead children→innerHTML ×2, @vueuse/motion visibleOnce, supabase-provider useRuntimeConfig, catégories/consignments update dynamique ×2, mapConsignmentRow condition, Content-Length number) → **US dédiée « dette typecheck » à planifier**.
+
+**Nettoyage recette** (2026-07-10) : base remise à zéro (sales/orders/order_items purgés, historique webhook purgé, 9 produits restaurés actifs) + les 8 paiements test Stripe remboursés via API (~1 721 € test). Pour effacer l'historique des paiements test : Dashboard → Delete all test data (manuel uniquement).
+
+**Autres actions infra de la recette** : clé publishable ajoutée (Vercel Prod+Preview + `.env.local`) ; webhook Stripe existant nettoyé (~80 événements parasites → les 4 checkout utiles) ; `RESEND_API_KEY` présente en prod. Le frontmatter cassé de `.claude/agents/nuxt-developer.md` (ligne `mcp__stripe` orpheline) réparé — l'agent était invisible du registre.
+
+---
+
 ## Go-live v0 (PR #19) + hotfixes production post-E8
 
 **Statut prod (2026-07-08, confirmé Nathan)** : `develop` a été **squash-mergé dans `main`** (commit unique `15c26e7` « v0 (#19) »), puis `develop` **recréé depuis `main`** → les deux branches sont alignées sur `v0`. Tout l'historique détaillé ci-dessus (Sprints 0→7 + Epic E8) est collapsé dans ce commit unique ; **`git log` ne montre plus que `v0` + `iniital setup`** (la reconstitution fine passe par le reflog). **Tout le code est déployé en production** via Vercel (auto-deploy sur `main`).
