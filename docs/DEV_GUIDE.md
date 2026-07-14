@@ -270,6 +270,48 @@ export function useSupabaseAdmin() {
 }
 ```
 
+### 5bis. Types Supabase générés — `app/types/database.types.ts`
+
+Le fichier `app/types/database.types.ts` est **généré**, jamais édité à la main.
+Il est la source de vérité TypeScript du schéma Postgres (tables, colonnes,
+relations, fonctions RPC) et alimente `createClient<Database>` partout
+(app + server). Un fichier désaligné produit de faux positifs/négatifs au
+typecheck sur tout le code d'accès données.
+
+**Règle absolue : à relancer après CHAQUE nouvelle migration, dans le même
+commit que la migration.** Une migration sans régénération des types est un
+diff incomplet.
+
+**Commande exacte (CLI Supabase)** :
+
+```bash
+# Prérequis : Supabase CLI installée (npm i -g supabase) et authentifiée
+# (supabase login), ou npx. <project-ref> = ref du projet live (dashboard).
+npx supabase gen types typescript --project-id <project-ref> --schema public \
+  > app/types/database.types.ts
+```
+
+**Alternative (session Claude Code)** : le MCP supabase expose
+`generate_typescript_types` — écrire sa sortie **verbatim** dans
+`app/types/database.types.ts` (aucune retouche de style, le diff entre le
+fichier commité et la sortie générée doit être vide).
+
+**Vérification après régénération** :
+
+```bash
+npm run typecheck   # doit rester à 0 erreur — les désalignements révélés
+                    # par les nouveaux types se corrigent dans le même commit
+```
+
+Pour typer les payloads d'écriture, utiliser les helpers générés plutôt que
+`Record<string, unknown>` :
+
+```typescript
+import type { TablesUpdate, TablesInsert } from '~/types/database.types'
+
+const updates: TablesUpdate<'categories'> = {}
+```
+
 ### 6. Plugin GSAP (client-side)
 
 ```typescript

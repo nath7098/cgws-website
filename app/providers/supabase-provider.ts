@@ -6,7 +6,16 @@ const operationsGenerator = createOperationsGenerator()
 export default defineProvider<{ baseURL?: string }>({
   getImage(src, { modifiers, baseURL }) {
     if (!baseURL) {
-      // also support runtime config
+      // `useRuntimeConfig` volontairement en auto-import (pattern officiel
+      // @nuxt/image pour les providers custom) : le bundler le résout vers la
+      // bonne implémentation dans CHAQUE bundle (vue app ET nitro). Un import
+      // statique explicite casse l'un ou l'autre : `#imports` tire le barrel
+      // des composables app dans les programmes TS shared/node (sans globaux),
+      // `nuxt/app`/`#app` sont interdits dans le bundle serveur nitro (plugin
+      // impound). Le programme TS `node` — qui type ce fichier via
+      // .nuxt/image/providers.d.ts sans avoir les globaux d'auto-import —
+      // reçoit la déclaration ambiante types/nuxt-image-provider.d.ts
+      // (branchée via typescript.nodeTsConfig dans nuxt.config.ts).
       baseURL = useRuntimeConfig().public.supabaseUrl + '/storage/v1/object/public/product-images'
     }
 

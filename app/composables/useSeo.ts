@@ -45,8 +45,15 @@ export function usePageSeo({
     ogTitle: title,
     ogDescription: description,
     ogImage: resolvedImage,
-    ogType: type,
     twitterCard: 'summary_large_image',
     twitterImage: resolvedImage,
+  })
+
+  // `og:type: product` (extension OG commerce) n'appartient pas à l'union
+  // stricte typée par unhead v2 pour `ogType` — on passe par une entrée meta
+  // brute de useHead, l'échappatoire documentée d'unhead pour les valeurs
+  // hors schéma (aucun cast nécessaire).
+  useHead({
+    meta: [{ property: 'og:type', content: type }],
   })
 }

@@ -38,6 +38,14 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+    // Le programme TS `node` (.nuxt/tsconfig.node.json) type-check le provider
+    // Nuxt Image custom (via la référence .nuxt/image/providers.d.ts générée
+    // par @nuxt/image) sans disposer des globaux d'auto-import de l'app. On
+    // lui fournit la déclaration ambiante truthful de `useRuntimeConfig`
+    // (voir types/nuxt-image-provider.d.ts — programme node uniquement).
+    nodeTsConfig: {
+      include: ['../types/nuxt-image-provider.d.ts'],
+    },
   },
 
   components: [
