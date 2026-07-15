@@ -582,6 +582,64 @@ npx supabase gen types typescript --local > types/supabase.ts
 
 ---
 
+## CI (US-091)
+
+Le workflow `.github/workflows/e2e.yml` se déclenche sur chaque `push` (branches
+`main`, `develop`, `feature/**`) et chaque `pull_request` vers `main`/`develop`.
+Il comporte 3 jobs :
+
+| Job | Dépend d'un secret ? | Rôle |
+|-----|----------------------|------|
+| `quality` | Non | **Le vrai gate.** `npm ci` → `npm run typecheck` → `npm run lint` → `npm run test:unit`. Couvre notamment tout le chemin de paiement (`tests/unit/fulfillment.spec.ts`, `tests/unit/checkout-session.spec.ts`) sans base Supabase réelle (mocks). Doit **toujours** être vert. |
+| `e2e-secrets-check` | Non | Vérifie la présence des secrets Supabase et log une annotation explicite si absents. Toujours vert. |
+| `e2e` | Oui (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) | Playwright contre un vrai build. **Skipped** (statut de job dédié, pas un échec) tant que les secrets ne sont pas configurés dans le dépôt GitHub — sinon tourne pour de vrai. |
+
+Résultat : le run global est **vert par défaut**, avec ou sans les secrets
+Supabase configurés. Ce n'était pas le cas avant l'US-091 (`npm ci` cassé +
+secrets absents faisaient échouer le job e2e systématiquement).
+
+### Secrets GitHub à créer (Nathan)
+
+Dans **Settings → Secrets and variables → Actions** du dépôt GitHub, créer :
+
+| Nom exact du secret | Où trouver la valeur |
+|----------------------|------------------------|
+| `SUPABASE_URL` | Dashboard Supabase → Project Settings → API → **Project URL** (même valeur que `NUXT_PUBLIC_SUPABASE_URL` en local) |
+| `SUPABASE_ANON_KEY` | Dashboard Supabase → Project Settings → API → **anon / public key** (même valeur que `NUXT_PUBLIC_SUPABASE_ANON_KEY` en local) |
+
+Optionnel — pour un scénario e2e checkout complet (paiement Stripe simulé) à
+ajouter dans un futur run Playwright :
+
+| Nom exact du secret | Où trouver la valeur |
+|----------------------|------------------------|
+| `STRIPE_SECRET_KEY` (test) | Dashboard Stripe (mode Test) → Developers → API keys → **Secret key** (`sk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` (test) | Dashboard Stripe (mode Test) → Developers → Webhooks → endpoint concerné → **Signing secret** (`whsec_...`), ou `stripe listen --print-secret` en local |
+| `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Dashboard Stripe (mode Test) → Developers → API keys → **Publishable key** (`pk_test_...`) |
+
+Ces clés Stripe ne sont **pas** requises pour que le job `e2e` actuel passe au
+vert — seules `SUPABASE_URL` / `SUPABASE_ANON_KEY` conditionnent son
+déclenchement aujourd'hui. Elles ne servent que si un futur scénario e2e du
+tunnel de paiement est ajouté à `tests/e2e/`.
+
+### Vérifier localement avant de pousser
+
+```bash
+rm -rf node_modules
+npm ci                # doit terminer en EXIT 0 (package-lock.json à jour)
+npm run build          # doit passer directement derrière npm ci, sans npm install
+npm run typecheck
+npm run lint
+npm run test:unit
+```
+
+Si `npm ci` échoue avec un message du type `Missing: crossws@x.y.z from lock
+file`, c'est une désynchronisation du lockfile liée à une résolution
+différente des peer dependencies optionnelles selon la version majeure de npm
+(observé entre npm 10 et npm 11) — régénérer avec
+`npm install --package-lock-only --ignore-scripts` puis revérifier `npm ci`.
+
+---
+
 ## Anti-Patterns à Éviter Absolument
 
 ```typescript
