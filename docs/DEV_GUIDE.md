@@ -172,6 +172,10 @@ RESEND_API_KEY=re_xxxx
 SITE_URL=http://localhost:3000
 COMMISSION_RATE=20
 ADMIN_EMAIL=camille@cgws.fr
+# Expéditeur unique des emails transactionnels (optionnel).
+# Fallback si absent : 'CGWS <onboarding@resend.dev>' (domaine de test Resend).
+# ⚠️ Nécessite le domaine cgws.fr VÉRIFIÉ dans Resend avant de pointer cgws.fr.
+CGWS_EMAIL_FROM=
 ```
 
 ```bash
@@ -183,6 +187,7 @@ RESEND_API_KEY=
 SITE_URL=
 COMMISSION_RATE=20
 ADMIN_EMAIL=
+CGWS_EMAIL_FROM=
 ```
 
 ### 4. Design System CSS
