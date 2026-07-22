@@ -121,7 +121,6 @@ const currentYear = new Date().getFullYear()
               </NuxtLink>
             </li>
             <li>
-              <!-- /a-propos n'est pas encore créé — redirigera vers 404 jusqu'à implémentation -->
               <NuxtLink
                 to="/a-propos"
                 active-class="text-cgws-accent"
