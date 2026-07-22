@@ -17,9 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 22 LTS : ESLint 9.39 utilise Object.groupBy (Node >= 21.1) alors
+      # qu'il declare supporter ^20.9.0 — sur Node 20 il crashe avant meme de
+      # lire la config. Node 20 est par ailleurs EOL (avril 2026) et plusieurs
+      # deps remontent deja des EBADENGINE.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -68,7 +72,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
