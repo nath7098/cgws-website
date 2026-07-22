@@ -709,6 +709,49 @@ l'expéditeur ou la config Resend.
 
 ---
 
+## Moyens de paiement — pilotés par le Dashboard Stripe (US-098)
+
+**Règle** : `server/api/checkout/session.post.ts` ne fige **volontairement aucun
+`payment_method_types`**. La liste des moyens de paiement proposés à l'acheteur
+est donc entièrement pilotée depuis le Dashboard Stripe
+(*Paramètres → Moyens de paiement*), sans aucun déploiement.
+
+**Conséquence pratique** : activer ou désactiver un moyen de paiement (PayPal,
+Apple Pay, Google Pay, Link, virement…) est une **action de configuration, pas
+une tâche de développement**. Un ticket « ajouter tel moyen de paiement » ne
+doit pas être estimé comme du dev tant que la vérification ci-dessous n'a pas
+été faite — c'est précisément le piège qu'a évité US-098.
+
+### Cas PayPal (vérifié en Sprint 9)
+
+PayPal est **supporté par Checkout**, y compris en formulaire embarqué, et CGWS
+remplit les prérequis :
+
+| Prérequis | État CGWS |
+|-----------|-----------|
+| Pays du compte marchand dans la liste éligible | ✅ FR |
+| Devise supportée | ✅ EUR |
+| `return_url` configurée (obligatoire dès qu'un moyen de paiement à redirection est actif en `ui_mode` embarqué) | ✅ `/checkout/success?session_id={CHECKOUT_SESSION_ID}` |
+
+**Comportement attendu** : PayPal impose une **redirection pleine page** vers
+PayPal pour l'autorisation, puis un retour sur la `return_url` — y compris
+depuis le formulaire embarqué. Ce n'est pas un défaut d'intégration.
+
+**Aucune branche de code spécifique n'est nécessaire** : le webhook
+`checkout.session.completed` → `fulfillOrder` et la libération de stock
+(`release_product_unit`) sont agnostiques du moyen de paiement.
+
+⚠️ **Seule contrainte à respecter** : ne jamais placer le Checkout embarqué dans
+une iframe à nous — les moyens de paiement à redirection casseraient. Ce n'est
+pas le cas aujourd'hui sur `/checkout`.
+
+**Recette obligatoire** avant de communiquer un nouveau moyen de paiement à
+Camille : un paiement complet de bout en bout en mode test Stripe (compte
+sandbox pour PayPal), en vérifiant que la commande est bien fulfillée et
+l'email de confirmation reçu.
+
+---
+
 ## Anti-Patterns à Éviter Absolument
 
 ```typescript
