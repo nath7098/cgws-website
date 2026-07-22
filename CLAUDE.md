@@ -415,6 +415,10 @@ develop       ← intégration
 feature/US-XXX-description
 ```
 
+**Règle absolue : squash merge d'une feature → suppression de la branche dans la foulée** (remote *et* local), sans attendre qu'on le demande.
+
+Pourquoi : après un squash, les commits d'origine n'existent plus sur `develop` — seul leur contenu y est. Une branche laissée en place apparaît donc éternellement « en avance » sur `develop` (`git log develop..feature/X` liste des commits déjà intégrés), ce qui rend illisible la question « qu'est-ce qui reste vraiment à merger ? ». Toujours raisonner sur `git diff develop..branche` (le contenu), jamais sur le nombre de commits.
+
 ### Standards
 
 - TypeScript strict — aucun `any`, types explicites partout
