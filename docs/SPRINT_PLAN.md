@@ -1479,3 +1479,488 @@ Then   les quatre commandes passent en EXIT 0
 - `depositor/consignments.get.ts` : collecte des `consignment_id`/`product_id` puis `.in()` groupé, mapping inchangé
 
 **Commit** : `refactor(cleanup): remove dead code, dedupe labels, theme-aware chart, fix depositor N+1 [US-093]`
+
+---
+
+## Priorisation du backlog GitHub (15 issues ouvertes, relevé 2026-07-22) — Sprints 9 & 10
+
+**Méthode** : chaque issue a été confrontée au code réellement livré (pas seulement au journal) avant estimation — cf. raisonnement détaillé sous chaque US. Trois issues se sont révélées **obsolètes ou déjà résolues côté code** (§ « Issues à fermer »), une intuition de recoupement de Nathan s'est révélée **fausse à l'usage** (#26 n'est probablement PAS la même cause que #27/#24 — un vrai bug distinct a été localisé dans le code), et une estimation a pu être **fortement revue à la baisse** grâce à la lecture du code existant (#25 PayPal).
+
+**Complément (2e passe)** : deux issues absentes de ma première itération — #29 (page À propos) et #18 (hero) — ont été ajoutées ci-dessous après vérification code, avec la même rigueur. #29 en particulier n'est pas qu'une demande de contenu : la navigation (`AppHeader.vue`, `MobileMenu.vue`) et le footer (`AppFooter.vue`) pointent déjà vers `/a-propos` — un commentaire explicite dans `AppFooter.vue` (« /a-propos n'est pas encore créé — redirigera vers 404 ») confirme que **le lien est déjà cassé en production sur tout le site**, ce qui change sa nature : ce n'est pas seulement une amélioration de confiance/SEO, c'est un défaut visible déjà en ligne.
+
+**Priorisation retenue, du plus au moins urgent** :
+1. **Les 2 bugs email/consignation qui cassent la conversion en silence** (US-094, US-095) passent devant tout — un prospect qui pense avoir contacté CGWS ou déposé sa selle, sans retour, ne revient pas. Conforme à l'avis de Nathan.
+2. **Le lien mort `/a-propos` déjà en production (US-099)** monte juste derrière : contrairement aux autres features, ce n'est pas un choix d'ajouter de la valeur, c'est corriger un défaut déjà visible par tout visiteur qui clique sur ce lien de nav — et Nathan a demandé explicitement que cette issue soit priorisée dans cette session. La partie structure/SEO/design est livrable immédiatement avec du contenu placeholder clairement marqué (même pattern déjà validé en US-011/US-022) ; le contenu définitif (bio + photos réelles de Camille) reste un blocage de contenu isolé, pas un blocage de sprint.
+3. **PayPal (US-098)** est promu ensuite car son coût réel, une fois vérifié dans le code, est quasi nul (moyen de paiement piloté par le Dashboard Stripe depuis le rework US-082) — un gain rapide ne doit pas attendre.
+4. **Le hero de la homepage (US-100, #18)** est un correctif UI trivial et bien cadré (un seul fichier, aucun risque LCP vérifié) — il complète le sprint sans le déséquilibrer.
+5. **Quantité/stock multi-unités (US-096)** vient ensuite : feature commerciale réelle (les produits consommables comme l'huile de sabot ne peuvent aujourd'hui être achetés qu'à l'unité), et l'investigation montre que le socle bas-niveau (RPC `reserve_product_unit`/`release_product_unit`) supporte déjà la décrémentation par unité — le travail restant est surtout applicatif (UI, boucle serveur, Stripe `quantity`), ce qui contient le risque.
+6. **Retour en stock + notification (US-097)** ferme la marche : elle dépend du modèle de stock retravaillé en US-096 ET du domaine Resend vérifié (US-094) pour être utile en production — la planifier avant ses dépendances n'aurait aucun sens.
+7. **Les 5 issues « Products »** ne sont volontairement PAS transformées en US : ce sont des saisies de contenu catalogue, pas du développement (détail § dédiée ci-dessous).
+
+### Vue d'ensemble Sprints 9-10
+
+| Sprint | Épic | Points | Objectif |
+|--------|------|--------|----------|
+| Sprint 9 | E10 — Fiabilité & confiance du site public | 18 | Stopper la perte silencieuse de prospects (email, dépôt de selle), corriger le lien mort `/a-propos` déjà en production, activer PayPal, nettoyer le hero |
+| Sprint 10 | E11 — Stock multi-unités & rupture | 16 | Achat de plusieurs exemplaires + gestion de la rupture de stock avec alerte email |
+| **Total** | | **34** | |
+
+**Note vélocité** : le Sprint 9 se rapproche maintenant de la vélocité observée (~20 pts) grâce à l'ajout de US-099 et US-100, sans avoir été gonflé artificiellement — les deux items s'ajoutent naturellement au même objectif de sprint (fiabilité et confiance perçue du site public) et étaient déjà, pour #18, cadrés comme triviaux avant chiffrage. Le Sprint 10 reste à 16 pts, une fois le terrain déblayé.
+
+---
+
+## Épic E10 — Fiabilité & confiance du site public
+
+**Sprint 9 · ~1-2 semaines · 18 points**
+**Objectif** : un visiteur qui contacte CGWS ou dépose une selle reçoit toujours une confirmation, Camille a une visibilité opérationnelle si l'envoi d'email casse à nouveau, PayPal est disponible comme moyen de paiement, le lien de navigation `/a-propos` (déjà visible sur tout le site) ne mène plus à une 404, et le hero de la homepage est nettoyé de ses éléments jugés superflus par Nathan.
+
+| US | Titre | Priorité | Points | Issue(s) |
+|----|-------|----------|--------|----------|
+| US-094 | Recette emails + garde-fou expéditeur de test visible en admin | Must Have | 3 | #27, #24 |
+| US-095 | Fiabiliser la soumission du formulaire de dépôt de selle | Must Have | 5 | #26 |
+| US-099 | Page À propos — structure, SEO et confiance consignation | Must Have | 5 | #29 |
+| US-098 | Activer PayPal comme moyen de paiement (checkout embarqué) | Should Have | 3 | #25 |
+| US-100 | Hero homepage — retirer l'arche décorative et l'eyebrow | Should Have | 2 | #18 |
+| **Total** | | | **18** | |
+
+---
+
+### US-094 · Recette emails + garde-fou expéditeur de test visible en admin · 3 pts
+
+**Issue** : #27 (formulaire de contact), #24 (mail d'achat non reçu sur d'autres adresses que la mienne)
+
+**En tant que** gérante (P1),
+**Je veux** être visuellement alertée dans mon backoffice quand les emails du site partent encore depuis l'adresse de test Resend,
+**Afin de** ne plus jamais découvrir après-coup — via un client mécontent — que mes emails de contact, consignation ou vente ne sont jamais arrivés.
+
+**Contexte / diagnostic (confirmé dans le code, pas supposé)** : `server/services/email.ts` centralise déjà l'expéditeur depuis Sprint 8 (US-092, commit `3531e86`), avec fallback `CGWS <onboarding@resend.dev>` — un domaine de test Resend qui **ne délivre qu'à l'adresse du titulaire du compte Resend**. Le domaine `cgws.fr` n'étant pas vérifié dans Resend, TOUS les emails (contact compris) partent aujourd'hui depuis ce fallback, et `sendViaResend()` **avale l'erreur en cas d'échec API** (`console.error`, pas de throw) pour que l'UI ne bloque jamais l'utilisateur — ce qui explique exactement #27 (« le formulaire de contact n'envoie pas le mail » : le visiteur voit un succès, l'email ne part jamais) et #24 (« mail d'achat non reçu sur d'autres mails que le mien » : c'est littéralement le comportement du domaine de test). **Le code est prêt** ; il ne manque que l'action infra de Nathan (vérification DNS `cgws.fr` chez le registrar + variable Vercel `CGWS_EMAIL_FROM`). Cette US ne couvre pas cette action, mais élimine le risque que le problème redevienne invisible une fois « réglé ».
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  CGWS_EMAIL_FROM n'est pas définie (ou vide) en production
+When   Camille se connecte à /admin/dashboard
+Then   un bandeau d'alerte visible (non intrusif mais impossible à manquer) indique :
+       "Expéditeur email de test actif — vos emails de contact, consignation et vente ne partent qu'à l'adresse du compte Resend. Le domaine cgws.fr doit être vérifié dans Resend."
+And    le bandeau reste visible tant que la condition n'est pas corrigée (pas de bouton "fermer définitivement" qui masquerait un vrai problème de production)
+
+Given  CGWS_EMAIL_FROM est configurée sur un domaine vérifié (ex. 'CGWS <noreply@cgws.fr>')
+When   Camille se connecte à /admin/dashboard
+Then   le bandeau n'apparaît pas
+
+Given  un visiteur non authentifié
+When   il consulte n'importe quelle page publique
+Then   aucune information sur l'état de configuration email n'est exposée (le statut n'est lisible que par l'admin authentifiée)
+
+Given  le domaine cgws.fr vient d'être vérifié dans Resend et CGWS_EMAIL_FROM positionnée en production par Nathan
+When   chacun des 6 déclencheurs d'email est rejoué manuellement une fois (contact, consignation — confirmation dépôt, consignation — acceptation, consignation — refus, consignation — vente au déposant, commande — confirmation acheteur)
+Then   chaque email est effectivement reçu sur une adresse de test hors compte Resend — preuve que le problème n'est plus circonscrit au domaine de test
+And    le résultat de cette recette (checklist des 6 templates) est consigné dans docs/PROGRESS.md par l'orchestrateur
+```
+
+**Notes techniques** :
+- Nouvelle route `server/api/admin/email-status.get.ts` (auth admin requise) qui retourne `{ isFallback: boolean }` en comparant `resolveEmailFrom()` (ou une fonction exportée équivalente) au fallback connu — ne PAS exposer `runtimeConfig` brut côté client.
+- Composant `app/components/admin/EmailFallbackBanner.vue`, monté dans `app/pages/admin/dashboard.vue` (ou `layouts/admin.vue` si on veut la visibilité sur tout le backoffice — à trancher en design, le dashboard suffit pour couvrir le besoin).
+- Aucune modification de `server/services/email.ts` au-delà d'exporter la fonction de détection nécessaire au endpoint (pas de nouveau comportement d'envoi).
+- La checklist de recette manuelle des 6 templates est un **livrable documentaire** de cette US (à ajouter dans `docs/DEV_GUIDE.md` § emails), pas un test automatisé — l'envoi réel dépend d'une action Nathan hors périmètre code.
+
+**Fichiers impactés (estimés)** :
+- `server/api/admin/email-status.get.ts`
+- `app/components/admin/EmailFallbackBanner.vue`
+- `app/pages/admin/dashboard.vue`
+- `docs/DEV_GUIDE.md`
+
+**Commit** : `feat(admin): visible fallback-sender warning banner and email recette checklist [US-094]`
+
+---
+
+### US-095 · Fiabiliser la soumission du formulaire de dépôt de selle · 5 pts
+
+**Issue** : #26 (« à la validation de la demande de dépôt de selle une erreur survient »)
+
+**En tant que** déposant (P3),
+**Je veux** que ma demande de consignation aboutisse même quand j'ajoute plusieurs photos prises avec mon téléphone,
+**Afin de** ne pas être bloqué(e) par une erreur technique opaque au moment de proposer ma selle à la vente.
+
+**Contexte / diagnostic (hypothèse la plus solide trouvée dans le code, à confirmer par Nathan via les logs Vercel avant clôture)** : contrairement à ce que suggérait le recoupement initial avec #27/#24, `server/api/consignments/create.post.ts` gère déjà correctement l'échec d'email (`try/catch` silencieux autour de `sendConsignmentConfirmation`, la demande est sauvegardée même si l'email casse) — **ce n'est donc probablement pas la même cause racine**. En revanche, `ConsignmentForm.vue` ne valide QUE la taille par fichier (`MAX_FILE_SIZE_MB = 5`), jamais la taille CUMULÉE, et **aucune compression côté client n'est implémentée** alors que c'était une tâche technique prévue dès l'US-020 originale (`browser-image-compression`, jamais livrée). Un déposant qui ajoute 5 photos de selle prises au smartphone (couramment 3 à 5 Mo chacune en 2026) peut soumettre un payload multipart de 15 à 25 Mo — largement au-dessus de la limite par défaut d'une fonction serverless Vercel (4,5 Mo). La requête échoue alors AVANT d'atteindre la validation Zod, avec une erreur réseau générique que le déposant perçoit exactement comme « une erreur survient » sans plus de détail.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je sélectionne 5 photos dont le total dépasse la limite de payload supportée par le serveur
+When   je clique sur "Soumettre ma demande" (avant tout envoi réseau)
+Then   une compression côté client (viser ~1600px de large max, qualité ~75%) est appliquée à chaque photo avant l'ajout au FormData
+And    si le total compressé dépasse malgré tout un seuil sûr (ex. 4 Mo cumulés), un message bloquant explicite s'affiche AVANT la tentative d'envoi ("Vos photos sont trop volumineuses au total, réduisez leur nombre ou leur résolution") plutôt qu'un échec réseau opaque après coup
+
+Given  la compression échoue pour un fichier isolé (format inattendu, fichier corrompu)
+When   je soumets le formulaire
+Then   ce fichier précis est signalé en erreur sans bloquer les autres photos valides ni faire échouer toute la soumission
+
+Given  le serveur reçoit malgré tout une requête dont le traitement échoue de façon inattendue (upload Storage, parsing multipart)
+When   `server/api/consignments/create.post.ts` rencontre cette erreur
+Then   un message d'erreur clair et actionnable est renvoyé au front (jamais une erreur brute/stack) — défense en profondeur même si la compression réduit le risque sans l'éliminer à 100%
+
+Given  la demande est soumise avec des photos compressées valides
+When   le traitement serveur aboutit
+Then   le comportement existant est inchangé : consignation créée en base, email de confirmation tenté (échec non bloquant), succès affiché au déposant
+```
+
+**Notes techniques** :
+- Ajout de `browser-image-compression` (dépendance déjà anticipée dans la US-020 d'origine, jamais installée) dans `ConsignmentForm.vue`, appliqué à chaque fichier avant `formData.append`.
+- Nouvelle constante partagée (front) : seuil de payload cumulé sûr, avec marge sous la limite Vercel par défaut (documenter la valeur retenue et sa justification dans un commentaire).
+- `server/api/consignments/create.post.ts` : envelopper `readMultipartFormData` et la boucle d'upload Storage dans un try/catch renvoyant un message utilisateur clair (`createError` avec message actionnable) au lieu de laisser remonter une erreur non gérée.
+- **Action de confirmation recommandée à Nathan (hors code)** : consulter les logs de fonction Vercel (Vercel Dashboard → Functions → `consignments/create`) sur les dernières semaines pour confirmer la signature d'erreur exacte (413 / `FUNCTION_PAYLOAD_TOO_LARGE` / timeout) et valider définitivement cette hypothèse avant de considérer #26 close.
+
+**Fichiers impactés (estimés)** :
+- `app/components/consignation/ConsignmentForm.vue`
+- `server/api/consignments/create.post.ts`
+- `package.json` (nouvelle dépendance `browser-image-compression`)
+
+**Commit** : `fix(consignment): client-side image compression and payload size guard to prevent silent submission failures [US-095]`
+
+---
+
+### US-099 · Page À propos — structure, SEO et confiance consignation · 5 pts
+
+**Issue** : #29 (« page À propos » — présenter Camille, l'atelier de Brèches, le service de consignation, le positionnement)
+
+**En tant que** visiteur (P2, P4) et déposant potentiel (P3),
+**Je veux** trouver une page À propos qui présente Camille, l'atelier et le service de consignation,
+**Afin de** avoir confiance dans la personne et la structure à qui je confie ma selle ou mon achat — et, plus immédiatement, ne plus tomber sur une page introuvable en cliquant sur le lien "À Propos" du menu.
+
+**Contexte / diagnostic (confirmé dans le code)** : `app/components/layout/AppHeader.vue`, `app/components/layout/MobileMenu.vue` et `app/components/layout/AppFooter.vue` référencent déjà `to="/a-propos"` — le commentaire `<!-- /a-propos n'est pas encore créé — redirigera vers 404 jusqu'à implémentation -->` dans `AppFooter.vue` confirme que **ce lien est un défaut déjà visible en production sur toutes les pages du site**, pas une simple absence de fonctionnalité. Par ailleurs, `app/components/home/OurStorySection.vue` (US-011) contient déjà un texte de présentation de Camille marqué `<!-- PLACEHOLDER — texte à personnaliser par Camille avant mise en ligne -->` et une photo Unsplash provisoire marquée de la même façon, avec un CTA "En savoir plus" qui pointe déjà vers `/a-propos` : cette US réutilise et étend ce texte existant plutôt que d'en inventer un nouveau, pour rester cohérente avec ce qui a déjà été écrit et validé dans le pipeline.
+
+**Découpage retenu (US unique, conformément à la convention déjà en place sur ce projet — voir US-011, US-022 — où le contenu placeholder est un TASK noté, pas une US séparée)** : la structure, le design, le SEO technique et les données structurées sont livrés maintenant avec du contenu de remplacement explicitement marqué ; le remplacement par le contenu définitif (bio complète + 3-4 photos réelles de l'atelier) est un swap de constantes de contenu, sans changement de code, et reste un blocage de contenu isolé (même famille que les autres "vrais contenus Camille" déjà loggés) — il ne bloque pas le Done de cette US.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je clique sur le lien "À Propos" dans le header (desktop), le menu mobile, ou le footer
+When   la page /a-propos se charge
+Then   je n'obtiens plus une 404 — la page s'affiche avec un contenu structuré et complet
+
+Given  la page /a-propos se charge
+When   je la parcours
+Then   une section présente Camille (bio, photo — contenu réutilisé/étendu depuis OurStorySection.vue, marqué comme placeholder tant que le texte définitif n'est pas fourni)
+And    une section présente l'atelier/la boutique à Brèches (37) : lieu, accueil, modalités de retrait
+And    une section présente les activités de CGWS dont le service de consignation, avec un lien explicite vers /consignation
+And    un lien vers /contact est présent pour aller plus loin
+And    le positionnement (western authentique et premium, pas kitsch) transparaît dans le ton du texte, cohérent avec le reste du site
+
+Given  je suis sur mobile (375px), tablette (768px) ou desktop (1440px)
+When   j'affiche la page
+Then   la mise en page s'adapte sans rupture visuelle ni chevauchement
+
+Given  un moteur de recherche crawle la page /a-propos
+When   il lit le <head>
+Then   un <title> et une <meta description> uniques et pertinents sont présents (via usePageSeo, cohérent avec le reste du site)
+And    un balisage JSON-LD Person (Camille) est présent
+And    un balisage JSON-LD LocalBusiness est présent (réutilisation du schéma déjà défini sur la homepage dans app/pages/index.vue, mêmes coordonnées Brèches/37)
+And    les balises Open Graph (og:title, og:description, og:image) sont générées
+
+Given  la page utilise des images
+When   elles sont affichées
+Then   elles passent toutes par <NuxtImg> (format WebP, lazy loading hors LCP), aucune balise <img> brute
+
+Given  la page est testée à la souris et au clavier
+When   je navigue avec Tab
+Then   tous les liens et éléments interactifs sont atteignables dans un ordre logique, avec un focus visible (WCAG AA)
+
+Given  le texte de présentation de Camille et les photos de l'atelier sont aujourd'hui des placeholders explicitement marqués
+When   Camille fournit sa bio définitive et 3-4 photos réelles de l'atelier
+Then   leur intégration est un remplacement de constantes de contenu (texte + chemins d'image), sans modification de la structure de page, du SEO ou des composants — prouvant que le découpage "structure maintenant / contenu ensuite" ne crée pas de dette
+```
+
+**Notes techniques** :
+- `app/pages/a-propos.vue` : nouvelle page, structure inspirée de `app/pages/mentions-legales.vue` (container centré, lien retour) mais avec plusieurs sections illustrées façon `OurStorySection.vue` (grille texte/image, arche décorative accent-deco — cohérence design system) plutôt qu'un simple article textuel.
+- Contenu texte de départ : reprendre tel quel puis étendre le paragraphe déjà écrit dans `app/components/home/OurStorySection.vue` (bio Camille) — ne pas réinventer un nouveau texte from scratch. Ajouter les paragraphes atelier/Brèches et positionnement en conservant le même marquage `<!-- PLACEHOLDER — à personnaliser par Camille -->`.
+- SEO : `usePageSeo()` (`app/composables/useSeo.ts`) pour title/description/OG, cohérent avec `contact.vue`/`consignation.vue`. Ajouter un JSON-LD `Person` (name: "Camille Guignon", éventuellement `worksFor` pointant vers l'entité LocalBusiness) via `useHead({ script: [...] })` avec `innerHTML` (API unhead v2, cf. fix US-090) — jamais `children`.
+- Réutiliser le JSON-LD `LocalBusiness` déjà écrit dans `app/pages/index.vue` (mêmes coordonnées) plutôt que de le dupliquer avec des valeurs qui pourraient diverger — envisager de le factoriser dans un helper partagé si le temps le permet (nice-to-have, pas bloquant pour le Done).
+- Photos : réutiliser en placeholder la même image Unsplash que `OurStorySection.vue` (déjà validée comme placeholder temporaire) pour la photo de Camille, et sélectionner 2-3 images Unsplash cohérentes (sellerie, atelier) pour illustrer la boutique — toutes clairement commentées `<!-- Placeholder Unsplash — à remplacer par la vraie photo -->`.
+- Aucune modification requise de `AppHeader.vue` / `MobileMenu.vue` / `AppFooter.vue` : les liens existent déjà et fonctionneront dès que la page existe. Retirer uniquement le commentaire de garde dans `AppFooter.vue` une fois la page livrée.
+
+**Fichiers impactés (estimés)** :
+- `app/pages/a-propos.vue`
+- `app/components/layout/AppFooter.vue` (retrait du commentaire de garde uniquement)
+- `docs/DEV_GUIDE.md` ou `docs/PROGRESS.md` (note de blocage contenu réel, à la charge de l'orchestrateur)
+
+**Commit** : `feat(public): about page with Camille/atelier/consignment content, SEO and structured data [US-099]`
+
+---
+
+### US-098 · Activer PayPal comme moyen de paiement · 3 pts
+
+**Issue** : #25 (corps vide — « ajouter PayPal en moyen de paiement »)
+
+**En tant qu'**acheteur (P2, P4),
+**Je veux** pouvoir payer via PayPal en plus de la carte bancaire,
+**Afin de** finaliser mon achat avec le moyen de paiement que j'utilise déjà au quotidien, sans ressaisir de coordonnées bancaires.
+
+**⚠️ Point à vérifier avant de considérer cette estimation acquise (arbitrage paiement — je ne tranche pas seule, voir note ci-dessous)** : `server/api/checkout/session.post.ts` crée la session en `ui_mode: 'embedded_page'` sans `payment_method_types` figé — un commentaire du code (`E8 rework`) confirme explicitement que « les moyens de paiement (CB, Apple Pay, Google Pay, Link…) sont pilotés par le Dashboard ». Un `return_url` est déjà configuré (`/checkout/success?session_id=...`), ce qui est le prérequis technique pour les moyens de paiement à redirection comme PayPal. **Sur cette seule base de code, l'activation semble ne nécessiter aucune modification côté CGWS** — juste une activation dans le Dashboard Stripe (action Nathan). **Cependant** : le support de PayPal spécifiquement en mode Checkout **embarqué** (par opposition au Checkout hébergé classique) a historiquement été plus restreint chez Stripe selon les périodes ; je n'ai pas de moyen de vérifier l'état actuel de cette compatibilité depuis ce dépôt. **Ne pas activer PayPal en production sur la seule foi de cette US** — une vérification dans le Dashboard Stripe (l'liste des moyens de paiement proposés s'adapte automatiquement à `ui_mode` et n'affichera PayPal comme activable que si c'est réellement supporté) doit précéder toute communication à Camille sur la disponibilité de PayPal.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  le Dashboard Stripe (Paramètres → Moyens de paiement)
+When   Nathan tente d'activer PayPal
+Then   si PayPal apparaît disponible pour la configuration Checkout actuelle (ui_mode embarqué), il l'active — sinon cette US est bloquée et remontée en arbitrage (bascule éventuelle en Checkout hébergé à évaluer séparément, hors périmètre de cette US)
+
+Given  PayPal est activé côté Dashboard Stripe
+When   un acheteur arrive sur /checkout
+Then   PayPal apparaît comme option de paiement dans le formulaire Stripe embarqué, sans aucune modification de `server/api/checkout/session.post.ts`
+
+Given  un acheteur choisit PayPal et complète le paiement (redirection PayPal puis retour)
+When   il revient sur /checkout/success?session_id=...
+Then   le parcours de confirmation fonctionne à l'identique d'un paiement carte (webhook `checkout.session.completed`, `fulfillOrder`, email de confirmation) — aucune branche de code spécifique à PayPal n'est nécessaire car le webhook ne distingue pas le moyen de paiement utilisé
+
+Given  un acheteur commence un paiement PayPal puis l'abandonne (retour sans compléter)
+When   la session expire ou est annulée
+Then   le comportement de libération de stock existant (release_product_unit) s'applique à l'identique, sans distinction de moyen de paiement
+```
+
+**Notes techniques** :
+- Étape 1 (spike, quelques minutes) : vérifier dans le Dashboard Stripe si PayPal est proposable pour une configuration `ui_mode: embedded_page`. Si non, cette US se transforme en question d'arbitrage produit (bascule Checkout hébergé) — ne pas coder à l'aveugle.
+- Si disponible : aucune tâche de développement CGWS n'est requise (le routage `checkout.session.completed` / `fulfillOrder` est déjà agnostique du moyen de paiement).
+- Test manuel de recette obligatoire en mode test Stripe (carte PayPal sandbox) avant mise en avant du moyen de paiement auprès des clients.
+
+**Fichiers impactés (estimés)** :
+- Aucun a priori côté code si la vérification est positive — configuration Stripe Dashboard uniquement.
+- `docs/DEV_GUIDE.md` (documenter que les moyens de paiement sont Dashboard-driven, pour éviter qu'un futur ticket similaire soit sur-estimé)
+
+**Commit** : `docs(payments): document Dashboard-driven payment methods after PayPal activation check [US-098]`
+
+---
+
+### US-100 · Hero homepage — retirer l'arche décorative et l'eyebrow · 2 pts
+
+**Issue** : #18 (« hero not good » — « Remove the hero-title-block's svg + hero-eyebrow »)
+
+**En tant que** gérante (P1),
+**Je veux** un hero de homepage plus épuré, sans l'arche décorative ni la ligne eyebrow au-dessus du titre,
+**Afin de** simplifier la composition visuelle selon le retour de Nathan.
+
+**Contexte / diagnostic (confirmé dans le code — correctif effectivement trivial)** : dans `app/components/home/HeroSection.vue`, `.hero-title-block` (ligne ~144) contient exactement deux éléments à retirer : (1) un `<svg>` décoratif (`aria-hidden="true"`, arche ornementale en `--cgws-accent-deco`, lignes ~146-159) et (2) `.hero-eyebrow` (ligne ~162-172, la ligne "Sellerie Équestre Western · Brèches, 37" avec sa barre décorative). Le H1 (titre principal animé lettre par lettre) et son animation GSAP restent inchangés. **Aucun risque LCP** : l'élément LCP de la section est l'image de fond (`NuxtPicture` avec `fetchpriority: high`, ligne ~116), totalement indépendante de `.hero-title-block` — sa suppression réduit même légèrement le DOM et ne peut pas dégrader le LCP. Deux points d'attention mineurs identifiés dans le code, pas dans l'issue : la timeline GSAP référence `.hero-eyebrow` (`tl.from('.hero-eyebrow', {...}, 0)`, ligne 38) — un sélecteur qui ne matchera plus rien une fois l'élément supprimé (sans erreur, mais code mort à nettoyer) ; et le titre H1 s'appuyait sur la marge `mt-6` de l'eyebrow pour son espacement vertical dans `.hero-title-block` — un ajustement de spacing est nécessaire pour que le titre garde une position cohérente une fois l'eyebrow retiré.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  la homepage se charge
+When   j'inspecte la section hero
+Then   l'arche SVG décorative et le bloc "Sellerie Équestre Western · Brèches, 37" (eyebrow) ne sont plus présents dans le DOM
+And    le titre H1 "L'AUTHENTIQUE WESTERN À VOTRE PORTÉE" reste affiché, animé lettre par lettre comme avant (aucune régression sur l'animation GSAP du titre)
+And    l'espacement vertical du bloc titre est ajusté pour rester visuellement cohérent (pas de titre "collé" en haut de la zone de contenu)
+
+Given  la timeline GSAP de la homepage
+When   le hero se monte
+Then   l'appel `tl.from('.hero-eyebrow', ...)` mort est retiré du script (pas seulement laissé en sélecteur orphelin)
+
+Given  un audit Lighthouse LCP sur la homepage avant/après ce correctif
+When   il est mesuré
+Then   le LCP n'est pas dégradé (l'élément LCP reste l'image de fond, non affectée par ce changement)
+
+Given  je suis sur mobile (375px), tablette (768px) et desktop (1440px)
+When   j'affiche le hero
+Then   la composition reste équilibrée aux trois largeurs sans l'eyebrow ni l'arche
+```
+
+**Notes techniques** :
+- `app/components/home/HeroSection.vue` : retirer le bloc `<svg>` (lignes ~146-159) et le bloc `.hero-eyebrow` (lignes ~162-172) du template ; retirer l'entrée `tl.from('.hero-eyebrow', ...)` du script (ligne ~38-42).
+- Ajuster la classe du H1 ou de `.hero-title-block` pour restaurer un espacement top cohérent (ex. `pt-*` sur `.hero-title-block` en remplacement du `mt-6` perdu de l'eyebrow) — à valider visuellement aux 3 breakpoints du DoD.
+- Aucun changement attendu sur `app/pages/index.vue`, l'image de fond, ou les autres sections de la homepage.
+
+**Fichiers impactés (estimés)** :
+- `app/components/home/HeroSection.vue`
+
+**Commit** : `fix(home): remove decorative hero arch and eyebrow per design feedback [US-100]`
+
+---
+
+## Épic E11 — Stock multi-unités & rupture
+
+**Sprint 10 · ~1-2 semaines · 16 points**
+**Objectif** : un produit non-consigné peut être vendu en plusieurs exemplaires avec une quantité restante visible, et un produit en rupture reste consultable avec une option d'alerte email au retour en stock.
+
+**Dépendance transverse** : US-097 nécessite le modèle de stock consolidé en US-096 ET le domaine Resend vérifié (US-094) pour être utile en production — coder-tester est possible avant, mais la validation réelle de l'envoi d'alerte est bloquée par les mêmes prérequis externes que US-063/US-066 (voir Sprint 7).
+
+| US | Titre | Priorité | Points | Issue(s) |
+|----|-------|----------|--------|----------|
+| US-096 | Quantité restante affichée + achat multiple | Should Have | 8 | #23 |
+| US-097 | Rupture de stock : parcage catalogue + alerte email retour en stock | Should Have | 8 | #22 |
+| **Total** | | | **16** | |
+
+---
+
+### US-096 · Quantité restante affichée + achat multiple · 8 pts
+
+**Issue** : #23 (« afficher quantité restante des articles et permettre d'en acheter plusieurs »)
+
+**En tant qu'**acheteur (P2, P4),
+**Je veux** voir combien d'exemplaires restent d'un produit non-consigné et pouvoir en commander plusieurs en une fois,
+**Afin de** acheter, par exemple, plusieurs bidons d'huile de sabot ou plusieurs paires de bas de contention sans repasser cinq fois par le tunnel de paiement.
+
+**Contexte / diagnostic (confirmé dans le code)** : le socle bas-niveau supporte déjà partiellement le multi-unités depuis le rework E8 (`supabase/migrations/006_stock_reservation_functions.sql`) — `reserve_product_unit` décrémente `stock` d'une unité par appel et ne verrouille (`status = 'reserved'`) QUE sur la toute dernière unité ; les unités intermédiaires restent `active` avec un stock réduit. **Ce qui manque n'est donc pas l'atomicité SQL (déjà là) mais la couche applicative** : `server/api/checkout/session.post.ts` dé-duplique aujourd'hui les IDs produit (`[...new Set(rawIds)]`) et réserve toujours exactement 1 unité par produit, avec `quantity: 1` figé côté Stripe `line_items` ; `app/stores/cart.ts` n'a aucun champ quantité (« 1 ligne = 1 exemplaire », commentaire explicite) ; aucun composant n'affiche `products.stock` (colonne existante, gérée côté admin depuis US-032, jamais exposée côté public).
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  un produit non-consigné (isConsignment=false) avec un stock de 5
+When   j'affiche sa fiche produit
+Then   la quantité restante est visible ("5 en stock")
+And    si le stock est ≤ 3, un message d'urgence discret s'affiche ("Plus que 3 en stock")
+And    un sélecteur de quantité (de 1 au minimum(stock, 10)) est disponible avant "Ajouter au panier"
+
+Given  un produit en consignation (isConsignment=true — pièce unique par nature)
+When   j'affiche sa fiche produit
+Then   aucun sélecteur de quantité n'est proposé et le comportement actuel (pièce unique) reste strictement inchangé
+
+Given  un produit non-consigné en stock 0
+When   j'affiche sa fiche produit
+Then   "Épuisé" s'affiche et l'ajout au panier est désactivé (préparation du terrain pour US-097, sans implémenter la notification dans cette US)
+
+Given  je choisis une quantité de 3 pour un produit non-consigné en stock 5, et je l'ajoute au panier
+When   je vais au checkout
+Then   la réservation appelle `reserve_product_unit` 3 fois pour ce produit (réutilisation de la RPC atomique existante, aucune nouvelle fonction SQL nécessaire) et la ligne Stripe correspondante a `quantity: 3`
+
+Given  ma quantité demandée dépasse le stock réellement disponible au moment du paiement (stock modifié entre-temps par une autre vente)
+When   la réservation échoue sur l'une des unités demandées
+Then   TOUTES les unités déjà réservées pour cette tentative — pour ce produit ET pour les autres produits du panier — sont restituées (extension du rollback existant, déjà éprouvé en US-091, au cas multi-unités)
+And    l'API répond 409 sans créer de session Stripe, avec un message indiquant la quantité réellement disponible
+
+Given  l'edge case déjà documenté en fin de Sprint 8 (release d'une unité pendant qu'une autre commande détient le verrou dernière-unité, qui paie ensuite → produit "sold" avec stock résiduel)
+When   ce scénario de course se reproduit avec le modèle quantité étendu
+Then   un log serveur explicite et distinctif est émis pour permettre à Camille/Nathan de repérer et réactiver le produit rapidement en admin — le correctif de l'atomicité SQL sous-jacente reste hors périmètre (acté non-bloquant en US-091), mais l'invisibilité opérationnelle actuelle, elle, est corrigée par cette US
+
+Given  un produit déjà présent dans mon panier avec une quantité N
+When   je retourne sur sa fiche et modifie la quantité désirée
+Then   le panier reflète la nouvelle quantité totale sans dupliquer la ligne produit (toujours 1 ligne par produit, mais avec un champ quantité)
+```
+
+**Notes techniques** :
+- `app/types/index.ts` : ajouter `quantity: number` à `CartItem`.
+- `app/stores/cart.ts` + `#shared/utils/checkout.ts` (`addCartLine`, `computeSubtotal`) : gérer la quantité par ligne (tests unitaires `tests/unit/cart.spec.ts` à étendre en conséquence).
+- `server/api/checkout/session.post.ts` : le payload `productIds` (array d'UUID dédupliqués) devient un array de `{ productId, quantity }` (schéma Zod à adapter, `max(30)` à revoir en fonction du total d'unités plutôt que du nombre de lignes) ; la boucle de réservation appelle `reserve_product_unit` `quantity` fois par produit (séquentiel, chaque appel restant atomique) ; `line_items[].quantity` reflète la quantité réelle au lieu de `1` figé.
+- Nouveau composant `app/components/product/QuantitySelector.vue`, utilisé dans `ProductInfo.vue` (masqué si `isConsignment`).
+- `app/components/catalogue/ProductCard.vue` : badge stock bas si pertinent (cohérent avec le badge "Vendu"/"Consignation" existant).
+- Tests unitaires : extension de `tests/unit/reservation.spec.ts` (US-091) pour la boucle multi-quantité et son rollback partiel.
+
+**Fichiers impactés (estimés)** :
+- `app/types/index.ts`
+- `app/stores/cart.ts`
+- `app/shared/utils/checkout.ts` (ou équivalent selon l'emplacement réel de `computeSubtotal`)
+- `server/api/checkout/session.post.ts`
+- `app/components/product/QuantitySelector.vue`
+- `app/components/product/ProductInfo.vue`
+- `app/components/catalogue/ProductCard.vue`
+- `tests/unit/cart.spec.ts`, `tests/unit/reservation.spec.ts`
+
+**Commit** : `feat(catalog): remaining stock display and multi-unit purchase for non-consignment products [US-096]`
+
+---
+
+### US-097 · Rupture de stock : parcage catalogue + alerte email retour en stock · 8 pts
+
+**Issue** : #22 (« quand un article hors dépôt-vente est en rupture, ne pas le retirer du catalogue mais le parquer en rupture, et permettre d'être averti par mail »)
+
+**En tant que** cavalier(e) (P2, P4),
+**Je veux** pouvoir demander à être prévenu(e) par email quand un article épuisé revient en stock,
+**Afin de** ne pas avoir à revenir vérifier régulièrement le site pour un article qui m'intéresse.
+
+**Dépendances** : US-096 (modèle de stock consolidé, notion de rupture affichée) ; US-094 (domaine Resend vérifié) pour que l'email d'alerte parte réellement en production — le code peut être écrit et testé avec mocks avant, comme le reste du projet à ce jour (cf. pattern acté Sprint 7 pour US-063/US-066), mais la validation end-to-end réelle est bloquée par le même prérequis externe.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  un produit non-consigné (isConsignment=false) dont le stock passe à 0
+When   ce changement se produit (vente, ajustement admin)
+Then   le produit N'EST PAS retiré du catalogue public — il reste consultable via /catalogue et sa fiche produit
+And    son statut affiché passe à "Épuisé" (distinct de "Vendu", qui reste réservé aux pièces de consignation uniques)
+
+Given  un produit en consignation (isConsignment=true) vendu
+When   son statut passe à "sold"
+Then   le comportement actuel est strictement inchangé (retiré ou badgé "Vendu" selon la config existante — cette US ne touche PAS aux articles de consignation)
+
+Given  je consulte la fiche d'un produit "Épuisé"
+When   la page se charge
+Then   le bouton "Ajouter au panier" est remplacé par un formulaire "M'avertir du retour en stock" (email uniquement)
+And    après soumission, un message de confirmation neutre s'affiche ("Vous serez averti(e) par email dès que cet article sera de nouveau disponible")
+
+Given  je me suis déjà inscrit(e) pour ce produit avec la même adresse email
+When   je soumets à nouveau le formulaire pour le même produit
+Then   aucune deuxième inscription n'est créée (idempotence sur le couple produit + email) et le même message de confirmation s'affiche
+
+Given  Camille réapprovisionne un produit "Épuisé" via l'admin (stock remonté au-dessus de 0)
+When   le changement est enregistré
+Then   le statut du produit repasse automatiquement à "Disponible"
+And    un email est envoyé à chaque adresse inscrite pour ce produit, avec un lien direct vers la fiche produit
+And    les inscriptions notifiées sont marquées comme traitées (pas de rappel en boucle à chaque nouvel ajustement de stock ultérieur)
+
+Given  un produit "Épuisé" pour lequel personne ne s'est inscrit
+When   il est réapprovisionné
+Then   aucun email n'est envoyé (pas d'inscription à notifier) et aucune erreur ne survient
+```
+
+**Notes techniques** :
+- Nouveau statut produit distinct : soit une valeur `out_of_stock` ajoutée à `ProductStatus` (migration + CHECK constraint à étendre), soit une dérivation UI pure basée sur `status='active' AND stock=0` sans nouvelle valeur DB — **à trancher en design/dev selon ce qui minimise le risque de régression sur les requêtes existantes** (`useCatalogue.ts` filtre aujourd'hui sur `['active', 'reserved']` ; un statut dérivé évite de toucher ce filtre mais complexifie l'affichage, une vraie valeur DB simplifie l'affichage mais impose d'auditer chaque requête filtrant par statut).
+- Nouvelle table `stock_notifications (id uuid, product_id uuid references products, email text, created_at timestamptz, notified_at timestamptz nullable)`, contrainte unique `(product_id, email)`.
+- Nouvelle route publique `server/api/products/[id]/notify-restock.post.ts` (validation Zod email, upsert idempotent).
+- Détection du réapprovisionnement : trigger SQL sur `products` (transition stock 0 → >0) OU vérification applicative dans la route admin de mise à jour produit (`server/api/admin/products/[id].put.ts`) — préférer le trigger SQL pour couvrir tous les chemins d'écriture (admin direct, futur import CSV avec mise à jour de stock) sans dépendre d'un seul point d'entrée applicatif.
+- Nouveau template email `sendRestockNotification` dans `server/services/email.ts` (`resolveEmailFrom()` réutilisé — aucune nouvelle logique d'expéditeur).
+- `app/components/product/RestockNotifyForm.vue`, affiché dans `ProductInfo.vue` en lieu et place du CTA d'achat quand `status === 'out_of_stock'` (ou équivalent dérivé).
+
+**Fichiers impactés (estimés)** :
+- `supabase/migrations/007_stock_notifications.sql` (nouvelle table + éventuel statut + trigger)
+- `app/types/index.ts`, `app/types/database.types.ts` (régénération, cf. procédure US-090)
+- `server/api/products/[id]/notify-restock.post.ts`
+- `server/services/email.ts`
+- `app/components/product/RestockNotifyForm.vue`
+- `app/components/product/ProductInfo.vue`
+
+**Commit** : `feat(catalog): out-of-stock parking with email restock notifications [US-097]`
+
+---
+
+## Issues « Products » (#21, #10, #9, #8, #7) — hors périmètre sprint
+
+Les 5 issues suivantes sont des **fiches produits à saisir** (Kevin's Bacon huile sabot, boho street, Cura Natural 1, Bob's saddles, Horshair), pas du développement :
+
+- **#21, #10, #9, #8, #7** : saisie de contenu catalogue (titre, description, prix, marque, état, photos). L'outillage existe déjà et est suffisant : saisie unitaire via `/admin/produits/nouveau` (US-032) ou import en masse via `/admin/produits/import` (US-063, Sprint 7). Aucune US de développement n'est nécessaire.
+
+**Recommandation à Nathan** : reclassifier ces 5 issues hors du board d'ingénierie (label `type/content` plutôt que `type/feature`/`type/bugfix`, ou déplacement vers un outil de suivi contenu séparé) pour ne pas polluer la vélocité de sprint avec des tâches qui ne sont pas du développement. Note utile pour Camille : #21 (huile de sabot) est justement le type de produit consommable multi-exemplaires directement concerné par US-096/US-097 — à saisir avec un `stock` réaliste (>1) une fois ces US livrées pour que la fonctionnalité ait un cas d'usage réel dès le lancement.
+
+---
+
+## Issues recommandées à la fermeture (justification par le code)
+
+- **#11 · e2e tests failing** — **résolu** par US-091 (Sprint 8, commit `8d8cf97`) : `npm ci` réparé, workflow `.github/workflows/e2e.yml` restructuré en 3 jobs (`quality` bloquant sans secret requis, `e2e-secrets-check` toujours vert, `e2e` explicitement SKIPPED et jamais rouge si les secrets manquent). Il ne reste qu'une action Nathan (créer les secrets GitHub `SUPABASE_URL`/`SUPABASE_ANON_KEY`, procédure documentée dans `docs/DEV_GUIDE.md` § CI) pour que les e2e tournent réellement — ce n'est plus un bug, c'est une case à cocher en dehors du code.
+- **#16 · chore(config) nettoyer les variables d'env Supabase (BOM)** — **résolu côté code**. `sanitizeCredential()` est appliqué symétriquement côté client public (`app/composables/useSupabase.ts`) ET côté service role (`server/utils/adminSupabase.ts`), avec le même correctif répliqué pour Resend (`server/services/email.ts`, commentaire explicite « voir issue #16 »). Il ne reste qu'une hygiène de saisie des variables d'environnement dans le dashboard Vercel (re-coller sans caractères invisibles) — action Nathan, pas de développement.
+
+**Non recommandé à la fermeture sans action** : #27, #26, #24, #25, #23, #22, #29, #18 (traités en US-094 à US-100 ci-dessus).
+
+---
+
+## Statut des 15 issues — récapitulatif exhaustif
+
+Pour qu'aucune issue de l'inventaire ne reste sans statut explicite :
+
+| Issue | Titre | Statut | Détail |
+|-------|-------|--------|--------|
+| #27 | Formulaire de contact ko | Planifiée | US-094 (Sprint 9) |
+| #26 | Erreur au dépôt de selle | Planifiée | US-095 (Sprint 9) |
+| #24 | Mail d'achat non reçu | Planifiée | US-094 (Sprint 9) |
+| #18 | Hero not good | Planifiée | US-100 (Sprint 9) |
+| #11 | E2e tests failing | **À fermer** | Résolu par US-091 (Sprint 8) — reste une action Nathan (secrets GitHub), voir § dédiée |
+| #16 | BOM env Supabase | **À fermer** | Résolu par le code (`sanitizeCredential`) — reste une action Nathan (hygiène Vercel), voir § dédiée |
+| #29 | Page À propos | Planifiée | US-099 (Sprint 9) |
+| #25 | PayPal | Planifiée | US-098 (Sprint 9) |
+| #23 | Quantité restante + achat multiple | Planifiée | US-096 (Sprint 10) |
+| #22 | Abonnement retour en stock | Planifiée | US-097 (Sprint 10, dépend de US-096 et US-094) |
+| #21 | Produit — Kevin's Bacon huile sabot | Hors périmètre sprint | Saisie catalogue, voir § « Issues Products » |
+| #10 | Produit — boho street | Hors périmètre sprint | Saisie catalogue, voir § « Issues Products » |
+| #9 | Produit — Cura Natural 1 | Hors périmètre sprint | Saisie catalogue, voir § « Issues Products » |
+| #8 | Produit — Bob's saddles | Hors périmètre sprint | Saisie catalogue, voir § « Issues Products » |
+| #7 | Produit — Horshair | Hors périmètre sprint | Saisie catalogue, voir § « Issues Products » |
+
+**15/15 issues couvertes** : 8 planifiées en US (Sprint 9 : US-094, US-095, US-098, US-099, US-100 · Sprint 10 : US-096, US-097), 2 recommandées à la fermeture (#11, #16), 5 hors périmètre sprint (saisie catalogue).
+
+---
+
