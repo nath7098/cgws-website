@@ -31,6 +31,31 @@ export class FakeTable<Row extends Record<string, unknown>> {
 
 type Filter<Row> = (row: Row) => boolean
 
+/** Traduit un motif LIKE/ILIKE Postgres en RegExp (`%` → `.*`, `_` → `.`,
+ * `\x` → littéral x) — sémantique nécessaire pour reproduire fidèlement
+ * l'échappement anti-motif de server/api/depositor/consignments.get.ts. */
+function likePatternToRegExp(pattern: string, caseInsensitive: boolean): RegExp {
+  const escapeRegExp = (char: string): string => char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  let source = ''
+  for (let i = 0; i < pattern.length; i++) {
+    const char = pattern[i]!
+    if (char === '\\' && i + 1 < pattern.length) {
+      source += escapeRegExp(pattern[i + 1]!)
+      i++
+    }
+    else if (char === '%') {
+      source += '.*'
+    }
+    else if (char === '_') {
+      source += '.'
+    }
+    else {
+      source += escapeRegExp(char)
+    }
+  }
+  return new RegExp(`^${source}$`, caseInsensitive ? 'i' : '')
+}
+
 let autoIncrementId = 1
 function generateId(): string {
   return `00000000-0000-4000-8000-${String(autoIncrementId++).padStart(12, '0')}`
@@ -48,6 +73,7 @@ implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
   // sur l'instance (l'initialiseur de champ s'exécute après la définition du
   // prototype), rendant `.single()` indéfini à l'exécution.
   private singleMode: 'single' | 'maybeSingle' | null = null
+  private readonly orderings: { column: keyof Row, ascending: boolean }[] = []
 
   /** `onDelete` : callback de cascade optionnel (ex. `orders` → `order_items`,
    * miroir de la contrainte `ON DELETE CASCADE` du schéma — voir migration
@@ -96,6 +122,17 @@ implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
     return this
   }
 
+  ilike<K extends keyof Row>(column: K, pattern: string): this {
+    const regex = likePatternToRegExp(pattern, true)
+    this.filters.push(row => regex.test(String(row[column] ?? '')))
+    return this
+  }
+
+  order<K extends keyof Row>(column: K, opts?: { ascending?: boolean }): this {
+    this.orderings.push({ column, ascending: opts?.ascending ?? true })
+    return this
+  }
+
   single(): this {
     this.singleMode = 'single'
     return this
@@ -127,7 +164,25 @@ implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
       return this.finalize(matching)
     }
 
-    return this.finalize(matching)
+    return this.finalize(this.applyOrderings(matching))
+  }
+
+  /** Tri en lecture (`.order()`) — copie triée, la table n'est jamais mutée. */
+  private applyOrderings(rows: Row[]): Row[] {
+    if (this.orderings.length === 0) return rows
+    return [...rows].sort((a, b) => {
+      for (const { column, ascending } of this.orderings) {
+        const av = a[column]
+        const bv = b[column]
+        if (av === bv) continue
+        // NULLS LAST en ascendant, NULLS FIRST en descendant (défaut Postgres).
+        if (av === null || av === undefined) return ascending ? 1 : -1
+        if (bv === null || bv === undefined) return ascending ? -1 : 1
+        const cmp = av < bv ? -1 : 1
+        return ascending ? cmp : -cmp
+      }
+      return 0
+    })
   }
 
   private finalize(rows: Row[]): FakeQueryResult<Row[] | Row | null> {
@@ -159,7 +214,7 @@ export interface FakeSupabaseTables {
 
 /**
  * Client Supabase factice couvrant `.from(table)` (select/insert/update/delete
- * chainé avec `.eq()/.neq()/.in()/.like()/.single()/.maybeSingle()`) et
+ * chainé avec `.eq()/.neq()/.in()/.like()/.ilike()/.order()/.single()/.maybeSingle()`) et
  * `.rpc('reserve_product_unit' | 'release_product_unit', args)` avec la même
  * sémantique de verrou que la migration 006 :
  *   - `reserve_product_unit` : `stock -= 1` sous barrière `status='active' AND

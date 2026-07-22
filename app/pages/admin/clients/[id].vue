@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import gsap from 'gsap'
 import type { Client, ClientPurchase, Consignment, ConsignmentStatus, PaymentMethod } from '~/types'
+import { CONSIGNMENT_STATUS_LABELS } from '~/utils/consignment'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -94,14 +95,6 @@ const CLIENT_INITIAL = computed(() =>
 )
 
 // ─── Consignment badge mapping ────────────────────────────────────────────────
-
-const CONSIGNMENT_STATUS_LABELS: Record<ConsignmentStatus, string> = {
-  pending: 'En attente',
-  accepted: 'En vente',
-  rejected: 'Refusée',
-  sold: 'Vendue',
-  returned: 'Retournée',
-}
 
 const CONSIGNMENT_STATUS_CLASSES: Record<ConsignmentStatus, string> = {
   pending: 'bg-cgws-surface text-cgws-ink-soft',

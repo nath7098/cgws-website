@@ -67,7 +67,58 @@ export default defineEventHandler(
       row => (row.depositor_email ?? '').toLowerCase() === depositorEmail,
     )
 
-    // ─── 3. Mapping vers le sous-ensemble exposé ─────────────────────────────────
+    // ─── 3. Enrichissement des consignations vendues (batch, US-093) ─────────────
+    // Ancien code : 2 requêtes (products + sales) PAR consignation vendue (N+1).
+    // Désormais : nombre de requêtes CONSTANT — 1 requête `consignments` + au plus
+    // 1 requête `products` (.in sur les ids des consignations vendues DU déposant)
+    // + 1 requête `sales` (.in sur les ids des produits ainsi retrouvés). Les ids
+    // proviennent exclusivement de `owned` (déjà filtré sur l'email du JWT) : les
+    // barrières de sécurité US-066 sont inchangées.
+
+    const soldIds = owned
+      .filter(row => (row.status ?? 'pending') === 'sold')
+      .map(row => row.id)
+
+    // consignment_id → product_id (au plus un produit par consignation, comme
+    // l'ancien maybeSingle — on ne conserve que la première correspondance).
+    const productByConsignment = new Map<string, string>()
+    // product_id → vente la plus récente (sale_price, commission_amount).
+    const latestSaleByProduct = new Map<string, { sale_price: number | string, commission_amount: number | string | null }>()
+
+    if (soldIds.length > 0) {
+      const { data: products } = await admin
+        .from('products')
+        .select('id, consignment_id')
+        .in('consignment_id', soldIds)
+
+      for (const product of products ?? []) {
+        if (product.consignment_id && !productByConsignment.has(product.consignment_id)) {
+          productByConsignment.set(product.consignment_id, product.id)
+        }
+      }
+
+      const productIds = [...productByConsignment.values()]
+      if (productIds.length > 0) {
+        // Tri décroissant sur created_at : la première ligne rencontrée par produit
+        // est la vente la plus récente (équivalent de l'ancien .limit(1).maybeSingle()).
+        const { data: sales } = await admin
+          .from('sales')
+          .select('product_id, sale_price, commission_amount')
+          .in('product_id', productIds)
+          .order('created_at', { ascending: false })
+
+        for (const sale of sales ?? []) {
+          if (sale.product_id && !latestSaleByProduct.has(sale.product_id)) {
+            latestSaleByProduct.set(sale.product_id, {
+              sale_price: sale.sale_price,
+              commission_amount: sale.commission_amount,
+            })
+          }
+        }
+      }
+    }
+
+    // ─── 4. Mapping vers le sous-ensemble exposé ─────────────────────────────────
     const consignments: DepositorConsignmentView[] = []
 
     for (const row of owned) {
@@ -85,33 +136,19 @@ export default defineEventHandler(
       }
 
       if (status === 'sold') {
-        // Récupère le produit lié puis la vente la plus récente pour ce produit.
-        const { data: product } = await admin
-          .from('products')
-          .select('id')
-          .eq('consignment_id', row.id)
-          .maybeSingle()
+        const productId = productByConsignment.get(row.id)
+        const sale = productId !== undefined ? latestSaleByProduct.get(productId) : undefined
 
-        if (product) {
-          const { data: sale } = await admin
-            .from('sales')
-            .select('sale_price, commission_amount')
-            .eq('product_id', product.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
+        if (sale) {
+          const salePrice = Number(sale.sale_price)
+          // Commission réellement enregistrée (peut différer du taux standard si
+          // négociée). Fallback sur le taux public 20 % si absente.
+          const commission = sale.commission_amount !== null
+            ? Number(sale.commission_amount)
+            : round2(salePrice * COMMISSION_RATE)
 
-          if (sale) {
-            const salePrice = Number(sale.sale_price)
-            // Commission réellement enregistrée (peut différer du taux standard si
-            // négociée). Fallback sur le taux public 20 % si absente.
-            const commission = sale.commission_amount !== null
-              ? Number(sale.commission_amount)
-              : round2(salePrice * COMMISSION_RATE)
-
-            view.salePrice = salePrice
-            view.depositorAmount = round2(salePrice - commission)
-          }
+          view.salePrice = salePrice
+          view.depositorAmount = round2(salePrice - commission)
         }
 
         // Aucune vente retrouvée : le net à reverser est le prix accordé (modèle canonique

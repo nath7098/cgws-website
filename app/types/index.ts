@@ -271,7 +271,7 @@ export interface Order {
   updatedAt: string
 }
 
-/** Récapitulatif public renvoyé par GET /api/orders/[id] (page success).
+/** Récapitulatif public renvoyé par GET /api/checkout/session-status (page success).
  *  Volontairement restreint — pas de payment_intent ni de client_id.
  *  Les coordonnées (nom/email) et le mode de réception sont collectés par
  *  Stripe et rapatriés par le webhook : ils sont `null` tant que le paiement
