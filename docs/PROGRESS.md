@@ -472,3 +472,55 @@ Tous mergés dans `develop` puis inclus dans le squash `v0`. Reconstitués depui
 3. **`SHIPPING_FLAT_RATE = 9,90 €`** : toujours un placeholder non confirmé par Camille.
 4. **Clés Stripe prod** (`STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`) : présence/validité en env Vercel à confirmer ; endpoint webhook `POST /api/checkout/webhook`.
 5. **Contenus réels Camille** : textes légaux, coordonnées, vraies photos, CGV/SIRET — inchangé.
+
+---
+
+# Épic E9 — Qualité & Dette Technique · Sprint 8
+
+**Branche `feature/sprint-8` · 20 pts planifiés · 20 pts livrés (vélocité 100 %) · 2026-07-22**
+
+Sprint entièrement consacré à la dette révélée par la recette prod d'US-082. Ordre impératif respecté (US-090 en premier : les autres se valident contre un typecheck qui vérifie réellement). **Objectif de sprint atteint** : `npm run typecheck && npm run lint && npm run test:unit && npm run build` passe en EXIT 0, la CI n'est plus jamais rouge par défaut, le chemin de l'argent est couvert par des tests.
+
+## US-090 — Gate TypeScript réel à zéro erreur · 5 pts — PASS
+
+Commit `4643306`. `npm run typecheck` était un **no-op** (tsconfig « solution » racine avec `files:[]`) → tous les « typecheck ✅ » de l'historique du projet étaient des faux positifs. Script remplacé par `nuxi typecheck`.
+
+Les **11 erreurs préexistantes** révélées ont été corrigées **à la source**, sans aucun `any` ni `@ts-ignore` : `ogType` via `useHead` meta, `useHead` `children`→`innerHTML` (×2), slot `#close` d'`USlideover`, `v-motion` `visible-once`, `TablesUpdate` au lieu de `Record` (×2), type predicates dans `mapConsignmentRow`, `Content-Length` en number, déclaration node du provider Nuxt Image. `database.types.ts` régénéré via `supabase gen types` (migrations 001→006). `DEV_GUIDE` documente la procédure de régénération (même commit que la migration).
+
+## US-091 — CI verte + tests du chemin de paiement · 8 pts — PASS
+
+Commit `8d8cf97`. **`npm ci` réparé** : `package-lock.json` régénéré sous npm 10 (désynchronisation `crossws`/`h3` introduite par npm 11) — le blocage CI historique est levé.
+
+**CI `e2e.yml` restructurée en 3 jobs** : `quality` (typecheck + lint + test:unit, sans secret requis → **vrai gate bloquant**), `e2e-secrets-check` (toujours vert, annonce si les secrets sont absents), `e2e` (Skipped proprement si secrets absents, **jamais rouge**).
+
+**23 nouveaux tests** (41 au total à ce stade) sur la logique de paiement : fulfillment (idempotence, garde `unpaid`, `fulfillment_method`, `sold` conditionnel au verrou, email commission), release idempotent, rollback + 409 sur course perdue, routing webhook sur les 4 événements. `fakeSupabase` typé (`Database`/`Tables`, zéro `any`) reproduisant fidèlement l'update conditionnel. `DEV_GUIDE` liste les secrets GitHub à créer par Nathan (`SUPABASE_URL`, `SUPABASE_ANON_KEY`).
+
+## US-092 — Emails : expéditeur centralisé et configurable · 2 pts — PASS
+
+Commit `3531e86`. `runtimeConfig.emailFrom` (serveur) alimenté par `CGWS_EMAIL_FROM`, fallback sûr `onboarding@resend.dev`. Les **6 templates** lisent `resolveEmailFrom()` → plus aucun `from` hardcodé divergent (l'incohérence relevée au go-live v0 est résorbée). La bascule vers `noreply@cgws.fr` se fera par **simple variable d'env, zéro code** — prérequis : domaine `cgws.fr` vérifié dans Resend par Nathan (blocage 2 ci-dessus, toujours ouvert). `.env.example` + `DEV_GUIDE` documentent `CGWS_EMAIL_FROM`.
+
+## US-093 — Nettoyage code mort et duplications · 5 pts — PASS (2e passe)
+
+Commit `42c29ee`. Les 6 items de dette actés lors des QA des sprints 6/7 et de la recette US-082 :
+
+1. Endpoint orphelin `server/api/orders/[id].get.ts` supprimé (la page checkout success passe par `/api/checkout/session-status`) — zéro référence résiduelle.
+2. `CONSIGNMENT_STATUS_LABELS` dédupliqué : source canonique unique dans `app/utils/consignment.ts`, importée par les 3 pages admin, libellés FR strictement inchangés.
+3. Code mort supprimé dans `useDepositorAuth.ts` (entrées rate-limit inatteignables par design anti-énumération, acté QA US-066) — message neutre et comportement anti-énumération préservés à l'identique.
+4. Boutons bruts → `CgwsButton` (variants `destructive`/`primary`) dans `produits/index.vue`, `SaleModal.vue`, `SaleForm.vue` ; états loading/disabled et spinners conservés (`aria-busy` propagé nativement).
+5. `RevenueChart` theme-aware : couleurs résolues au runtime depuis les tokens `--cgws-*`, réactif au changement de peau sans rechargement.
+6. **N+1 éliminé** dans `/api/depositor/consignments` : requêtes groupées `.in()`, nombre de requêtes Supabase constant (3 max, indépendant du nombre de consignations vendues), réponse identique champ à champ, barrières de sécurité US-066 intouchées.
+
+**QA : FAIL 1re passe** sur l'item 5 uniquement. Le mécanisme theme-aware était correct, mais la sous-clause « distinction visuelle CA propre vs CA consignation reste lisible » échouait mesurablement : `--cgws-accent` et `--cgws-accent-deco` sont à **1.71:1 (Jour) / 1.10:1 (Nuit) / 1.43:1 (Rugueux)** l'un de l'autre — les deux segments empilés étaient indiscernables en Nuit. **Fix** : délimiteur 1px `borderColor: --cgws-ground` + `borderWidth: 1` sur les deux datasets (`borderSkipped: false` déjà présent), c'est-à-dire un séparateur **indépendant de la teinte**. Contrastes vérifiés indépendamment par la QA : ground/accent 5.60 / 6.88 / 6.04 et ground/accent-deco 3.28 / 6.26 / 4.22 — tous ≥ 3:1 (WCAG 1.4.11). `--cgws-surface` écarté (2.96:1 contre accent-deco en Jour, sous le seuil). **Aucun token de `tokens.css` modifié** : la palette v3 reste une décision actée en US-070/072, la correction est purement au niveau du rendu Chart.js. **PASS 2e passe.**
+
+Test dédié ajouté : `tests/unit/depositor-consignments.spec.ts` (constance du nombre de requêtes + invariants de sécurité US-066 : filtre `depositor_email` dérivé exclusivement du JWT, échappement ILIKE avec test du joker `_`, zéro fuite de `notes`/commission brute). `fakeSupabase` étendu d'un `.ilike()` fidèle (traduction pattern LIKE→RegExp) — la QA a explicitement vérifié que le test n'est **pas complaisant** : un mock laxiste ferait échouer le cas du `_`.
+
+**Gates finaux** : `typecheck` / `lint` / `test:unit` (51 tests, 4 fichiers) / `build` → EXIT 0.
+
+## Points relevés pendant le sprint
+
+- **Faux positif d'environnement (résolu, rien à faire)** : `nuxt-developer` a rapporté un `npm run lint` cassé (résolution vers un ESLint global 9.0.0 orphelin, `Cannot find module '...acorn.js'`). Vérifié par la QA : le dépôt est en ESLint **9.39.4** et `npm run lint` préfixe `node_modules/.bin` au PATH → EXIT 0 stable sur deux exécutions. **Artefact du shell du subagent, ni le dépôt ni la CI ne sont affectés.**
+- **Hors périmètre, laissé non commité** : modifications de `.claude/agents/*.md`, nouvel agent `session-starter.md`, `docs/LAUNCH_PROMPT.md` (configuration d'agents, sans impact produit).
+
+## Blocages ouverts après Sprint 8
+
+Inchangés par rapport à la liste ci-dessus (§ « Points de blocage encore réellement ouverts »), **sauf** que l'incohérence d'expéditeur email est désormais résolue côté code : il ne reste que l'action infra de Nathan (vérifier `cgws.fr` dans Resend, puis positionner `CGWS_EMAIL_FROM`). Reste également l'**edge case acté non traité** de la recette US-082 : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité et paie ensuite → produit `sold` avec stock résiduel 1 (réactivation admin nécessaire) — rare, arbitrage produit ultérieur.

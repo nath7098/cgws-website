@@ -15,6 +15,22 @@ function createResendClient(apiKey: string): Resend | null {
 }
 
 // ---------------------------------------------------------------------------
+// Expéditeur centralisé (US-092) — source UNIQUE du `from` des 6 templates.
+// La valeur vient de runtimeConfig.emailFrom (mappée sur CGWS_EMAIL_FROM dans
+// nuxt.config.ts). Le fallback ci-dessous est défensif (env var vidée, config
+// écrasée au runtime) : domaine de test Resend, seul expéditeur fonctionnel
+// tant que cgws.fr n'est pas vérifié dans Resend. La bascule vers le domaine
+// réel se fait par SEUL changement de l'env var CGWS_EMAIL_FROM — zéro code.
+// ---------------------------------------------------------------------------
+
+const FALLBACK_EMAIL_FROM = 'CGWS <onboarding@resend.dev>'
+
+function resolveEmailFrom(): string {
+  const configured = useRuntimeConfig().emailFrom
+  return configured || FALLBACK_EMAIL_FROM
+}
+
+// ---------------------------------------------------------------------------
 // Helper d'envoi — le SDK Resend ne throw PAS en cas d'erreur API : il
 // retourne { data, error }. Sans inspection explicite, les échecs sont
 // silencieux (aucun log en production). Ce helper logge chaque issue.
@@ -160,7 +176,7 @@ export async function sendContactEmail(
   const subjectLabel = subjectLabels[data.subject] ?? data.subject
 
   await sendViaResend(resend, {
-    from: 'CGWS <noreply@cgws.fr>',
+    from: resolveEmailFrom(),
     to: [recipientEmail],
     replyTo: data.senderEmail,
     subject: `[CGWS Contact] ${subjectLabel} — ${data.senderName}`,
@@ -293,7 +309,7 @@ export async function sendConsignmentConfirmation(
   if (!resend) return
 
   await sendViaResend(resend, {
-    from: 'CGWS <noreply@cgws.fr>',
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre demande de consignation est bien reçue — CGWS',
     html: buildConsignmentConfirmationHtml(data),
@@ -412,7 +428,7 @@ export async function sendConsignmentAcceptEmail(
   if (!resend) return
 
   await sendViaResend(resend, {
-    from: 'CGWS <noreply@cgws.fr>',
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre consignation a été acceptée — CGWS',
     html: buildConsignmentAcceptHtml(data),
@@ -513,7 +529,7 @@ export async function sendConsignmentRejectEmail(
   if (!resend) return
 
   await sendViaResend(resend, {
-    from: 'CGWS <noreply@cgws.fr>',
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre demande de consignation — CGWS',
     html: buildConsignmentRejectHtml(data),
@@ -651,7 +667,7 @@ export async function sendConsignmentSaleEmail(
   if (!resend) return
 
   await sendViaResend(resend, {
-    from: 'CGWS <noreply@cgws.fr>',
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre article a été vendu — CGWS',
     html: buildConsignmentSaleHtml(data),
@@ -816,11 +832,7 @@ export async function sendOrderConfirmationEmail(
   if (!resend) return
 
   await sendViaResend(resend, {
-    // Le domaine cgws.fr n'est pas encore vérifié dans Resend : on utilise le
-    // domaine de test `onboarding@resend.dev` (n'envoie qu'à l'adresse du
-    // compte Resend). À remplacer par 'CGWS <noreply@cgws.fr>' une fois le
-    // domaine vérifié — idem pour les autres emails transactionnels du fichier.
-    from: 'CGWS <onboarding@resend.dev>',
+    from: resolveEmailFrom(),
     to: [data.customerEmail],
     subject: 'Confirmation de votre commande — CGWS',
     html: buildOrderConfirmationHtml(data),

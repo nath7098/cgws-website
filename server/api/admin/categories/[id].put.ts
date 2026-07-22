@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import type { TablesUpdate } from '~/types/database.types'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event: H3Event) => {
     throw createError({ statusCode: 404, statusMessage: 'Catégorie introuvable.' })
   }
 
-  const updates: Record<string, unknown> = {}
+  const updates: TablesUpdate<'categories'> = {}
 
   if (body.name !== undefined) {
     const name = body.name.trim()

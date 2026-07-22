@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Consignment, ConsignmentStatus } from '~/types'
+import { CONSIGNMENT_STATUS_LABELS } from '~/utils/consignment'
 
 definePageMeta({
   middleware: 'admin',
@@ -29,14 +30,6 @@ const searchQuery = ref('')
 const filterStatus = ref<ConsignmentStatus | ''>('')
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const CONSIGNMENT_STATUS_LABELS: Record<ConsignmentStatus, string> = {
-  pending: 'En attente',
-  accepted: 'En vente',
-  rejected: 'Refusée',
-  sold: 'Vendue',
-  returned: 'Retournée',
-}
 
 const BASE_PILL = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 font-sans font-medium text-[11px] uppercase tracking-wider rounded-full'
 

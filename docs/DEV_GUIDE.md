@@ -172,6 +172,10 @@ RESEND_API_KEY=re_xxxx
 SITE_URL=http://localhost:3000
 COMMISSION_RATE=20
 ADMIN_EMAIL=camille@cgws.fr
+# Expéditeur unique des emails transactionnels (optionnel).
+# Fallback si absent : 'CGWS <onboarding@resend.dev>' (domaine de test Resend).
+# ⚠️ Nécessite le domaine cgws.fr VÉRIFIÉ dans Resend avant de pointer cgws.fr.
+CGWS_EMAIL_FROM=
 ```
 
 ```bash
@@ -183,6 +187,7 @@ RESEND_API_KEY=
 SITE_URL=
 COMMISSION_RATE=20
 ADMIN_EMAIL=
+CGWS_EMAIL_FROM=
 ```
 
 ### 4. Design System CSS
@@ -268,6 +273,48 @@ export function useSupabaseAdmin() {
     { auth: { persistSession: false } }
   )
 }
+```
+
+### 5bis. Types Supabase générés — `app/types/database.types.ts`
+
+Le fichier `app/types/database.types.ts` est **généré**, jamais édité à la main.
+Il est la source de vérité TypeScript du schéma Postgres (tables, colonnes,
+relations, fonctions RPC) et alimente `createClient<Database>` partout
+(app + server). Un fichier désaligné produit de faux positifs/négatifs au
+typecheck sur tout le code d'accès données.
+
+**Règle absolue : à relancer après CHAQUE nouvelle migration, dans le même
+commit que la migration.** Une migration sans régénération des types est un
+diff incomplet.
+
+**Commande exacte (CLI Supabase)** :
+
+```bash
+# Prérequis : Supabase CLI installée (npm i -g supabase) et authentifiée
+# (supabase login), ou npx. <project-ref> = ref du projet live (dashboard).
+npx supabase gen types typescript --project-id <project-ref> --schema public \
+  > app/types/database.types.ts
+```
+
+**Alternative (session Claude Code)** : le MCP supabase expose
+`generate_typescript_types` — écrire sa sortie **verbatim** dans
+`app/types/database.types.ts` (aucune retouche de style, le diff entre le
+fichier commité et la sortie générée doit être vide).
+
+**Vérification après régénération** :
+
+```bash
+npm run typecheck   # doit rester à 0 erreur — les désalignements révélés
+                    # par les nouveaux types se corrigent dans le même commit
+```
+
+Pour typer les payloads d'écriture, utiliser les helpers générés plutôt que
+`Record<string, unknown>` :
+
+```typescript
+import type { TablesUpdate, TablesInsert } from '~/types/database.types'
+
+const updates: TablesUpdate<'categories'> = {}
 ```
 
 ### 6. Plugin GSAP (client-side)
@@ -537,6 +584,64 @@ npx supabase start           # Supabase local (Docker)
 npx supabase db reset        # Reset DB locale avec migrations
 npx supabase gen types typescript --local > types/supabase.ts
 ```
+
+---
+
+## CI (US-091)
+
+Le workflow `.github/workflows/e2e.yml` se déclenche sur chaque `push` (branches
+`main`, `develop`, `feature/**`) et chaque `pull_request` vers `main`/`develop`.
+Il comporte 3 jobs :
+
+| Job | Dépend d'un secret ? | Rôle |
+|-----|----------------------|------|
+| `quality` | Non | **Le vrai gate.** `npm ci` → `npm run typecheck` → `npm run lint` → `npm run test:unit`. Couvre notamment tout le chemin de paiement (`tests/unit/fulfillment.spec.ts`, `tests/unit/checkout-session.spec.ts`) sans base Supabase réelle (mocks). Doit **toujours** être vert. |
+| `e2e-secrets-check` | Non | Vérifie la présence des secrets Supabase et log une annotation explicite si absents. Toujours vert. |
+| `e2e` | Oui (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) | Playwright contre un vrai build. **Skipped** (statut de job dédié, pas un échec) tant que les secrets ne sont pas configurés dans le dépôt GitHub — sinon tourne pour de vrai. |
+
+Résultat : le run global est **vert par défaut**, avec ou sans les secrets
+Supabase configurés. Ce n'était pas le cas avant l'US-091 (`npm ci` cassé +
+secrets absents faisaient échouer le job e2e systématiquement).
+
+### Secrets GitHub à créer (Nathan)
+
+Dans **Settings → Secrets and variables → Actions** du dépôt GitHub, créer :
+
+| Nom exact du secret | Où trouver la valeur |
+|----------------------|------------------------|
+| `SUPABASE_URL` | Dashboard Supabase → Project Settings → API → **Project URL** (même valeur que `NUXT_PUBLIC_SUPABASE_URL` en local) |
+| `SUPABASE_ANON_KEY` | Dashboard Supabase → Project Settings → API → **anon / public key** (même valeur que `NUXT_PUBLIC_SUPABASE_ANON_KEY` en local) |
+
+Optionnel — pour un scénario e2e checkout complet (paiement Stripe simulé) à
+ajouter dans un futur run Playwright :
+
+| Nom exact du secret | Où trouver la valeur |
+|----------------------|------------------------|
+| `STRIPE_SECRET_KEY` (test) | Dashboard Stripe (mode Test) → Developers → API keys → **Secret key** (`sk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` (test) | Dashboard Stripe (mode Test) → Developers → Webhooks → endpoint concerné → **Signing secret** (`whsec_...`), ou `stripe listen --print-secret` en local |
+| `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Dashboard Stripe (mode Test) → Developers → API keys → **Publishable key** (`pk_test_...`) |
+
+Ces clés Stripe ne sont **pas** requises pour que le job `e2e` actuel passe au
+vert — seules `SUPABASE_URL` / `SUPABASE_ANON_KEY` conditionnent son
+déclenchement aujourd'hui. Elles ne servent que si un futur scénario e2e du
+tunnel de paiement est ajouté à `tests/e2e/`.
+
+### Vérifier localement avant de pousser
+
+```bash
+rm -rf node_modules
+npm ci                # doit terminer en EXIT 0 (package-lock.json à jour)
+npm run build          # doit passer directement derrière npm ci, sans npm install
+npm run typecheck
+npm run lint
+npm run test:unit
+```
+
+Si `npm ci` échoue avec un message du type `Missing: crossws@x.y.z from lock
+file`, c'est une désynchronisation du lockfile liée à une résolution
+différente des peer dependencies optionnelles selon la version majeure de npm
+(observé entre npm 10 et npm 11) — régénérer avec
+`npm install --package-lock-only --ignore-scripts` puis revérifier `npm ci`.
 
 ---
 

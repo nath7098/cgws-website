@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Consignment, ConsignmentStatus, ProductCondition, ProductStatus, PaymentMethod } from '~/types'
+import { CONSIGNMENT_STATUS_LABELS } from '~/utils/consignment'
 
 definePageMeta({
   middleware: 'admin',
@@ -72,14 +73,6 @@ function showToast(type: 'success' | 'error', message: string): void {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const CONSIGNMENT_STATUS_LABELS: Record<ConsignmentStatus, string> = {
-  pending: 'En attente',
-  accepted: 'En vente',
-  rejected: 'Refusée',
-  sold: 'Vendue',
-  returned: 'Retournée',
-}
 
 const CONDITION_LABELS: Record<ProductCondition, string> = {
   new: 'Neuf',

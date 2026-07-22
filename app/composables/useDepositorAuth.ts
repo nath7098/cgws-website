@@ -5,15 +5,11 @@ import type { User } from '@supabase/supabase-js'
 // de callback (/espace-deposant/callback) qui pose la session, et une route serveur
 // protégée (/api/depositor/consignments) pour toute lecture de données.
 
-const ERROR_MESSAGES: Record<string, string> = {
-  over_email_send_rate_limit: 'Trop de demandes. Réessayez dans quelques minutes.',
-  over_request_rate_limit: 'Trop de demandes. Réessayez dans quelques minutes.',
-}
-
-function resolveErrorMessage(code: string | undefined): string {
-  if (!code) return 'Une erreur est survenue. Veuillez réessayer dans un instant.'
-  return ERROR_MESSAGES[code] ?? 'Une erreur est survenue. Veuillez réessayer dans un instant.'
-}
+// Message technique neutre, identique quel que soit le code d'erreur remonté
+// (les seules erreurs affichées sont des pannes 5xx / réseau — cf. requestMagicLink).
+// US-093 : l'ancienne map ERROR_MESSAGES (codes rate-limit Supabase, HTTP 429) était
+// du code mort acté en QA US-066 — ces codes ne franchissent jamais le seuil >= 500.
+const TECHNICAL_ERROR_MESSAGE = 'Une erreur est survenue. Veuillez réessayer dans un instant.'
 
 export function useDepositorAuth() {
   const supabase = useSupabase()
@@ -59,7 +55,7 @@ export function useDepositorAuth() {
       // remonte. Tout le reste (utilisateur inconnu, OTP désactivé, rate limit lié à
       // l'existence…) reste sur la branche succès neutre pour ne rien divulguer.
       if (error && (error.status ?? 0) >= 500) {
-        authError.value = resolveErrorMessage(error.code)
+        authError.value = TECHNICAL_ERROR_MESSAGE
       }
       else {
         isSuccess.value = true
@@ -67,7 +63,7 @@ export function useDepositorAuth() {
     }
     catch {
       // Erreur réseau / exception non-HTTP : échec technique, pas une fuite d'existence.
-      authError.value = resolveErrorMessage(undefined)
+      authError.value = TECHNICAL_ERROR_MESSAGE
     }
     finally {
       isSubmitting.value = false

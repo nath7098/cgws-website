@@ -347,7 +347,7 @@ export default defineEventHandler(async (event: H3Event) => {
     'Content-Disposition',
     `attachment; filename="bon-depot-${receiptId}.pdf"`,
   )
-  setResponseHeader(event, 'Content-Length', String(buffer.length))
+  setResponseHeader(event, 'Content-Length', buffer.length)
 
   return buffer
 })

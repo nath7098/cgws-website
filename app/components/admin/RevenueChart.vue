@@ -33,6 +33,70 @@ const fetchError = ref(false)
 const effectiveData = computed<MonthlyRevenue[]>(() => props.data ?? internalData.value)
 const effectiveLoading = computed<boolean>(() => props.loading ?? internalLoading.value)
 
+// ─── Couleurs theme-aware (US-093) ────────────────────────────────────────────
+// Chart.js ne sait pas lire les variables CSS : on résout les tokens --cgws-* au
+// runtime via getComputedStyle, puis on les relit à chaque changement de peau
+// (data-skin) ou de mode jour/nuit (.dark). Les computed chartData/chartOptions
+// dépendant de `themeColors`, vue-chartjs re-rend le graphique automatiquement
+// (data & options watchers intégrés depuis v4) — sans rechargement de page.
+
+interface ChartThemeColors {
+  /** Barres « CA propre » + carré de légende (bg-cgws-accent). */
+  accent: string
+  /** Barres « CA consignation » + carré de légende (bg-cgws-accent-deco). */
+  accentDeco: string
+  /** Ticks des deux axes. */
+  inkSoft: string
+  /** Grille horizontale. */
+  surface: string
+  /**
+   * Délimiteur entre segments empilés (US-093 QA fix) — indépendant de la teinte
+   * accent/accent-deco, dont le contraste mutuel est insuffisant en Nuit (1.10:1).
+   * --cgws-ground contraste ≥ 3:1 (WCAG 1.4.11 non-text) contre accent ET
+   * accent-deco dans les 3 rendus (jour/nuit/rugueux) — vérifié manuellement.
+   */
+  ground: string
+}
+
+// Fallback = Élégante Jour (valeurs de tokens.css :root) — utilisé uniquement si
+// une variable est absente (ne devrait jamais arriver : les 5 tokens existent
+// dans les 3 rendus).
+const FALLBACK_COLORS: ChartThemeColors = {
+  accent: '#8C4A56',
+  accentDeco: '#B76E79',
+  inkSoft: '#5B4436',
+  surface: '#EFE1CC',
+  ground: '#F6EDDF',
+}
+
+const themeColors = ref<ChartThemeColors>({ ...FALLBACK_COLORS })
+
+function readToken(name: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
+function refreshThemeColors(): void {
+  if (import.meta.server) return
+  themeColors.value = {
+    accent: readToken('--cgws-accent', FALLBACK_COLORS.accent),
+    accentDeco: readToken('--cgws-accent-deco', FALLBACK_COLORS.accentDeco),
+    inkSoft: readToken('--cgws-ink-soft', FALLBACK_COLORS.inkSoft),
+    surface: readToken('--cgws-surface', FALLBACK_COLORS.surface),
+    ground: readToken('--cgws-ground', FALLBACK_COLORS.ground),
+  }
+}
+
+const { skin } = useCgwsSkin()
+const colorMode = useColorMode()
+
+// nextTick : laisse le temps à data-skin / .dark d'être posés sur <html> avant
+// de relire les valeurs calculées.
+watch([skin, () => colorMode.value], async () => {
+  await nextTick()
+  refreshThemeColors()
+})
+
 // ─── Chart data ───────────────────────────────────────────────────────────────
 
 function formatMonthLabel(month: string): string {
@@ -48,7 +112,12 @@ const chartData = computed<ChartData<'bar'>>(() => ({
     {
       label: 'CA propre',
       data: effectiveData.value.map(d => d.ownRevenue),
-      backgroundColor: '#8C4A56', // cgws-accent (Élégante Jour — valeur par défaut statique, Chart.js ne lit pas les CSS vars)
+      backgroundColor: themeColors.value.accent, // --cgws-accent (résolu au runtime, theme-aware)
+      // Délimiteur teinte-indépendant (US-093 QA fix) : accent/accent-deco sont
+      // trop proches en luminance (jusqu'à 1.10:1 en Nuit) pour rester lisibles
+      // une fois empilés sans séparateur.
+      borderColor: themeColors.value.ground, // --cgws-ground (résolu au runtime, theme-aware)
+      borderWidth: 1,
       borderRadius: 3,
       borderSkipped: false,
       stack: 'revenue',
@@ -56,7 +125,9 @@ const chartData = computed<ChartData<'bar'>>(() => ({
     {
       label: 'CA consignation',
       data: effectiveData.value.map(d => d.consignmentRevenue),
-      backgroundColor: '#B76E79', // cgws-accent-deco (Élégante Jour) — cgws-denim n'existe qu'en peau Rugueux, non réutilisable ici
+      backgroundColor: themeColors.value.accentDeco, // --cgws-accent-deco — cgws-denim n'existe qu'en peau Rugueux, non réutilisable ici
+      borderColor: themeColors.value.ground, // --cgws-ground (résolu au runtime, theme-aware)
+      borderWidth: 1,
       borderRadius: 3,
       borderSkipped: false,
       stack: 'revenue',
@@ -90,16 +161,16 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
       grid: { display: false },
       ticks: {
         font: { family: 'Inter', size: 11 },
-        color: '#5B4436', // cgws-ink-soft (Élégante Jour)
+        color: themeColors.value.inkSoft, // --cgws-ink-soft (theme-aware)
       },
     },
     y: {
       stacked: true,
-      grid: { color: '#EFE1CC' }, // cgws-surface (Élégante Jour)
+      grid: { color: themeColors.value.surface }, // --cgws-surface (theme-aware)
       border: { dash: [4, 4] },
       ticks: {
         font: { family: 'Inter', size: 11 },
-        color: '#5B4436', // cgws-ink-soft (Élégante Jour)
+        color: themeColors.value.inkSoft, // --cgws-ink-soft (theme-aware)
         callback: (value) => `${Number(value).toLocaleString('fr-FR')} €`,
       },
     },
@@ -131,6 +202,7 @@ async function fetchRevenue(): Promise<void> {
 
 // Only fetch on client (component is rendered inside <ClientOnly>)
 onMounted(() => {
+  refreshThemeColors()
   fetchRevenue()
 })
 </script>

@@ -40,7 +40,6 @@ function clearCart(): void {
     side="right"
     title="Votre panier"
     :description="cart.isEmpty ? 'Aucun article pour le moment' : `${cart.count} article${cart.count > 1 ? 's' : ''} dans votre panier`"
-    :close="{ 'color': 'neutral', 'variant': 'ghost', 'aria-label': 'Fermer le panier' }"
     :ui="{
       content: 'bg-cgws-ground max-w-md w-full',
       header: 'border-b border-cgws-hairline',
@@ -51,6 +50,20 @@ function clearCart(): void {
       overlay: 'bg-cgws-ink/60 backdrop-blur-sm',
     }"
   >
+    <!-- Bouton fermer custom : le prop `close` de USlideover n'accepte que des
+         ButtonProps typés (pas d'attribut aria-label). Le slot #close est rendu
+         dans un DialogClose as-child : le clic ferme le drawer, et on garde un
+         aria-label français explicite. -->
+    <template #close>
+      <UButton
+        icon="i-lucide-x"
+        color="neutral"
+        variant="ghost"
+        aria-label="Fermer le panier"
+        class="absolute top-4 end-4"
+      />
+    </template>
+
     <template #body>
       <!-- État vide -->
       <div

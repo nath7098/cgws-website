@@ -12,6 +12,12 @@ export default defineNuxtConfig({
     stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
     // TODO: set CGWS_CAMILLE_EMAIL env var in production (replace placeholder)
     camilleEmail: process.env.CGWS_CAMILLE_EMAIL ?? 'nathcouton@gmail.com',
+    // Expéditeur unique de TOUS les emails transactionnels (US-092).
+    // Fallback : domaine de test Resend (seul expéditeur qui fonctionne tant
+    // que cgws.fr n'est pas vérifié dans Resend). Bascule vers
+    // 'CGWS <noreply@cgws.fr>' par SEUL changement de cette env var — zéro
+    // modification de code. Prérequis : domaine vérifié dans Resend (DNS).
+    emailFrom: process.env.CGWS_EMAIL_FROM ?? 'CGWS <onboarding@resend.dev>',
     public: {
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
@@ -38,6 +44,14 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+    // Le programme TS `node` (.nuxt/tsconfig.node.json) type-check le provider
+    // Nuxt Image custom (via la référence .nuxt/image/providers.d.ts générée
+    // par @nuxt/image) sans disposer des globaux d'auto-import de l'app. On
+    // lui fournit la déclaration ambiante truthful de `useRuntimeConfig`
+    // (voir types/nuxt-image-provider.d.ts — programme node uniquement).
+    nodeTsConfig: {
+      include: ['../types/nuxt-image-provider.d.ts'],
+    },
   },
 
   components: [

@@ -69,16 +69,18 @@ useSeoMeta({
   ogTitle: `${product.value!.title} — CGWS`,
   ogDescription: product.value!.description.slice(0, 160),
   ogImage: product.value!.images[0] ?? undefined,
-  ogType: 'product',
   twitterCard: 'summary_large_image',
 })
 
-// ── JSON-LD Product schema ────────────────────────────────────────────────────
+// ── JSON-LD Product schema + og:type product ─────────────────────────────────
+// `og:type: product` est hors de l'union stricte d'unhead v2 pour `ogType` :
+// on le déclare via une entrée meta brute (échappatoire documentée unhead).
 useHead({
+  meta: [{ property: 'og:type', content: 'product' }],
   script: [
     {
       type: 'application/ld+json',
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.value!.title,
