@@ -219,6 +219,9 @@ onMounted(() => {
 
 <template>
   <div class="space-y-8">
+    <!-- Garde-fou expéditeur email de test (US-094) -->
+    <EmailFallbackBanner />
+
     <!-- Page header -->
     <div class="flex items-baseline justify-between">
       <h2 class="font-serif font-bold text-2xl text-cgws-ink">

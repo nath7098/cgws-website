@@ -31,6 +31,18 @@ function resolveEmailFrom(): string {
 }
 
 // ---------------------------------------------------------------------------
+// Détection du fallback (US-094) — exposée UNIQUEMENT pour permettre à la
+// route `server/api/admin/email-status.get.ts` de savoir si les emails
+// partent encore depuis le domaine de test Resend, sans jamais exposer
+// `resolveEmailFrom()` (l'adresse elle-même) au client. Aucun changement de
+// comportement d'envoi : ce helper ne fait qu'une comparaison.
+// ---------------------------------------------------------------------------
+
+export function isFallbackSender(): boolean {
+  return resolveEmailFrom() === FALLBACK_EMAIL_FROM
+}
+
+// ---------------------------------------------------------------------------
 // Helper d'envoi — le SDK Resend ne throw PAS en cas d'erreur API : il
 // retourne { data, error }. Sans inspection explicite, les échecs sont
 // silencieux (aucun log en production). Ce helper logge chaque issue.
