@@ -2343,3 +2343,405 @@ And    la règle de gouvernance est écrite : tout NOUVEL événement exige une 
 
 ---
 
+## Épic E13 — Repositionnement « Spin & Slide » (rebranding & recentrage reining)
+
+**Sprint 12 · ~2 semaines · 31 points**
+**Objectif** : matérialiser dans le produit le repositionnement acté le 2026-07-23 (`docs/BRAND_DIRECTION.md`) : CGWS devient **la boutique de la spécialiste reining** sous la marque commerciale **Spin & Slide** (endossement « CGWS — Spin & Slide Shop »). À la fin du sprint : la marque Spin & Slide est visible partout sur le site sans perdre l'endossement CGWS ni le signal SEO « western » ; la homepage met l'expertise reining et le catalogue en avant, la consignation reste un pilier mais après la boutique ; la taxonomie de catégories reflète le nouveau périmètre catalogue ; la promesse de curation « Testé et approuvé par Camille » est incarnée par un badge ; le modèle de vente hybride est explicite en fiche produit (livraison + politique de retour des selles) ; et le ton éditorial abandonne le registre « maroquinerie de luxe » au profit de la « spécialiste passionnée ». Le design system v2 (cuir, cuivre, denim, étiquettes, conchos) est **conservé** — c'est l'éditorial et le positionnement qui bougent, pas la direction artistique.
+
+> **Source de vérité** : `docs/BRAND_DIRECTION.md` (positionnement, architecture de marque, modèle de vente, questions arbitrées). Aucune US de ce sprint ne ré-arbitre ce qui y est déjà tranché.
+
+| US | Titre | Priorité | Points | Dépendance / Blocage |
+|----|-------|----------|--------|----------------------|
+| US-106 | Rebranding vitrine — lockup « CGWS — Spin & Slide Shop », header, footer, favicon, métadonnées SEO/OG | Must Have | 5 | Blocage design : logo/lockup définitif |
+| US-107 | Domaine canonique, URL de site & expéditeur email Spin & Slide + redirection `cgws.fr` | Must Have | 2 | Dép. US-106 · **Blocage humain** : achat domaines + DNS + vérif. Resend (Nathan) |
+| US-108 | Refonte homepage — expertise reining d'abord, catalogue en tête, consignation pilier secondaire | Must Have | 5 | Dép. US-106 (soft : US-109, US-110) · Blocage contenu : copy hero (Camille) |
+| US-109 | Refonte de la taxonomie catégories (données Supabase + filtres) | Must Have | 8 | — (migration de données) |
+| US-110 | Badge « Testé et approuvé par Camille » — composant, fiche produit, champ admin | Must Have | 5 | Blocage design : visuel du badge (clin d'œil « +1½ ») |
+| US-111 | Politique de retour des selles expédiées + clarté du mode de livraison en fiche produit | Must Have | 3 | **Blocage juridique** : texte de rétractation/retour (Camille + comptable/juriste) |
+| US-112 | Révision du ton éditorial des pages existantes | Should Have | 3 | Dép. US-106, US-108 · Blocage contenu : copy définitif (Camille) |
+| **Total** | | | **31** | |
+
+**Note de capacité** : 31 pts dépassent la vélocité observée (~18-20 pts/sprint sur les Sprints 9-11). Ce sprint est volontairement cadré comme un chantier de repositionnement complet ; si la fenêtre est d'une seule itération, US-112 (Should Have) et US-107 (bloqué tant que les domaines ne sont pas achetés) sont les deux candidats naturels au report sur un Sprint 12bis, sans casser la cohérence du reste. L'ordre d'exécution recommandé figure en fin de section.
+
+**Personas** (mis à jour selon `docs/BRAND_DIRECTION.md`) : `Compétiteur` (cavalier reining/western exigeant, persona n°1), `Randonneur`, `Déposant`, `Admin` (Camille).
+
+---
+
+### US-106 · Rebranding vitrine — lockup « CGWS — Spin & Slide Shop », header, footer, favicon, métadonnées SEO/OG · 5 pts
+
+**En tant que** Admin (Camille),
+**Je veux** que la marque commerciale **Spin & Slide** soit affichée de façon cohérente sur tout le site public (identité, header, footer, favicon, métadonnées),
+**Afin de** matérialiser le repositionnement dès le premier contact, tout en conservant l'endossement CGWS et le signal métier « sellerie western & reining » indispensable au SEO.
+
+**Contexte** : la marque « Spin & Slide » est actée (`docs/BRAND_DIRECTION.md` § Architecture de marque). Usage courant « Spin & Slide Shop » (sans « western » dans le nom), CGWS conservé en endossement (lockup « CGWS — Spin & Slide Shop »). Le nom « Camille Guignon Western Shop » ne subsiste plus comme label de façade — uniquement là où CGWS est le nom d'entreprise obligatoire (mentions légales, factures). Références actuelles à recenser : `AppHeader.vue`, `AppFooter.vue`, `MobileMenu.vue`, `useSeo.ts`, `app/utils/localBusinessSchema.ts`, `nuxt.config.ts`, `app/pages/index.vue`.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je charge n'importe quelle page publique
+When   le header s'affiche
+Then   le lockup de marque « Spin & Slide » est visible en façade avec l'endossement CGWS
+       (forme recommandée « Spin & Slide Shop — by CGWS », cf. BRAND_DIRECTION § Architecture de marque)
+And    le monogramme CGWS du design system est conservé comme marque d'entreprise
+
+Given  je fais défiler jusqu'au footer
+When   le footer s'affiche
+Then   la baseline descriptive « Sellerie western & reining — vente et dépôt-vente de selles » est présente
+And    la raison sociale complète « CGWS — Camille Guignon Western Shop » figure dans le bloc légal/entreprise
+
+Given  j'inspecte l'onglet du navigateur et le partage social d'une page
+When   les métadonnées se chargent
+Then   le favicon reflète la nouvelle identité (icône Spin & Slide)
+And    le titleTemplate inclut la marque « Spin & Slide » ET conserve le signal « Sellerie western & reining » (baseline SEO préservée malgré le retrait de « western » du nom)
+And    og:site_name = « Spin & Slide Shop » et l'image OG par défaut porte la nouvelle identité
+And    le Schema.org LocalBusiness (app/utils/localBusinessSchema.ts) porte le nom commercial « Spin & Slide Shop » et, en champ alternateName/legalName, « CGWS — Camille Guignon Western Shop »
+
+Given  le code du site public après rebranding
+When   je lance `rg -i "camille guignon western shop|western shop" app/ --glob '!**/mentions-legales*'`
+Then   aucune occurrence ne subsiste comme label de façade (hors mentions légales / raison sociale documentée)
+
+Given  je suis sur mobile (<768px)
+When   j'ouvre le menu (MobileMenu.vue)
+Then   le lockup de marque s'affiche correctement sans troncature ni perte d'accessibilité (aria-label à jour)
+```
+
+**⚠️ Blocage design (partiel, non bloquant pour démarrer)** : le logo/lockup vectoriel définitif « CGWS — Spin & Slide Shop », le favicon et l'image OG sont des **livrables de design** (spec `ux-designer` puis validation Camille). L'US se livre avec un wordmark typographique propre (Bebas Neue / Rye du design system) marqué comme provisoire ; le remplacement par l'asset final est une itération isolée, pas un blocage de sprint.
+
+**Notes techniques :**
+- Centraliser le nom de marque et la baseline dans une source unique (constante/config ou `runtimeConfig.public`) pour éviter la re-dispersion des libellés (leçon US-092/US-093).
+- `useSeo.ts` : ajuster `titleTemplate` et `og:site_name` ; conserver la baseline dans le suffixe de titre.
+- Ne PAS toucher aux tokens/couleurs/fonts du design system v2 (conservé).
+
+**Fichiers impactés (estimés) :**
+- `app/components/layout/AppHeader.vue`, `AppFooter.vue`, `MobileMenu.vue`
+- `app/composables/useSeo.ts`, `app/utils/localBusinessSchema.ts`
+- `nuxt.config.ts` (site name / OG defaults), `public/` (favicon, image OG)
+
+**Commit** : `feat(brand): Spin & Slide lockup across header, footer, favicon and SEO metadata [US-106]`
+
+---
+
+### US-107 · Domaine canonique, URL de site & expéditeur email Spin & Slide + redirection `cgws.fr` · 2 pts
+
+**En tant que** Admin (Camille),
+**Je veux** que le site serve sous le domaine canonique `spinandslide.fr`, que les emails partent de `noreply@spinandslide.fr`, et que `cgws.fr` redirige proprement,
+**Afin de** que l'ensemble de la présence en ligne (URLs, emails, partages) soit cohérent avec la nouvelle marque, sans perdre le trafic ni la confiance liés à l'ancien domaine.
+
+**⚠️ Blocage humain (bloquant pour le Done)** : l'achat des domaines (`spinandslide.fr` canonique, `spinslide.fr` / `spin-slide.fr` en 301, `cgws.fr` défensif), la configuration DNS et la **vérification du domaine dans Resend** sont des actions manuelles de Nathan (registrar + Resend). En amont de l'officialisation : recherche INPI (classes 18 & 35) et réservation des handles Instagram/Facebook (cf. `docs/BRAND_DIRECTION.md` § Questions ouvertes). Cette US livre le **code piloté par configuration** ; la bascule effective attend ces actions.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  la variable NUXT_PUBLIC_SITE_URL est renseignée à https://spinandslide.fr
+When   le site génère canonical, sitemap.xml, OG url et liens absolus
+Then   toutes ces URL utilisent la valeur de l'environnement (aucun domaine canonique codé en dur)
+
+Given  je recherche les domaines codés en dur : `rg -n "cgws\.fr|spinandslide\.fr" app/ server/ nuxt.config.ts`
+When   j'inspecte les occurrences restantes
+Then   il ne subsiste que des usages DÉFENSIFS documentés (ex. liste des domaines redirigés) — jamais dans la logique de génération d'URL canonique/OG
+
+Given  la variable CGWS_EMAIL_FROM (mécanisme centralisé livré en US-092) est mise à 'Spin & Slide <noreply@spinandslide.fr>'
+When   un des 6 templates envoie un email après vérification du domaine dans Resend
+Then   l'expéditeur affiché est « Spin & Slide <noreply@spinandslide.fr> » — bascule par SEUL changement d'env var, zéro modif de code
+And    tant que le domaine n'est pas vérifié, le fallback sûr d'US-092 reste actif (aucun email cassé)
+
+Given  un visiteur ou un moteur atteint une URL sous cgws.fr
+When   la requête est servie
+Then   une redirection 301 permanente pointe vers l'URL équivalente sous spinandslide.fr
+And    le SEO (canonical, sitemap) déclare spinandslide.fr comme domaine de référence
+```
+
+**Dépendances** : US-106 (identité de marque à l'écran) ; US-092 (expéditeur email déjà centralisé et configurable — cette US ne fait que documenter/valider la nouvelle valeur).
+
+**Notes techniques :**
+- La redirection `cgws.fr → spinandslide.fr` se configure au niveau hébergeur/Vercel (redirect domaine) ET/OU via règle applicative ; privilégier le niveau plateforme. Documenter le choix retenu.
+- Mettre à jour `.env.example` et `docs/DEV_GUIDE.md` (§ variables d'environnement) : `NUXT_PUBLIC_SITE_URL`, `CGWS_EMAIL_FROM` avec la note « pointer spinandslide.fr uniquement après vérification DNS Resend ».
+
+**Fichiers impactés (estimés) :**
+- `nuxt.config.ts`, `.env.example`, `docs/DEV_GUIDE.md`
+- `server/routes/sitemap.xml.ts`, `app/composables/useSeo.ts` (vérif. usage env)
+- Config redirection (Vercel / plateforme — hors repo pour la partie DNS)
+
+**Commit** : `chore(brand): canonical spinandslide.fr site URL, email sender and cgws.fr redirect [US-107]`
+
+---
+
+### US-108 · Refonte homepage — expertise reining d'abord, catalogue en tête, consignation pilier secondaire · 5 pts
+
+**En tant que** Compétiteur (cavalier reining, persona n°1),
+**Je veux** que la homepage me montre immédiatement l'expertise reining et le catalogue,
+**Afin de** comprendre en quelques secondes que je suis chez LA spécialiste reining, et accéder vite aux produits ; la consignation restant visible mais après la boutique.
+
+**Contexte** : `docs/BRAND_DIRECTION.md` § Impacts chantier n°1. La homepage actuelle (`app/pages/index.vue`, `HeroSection.vue`, sections associées) porte encore le message « authentique western à votre portée » et met la consignation trop en avant. Le design system v2 est conservé ; c'est la hiérarchie et le message qui changent.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je charge la homepage
+When   le hero s'affiche
+Then   le message met en avant l'expertise reining (spécialiste reining + western + randonnée en rayonnement)
+And    le CTA principal mène au catalogue, un CTA secondaire (denim) mène à la consignation
+And    le LCP reste < 2.5 s (aucune régression perf vs état actuel)
+
+Given  je fais défiler la homepage
+When   je parcours l'ordre des sections
+Then   une entrée catalogue / mise en avant produits apparaît AVANT la section consignation
+And    la promesse de curation « Testé et approuvé par Camille » est exprimée dès le haut de page
+And    la section consignation reste présente comme pilier différenciateur, mais positionnée après la boutique
+
+Given  la section de mise en avant produits
+When   des cartes produits « coups de cœur » / nouveautés s'affichent
+Then   le badge « Testé et approuvé par Camille » (US-110) apparaît sur les produits approuvés
+       (intégration soft : si US-110 n'est pas encore mergée, la section fonctionne sans le badge)
+
+Given  je suis sur mobile (375px)
+When   je charge la homepage
+Then   la hiérarchie (hero reining → catalogue → curation → consignation → histoire) est préservée en colonne
+And    les animations GSAP existantes sont conservées ou adaptées sans casser l'accessibilité
+```
+
+**Dépendances** : US-106 (identité de marque). Dépendances **soft** : US-109 (nav catégories à jour dans les liens catalogue), US-110 (badge sur les cartes produits de la homepage).
+
+**⚠️ Blocage contenu (non bloquant pour la structure)** : le copywriting définitif du hero reining et des accroches est une validation Camille. Livrable avec texte placeholder clairement marqué (même pattern que US-011 / US-099) ; le texte réel est un blocage de contenu isolé.
+
+**Notes techniques :**
+- Réutiliser les composants home existants (`HeroSection.vue`, sections histoire/consignation) ; il s'agit de réordonner et re-messager, pas de tout réécrire.
+- Vérifier les patterns Nuxt/GSAP via les MCP avant toute modif de composant (règle CLAUDE.md).
+
+**Fichiers impactés (estimés) :**
+- `app/pages/index.vue`
+- `app/components/home/HeroSection.vue` + composants de sections home
+- éventuel `app/components/home/CurationPromise.vue` (nouveau, promesse de curation)
+
+**Commit** : `feat(home): reining-first homepage with catalogue lead and consignment as secondary pillar [US-108]`
+
+---
+
+### US-109 · Refonte de la taxonomie catégories (données Supabase + filtres) · 8 pts
+
+**En tant que** Admin (Camille),
+**Je veux** que les catégories du catalogue reflètent le nouveau périmètre reining/western,
+**Afin de** que mes clients trouvent le matériel selon une arborescence claire et défendable, et que je saisisse mes produits dans les bonnes catégories.
+
+**Contexte** : `docs/BRAND_DIRECTION.md` § Impacts chantier n°2. Nouveau périmètre : **selles / bridonnerie (filets, mors) / étriers / bandes & protections / licols & accessoires / soins (crins, sabots)**, avec **bottes-chaussures et vêtements CONSERVÉS** (arbitré 2026-07-23, question fermée). Cela change à la fois les données (table `categories` + enum `ProductCategory` dans `app/types/index.ts`) et l'UI de filtres (`FilterPanel.vue`, `FilterDrawer.vue`, `useCatalogue.ts`, `ProductForm.vue`). **C'est un changement de données à risque** : il faut remapper les produits existants sans en laisser aucun orphelin.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  la nouvelle taxonomie cible
+When   la migration Supabase est appliquée
+Then   les catégories suivantes existent et sont actives : selles, bridonnerie (filets, mors), étriers,
+       bandes & protections, licols & accessoires, soins (crins, sabots), bottes & chaussures, vêtements
+And    l'enum ProductCategory de app/types/index.ts est aligné sur ces slugs
+And    database.types.ts est régénéré si le schéma change (règle US-090)
+
+Given  des produits existants rattachés aux anciennes catégories (selles, brides-licols, bottes-chaussures, vetements, accessoires, protections)
+When   la migration de remappage s'exécute
+Then   chaque produit est réaffecté à une catégorie cible selon une table de correspondance explicite et documentée
+And    AUCUN produit ne reste sans catégorie ni rattaché à une catégorie supprimée (zéro orphelin — vérifié par requête)
+And    la correspondance ancien→nouveau slug est documentée (dans la migration et docs/DEV_GUIDE.md) pour audit/rollback
+
+Given  je navigue sur /catalogue
+When   j'ouvre le panneau de filtres (desktop) ou le drawer (mobile)
+Then   les filtres de catégorie listent la nouvelle taxonomie
+And    filtrer par une nouvelle catégorie renvoie les produits attendus, et l'URL reflète le nouveau slug (?categorie=bridonnerie)
+
+Given  je crée/édite un produit dans l'admin (ProductForm.vue)
+When   j'ouvre le sélecteur de catégorie
+Then   il propose exactement la nouvelle taxonomie (plus aucune ancienne valeur sélectionnable)
+
+Given  un ancien lien indexé pointant vers une ancienne catégorie (ex. ?categorie=protections)
+When   il est ouvert
+Then   il ne produit pas d'erreur : soit redirection vers la catégorie équivalente, soit dégradation propre vers le catalogue complet (comportement documenté)
+```
+
+**Notes techniques :**
+- Migration data en 2 temps : (1) upsert des nouvelles catégories, (2) UPDATE de remappage des produits via table de correspondance, (3) désactivation/suppression des anciennes (garder is_active=false plutôt que DELETE si des ventes historiques y référencent).
+- Table de correspondance proposée (à valider avec Camille) : `brides-licols` → `bridonnerie` (partie filets/mors) + `licols-accessoires` (partie licols) selon le produit ; `protections` → `bandes-protections` ; `accessoires` → `licols-accessoires` ; `selles`, `bottes-chaussures`, `vetements` inchangés ; `soins` = nouvelle. Le tri fin des ex-`brides-licols`/`accessoires` peut nécessiter un passage manuel de Camille (signalé, non bloquant : rattachement par défaut documenté).
+- Vérifier les composants filtres via les MCP Nuxt UI avant modif.
+
+**Fichiers impactés (estimés) :**
+- `supabase/migrations/00X_reining_taxonomy.sql`, `supabase/seed.sql`
+- `app/types/index.ts`, `app/types/database.types.ts` (régénéré)
+- `app/composables/useCatalogue.ts`, `app/components/catalogue/FilterPanel.vue`, `FilterDrawer.vue`
+- `app/components/admin/ProductForm.vue`, `app/pages/admin/categories.vue`
+
+**Commit** : `feat(catalogue): reining-oriented category taxonomy with data migration and filter UI [US-109]`
+
+---
+
+### US-110 · Badge « Testé et approuvé par Camille » — composant, fiche produit, champ admin · 5 pts
+
+**En tant que** Compétiteur,
+**Je veux** repérer d'un coup d'œil les articles que Camille a personnellement testés et approuvés,
+**Afin de** m'appuyer sur son expertise reining pour acheter en confiance — c'est la promesse centrale de la boutique (« si c'est dans le catalogue, c'est que ça marche »).
+
+**Contexte** : `docs/BRAND_DIRECTION.md` § Signature éditoriale + Impacts chantier n°3. La curation stricte hors selles est le différenciateur affiché. Piste design actée : clin d'œil au score reining « +1½ » (manœuvre excellente). Le badge est un **nouveau composant du design system v2** (conservé), un **champ admin** pour marquer un produit approuvé, et une **colonne DB**.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  le schéma products
+When   la migration est appliquée
+Then   une colonne booléenne (ex. camille_approved, défaut false) existe sur products
+And    database.types.ts et l'interface Product (app/types/index.ts) sont alignés
+
+Given  je crée/édite un produit dans l'admin (ProductForm.vue)
+When   le formulaire s'affiche
+Then   un contrôle « Testé et approuvé par Camille » (toggle) permet de marquer le produit comme approuvé
+And    l'état est persisté et pré-rempli à la réédition
+
+Given  un produit marqué approuvé
+When   sa fiche produit se charge (app/pages/catalogue/[slug].vue)
+Then   le badge « Testé et approuvé par Camille » (composant design system, clin d'œil « +1½ ») est affiché
+And    un court argumentaire explique la promesse de curation (pourquoi cet article est dans le catalogue)
+And    le badge apparaît aussi sur la carte produit du catalogue et sur les mises en avant homepage
+
+Given  un produit NON marqué approuvé
+When   sa fiche et sa carte s'affichent
+Then   aucun badge de curation n'apparaît (le badge n'est jamais affiché par défaut)
+
+Given  le badge affiché
+When   je vérifie l'accessibilité
+Then   il porte un libellé accessible (aria-label / texte alternatif), contraste ≥ 4.5:1 dans les rendus de peau existants
+```
+
+**⚠️ Blocage design (partiel)** : le visuel exact du badge (déclinaison « +1½ », intégration au design system cuir/cuivre) relève d'une spec `ux-designer` avant implémentation. L'US se livre avec un composant fonctionnel ; l'affinage visuel final est une itération de design.
+
+**Notes techniques :**
+- Composant `CgwsApprovedBadge.vue` dans `app/components/ui/` (cohérent avec TagCard/ConchoStat).
+- La colonne DB est le champ de vérité ; la curation est une décision manuelle de Camille produit par produit (pas de règle automatique).
+- Vérifier les patterns Nuxt UI via MCP avant implémentation.
+
+**Fichiers impactés (estimés) :**
+- `supabase/migrations/00X_product_camille_approved.sql`
+- `app/types/index.ts`, `app/types/database.types.ts`
+- `app/components/ui/CgwsApprovedBadge.vue` (nouveau)
+- `app/components/admin/ProductForm.vue`, `app/pages/catalogue/[slug].vue`, `app/components/product/ProductInfo.vue`, `app/components/catalogue/ProductCard.vue`
+
+**Commit** : `feat(catalogue): "Testé et approuvé par Camille" curation badge with admin toggle [US-110]`
+
+---
+
+### US-111 · Politique de retour des selles expédiées + clarté du mode de livraison en fiche produit · 3 pts
+
+**En tant que** Acheteur (Compétiteur/Randonneur) achetant une selle à distance,
+**Je veux** connaître clairement mes options de livraison et la politique d'essai/retour d'une selle expédiée,
+**Afin d'** acheter en confiance sans me déplacer, en sachant que je peux retourner une selle qui ne convient pas.
+
+**Contexte** : `docs/BRAND_DIRECTION.md` § Modèle de vente + Questions ouvertes (« Politique essai/retour des selles expédiées : à rédiger, affichée sur la fiche produit »). Le **choix expédition / click & collect existe déjà dans le checkout** (livré en US-082/US-091 : `fulfillment_method` = shipping/pickup, retrait Brèches à 0 €). Cette US ne reconstruit PAS le checkout : elle **rend le modèle explicite en fiche produit** et **ajoute la politique de retour** manquante.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  je consulte la fiche d'une selle
+When   la page se charge
+Then   un bloc « Livraison & retrait » indique clairement les deux options : expédition France entière ET click & collect au magasin de Brèches (37)
+And    un bloc « Essai & retour » présente la politique de retour des selles expédiées
+And    un lien mène vers une page dédiée détaillant la politique complète (rétractation + modalités)
+
+Given  je consulte la fiche d'un article non-selle
+When   la page se charge
+Then   les modalités de livraison/retrait restent affichées, cohérentes avec le droit de rétractation à distance
+
+Given  la page dédiée « Livraison, essai & retour »
+When   elle se charge
+Then   elle expose : délai légal de rétractation (14 jours en vente à distance), modalités et frais de retour d'une selle, et l'invitation à privilégier l'essai/retrait au magasin
+And    elle est reliée depuis le footer et depuis chaque fiche produit
+
+Given  le contenu légal définitif n'est pas encore validé
+When   la page est livrée
+Then   le texte de rétractation/retour est un placeholder CLAIREMENT marqué « à valider » (jamais présenté comme définitif)
+```
+
+**⚠️ Blocage juridique/contenu (bloquant pour le contenu définitif)** : le texte exact de la politique de rétractation et de retour des selles (délai 14 jours, prise en charge et montant des frais de retour ≈ 60-100 €, conditions d'essai) engage juridiquement CGWS et **ne peut pas être inventé**. Il doit être validé par Camille (et idéalement son comptable/un juriste). L'US livre la **structure et l'emplacement** (page + blocs fiche produit) avec placeholder marqué ; le texte réel est un blocage de contenu isolé, pas un blocage de la structure.
+
+**Notes techniques :**
+- Réutiliser le mécanisme `fulfillment_method` existant : ne pas dupliquer la logique checkout, seulement l'exposer côté vitrine.
+- Page `app/pages/livraison-retour.vue` (ou section CGV) reliée au footer (`AppFooter.vue`).
+
+**Fichiers impactés (estimés) :**
+- `app/pages/livraison-retour.vue` (nouveau) ou section dédiée
+- `app/pages/catalogue/[slug].vue`, `app/components/product/ProductInfo.vue`
+- `app/components/layout/AppFooter.vue`
+
+**Commit** : `feat(product): saddle return policy and hybrid delivery clarity on product page [US-111]`
+
+---
+
+### US-112 · Révision du ton éditorial des pages existantes · 3 pts
+
+**En tant que** Compétiteur,
+**Je veux** un ton « spécialiste passionnée » plutôt que « maison de maroquinerie de luxe »,
+**Afin de** ressentir l'expertise reining chaleureuse et crédible de Camille, cohérente avec le nouveau positionnement.
+
+**Contexte** : `docs/BRAND_DIRECTION.md` § Ton de marque. On **conserve** le design system v2 (cuir, cuivre, denim, étiquettes, conchos) ; on **abandonne** le registre « haut de gamme façon Hermès » dans l'éditorial. La montée en gamme se dit par la curation, pas par le vocabulaire du luxe.
+
+**Critères d'acceptation :**
+
+```gherkin
+Given  les pages publiques existantes (index, à-propos, consignation, contact, fiche produit, mentions)
+When   je relis les textes éditoriaux et méta-descriptions
+Then   le registre « maroquinerie / luxe / façon Hermès » est retiré au profit du ton « spécialiste passionnée reining »
+And    la baseline « Sellerie western & reining — vente et dépôt-vente de selles » et le signal SEO « western » sont préservés
+
+Given  le code après révision
+When   je lance `rg -i "maroquinerie|haut de gamme|façon hermès|luxe" app/`
+Then   il ne subsiste aucune formulation de registre « luxe » dans l'éditorial de façade
+
+Given  les métadonnées SEO des pages
+When   je vérifie les <title> et meta description
+Then   elles reflètent le positionnement reining/spécialiste sans dégrader les mots-clés métier existants
+And    aucune régression de structure SEO (US-023) n'est introduite
+
+Given  le design system v2
+When   je compare l'avant/après
+Then   aucune couleur, font ou composant du design system n'est modifié (seul l'éditorial change)
+```
+
+**Dépendances** : US-106 (marque à l'écran), US-108 (homepage refaite — pour ne pas retravailler deux fois le hero).
+
+**⚠️ Blocage contenu (partiel)** : le copywriting définitif est une validation Camille. Livrable avec textes révisés proposés, marqués « à valider » là où le contenu réel dépend d'elle (bio, storytelling). Ce sprint corrige le registre, pas la totalité du contenu final.
+
+**Notes techniques :**
+- Passer en revue `index.vue`, `a-propos.vue`, `consignation.vue`, `contact.vue`, `catalogue/[slug].vue`, méta via `useSeo.ts`.
+- À faire APRÈS US-106/US-108 pour éviter le double travail sur les zones réécrites.
+
+**Fichiers impactés (estimés) :**
+- `app/pages/index.vue`, `app/pages/a-propos.vue`, `app/pages/consignation.vue`, `app/pages/contact.vue`
+- `app/pages/catalogue/[slug].vue`, `app/composables/useSeo.ts`
+
+**Commit** : `refactor(content): shift editorial tone from luxury register to reining specialist [US-112]`
+
+---
+
+## Récapitulatif Sprint 12
+
+| US | Titre | Points | Dépendance / Blocage |
+|----|-------|--------|----------------------|
+| US-106 | Rebranding vitrine (lockup, header, footer, favicon, SEO/OG) | 5 | Blocage design : logo/lockup définitif (wordmark provisoire acceptable) |
+| US-107 | Domaine canonique, URL de site, email, redirection cgws.fr | 2 | Dép. US-106 · **Blocage humain** : achat domaines + DNS + vérif. Resend (Nathan) |
+| US-108 | Refonte homepage (reining-first, catalogue en tête) | 5 | Dép. US-106 (soft US-109/110) · Blocage contenu : copy hero |
+| US-109 | Refonte taxonomie catégories (data + filtres) | 8 | — (migration de données, remappage produits) |
+| US-110 | Badge « Testé et approuvé par Camille » | 5 | Blocage design : visuel du badge |
+| US-111 | Politique de retour des selles + livraison en fiche produit | 3 | **Blocage juridique** : texte rétractation/retour |
+| US-112 | Révision du ton éditorial | 3 | Dép. US-106/108 · Blocage contenu : copy définitif |
+| **Total** | | **31** | |
+
+**Ordre d'exécution recommandé** :
+1. **US-109** (taxonomie catégories) — fondation données, sans dépendance de marque ; débloque la nav catalogue de la homepage et la saisie produit. Peut démarrer en parallèle de US-106.
+2. **US-106** (rebranding vitrine) — pose l'identité de marque à l'écran ; prérequis de 107, 108 et 112.
+3. **US-110** (badge curation) — composant + colonne DB ; alimente les cartes produits de la homepage et les fiches.
+4. **US-108** (homepage) — après 106, bénéficie de 109 (nav) et 110 (badge sur les mises en avant).
+5. **US-111** (politique de retour + livraison) — indépendant, parallélisable dès que possible (structure livrable, texte en attente de validation).
+6. **US-112** (ton éditorial) — en dernier, une fois 106 et 108 stabilisées, pour ne pas réécrire deux fois les mêmes zones.
+7. **US-107** (domaine/email/redirection) — **flottante** : à réaliser dès que Nathan a acheté les domaines et vérifié le domaine Resend ; sinon en toute fin de sprint. Non bloquante pour le reste (code piloté par env var, fallback sûr US-092 actif entre-temps).
+
+**Blocages humains à lever en priorité (hors périmètre dev)** :
+1. **Domaines & email** (débloque US-107) : achat de `spinandslide.fr` (+ `spinslide.fr`, `spin-slide.fr` en 301, `cgws.fr` défensif), configuration DNS, **vérification du domaine dans Resend**. En amont de l'officialisation : recherche INPI (classes 18 & 35) et réservation des handles Instagram/Facebook.
+2. **Assets de marque** (débloque le rendu final de US-106 et US-110) : logo/lockup vectoriel définitif « CGWS — Spin & Slide Shop », favicon, image OG, et visuel du badge « +1½ » — spec `ux-designer` puis validation Camille.
+3. **Texte légal politique d'essai/retour des selles** (débloque le contenu de US-111) : délai de rétractation, modalités et frais de retour — validation Camille (+ comptable/juriste). Ne peut pas être inventé.
+4. **Copywriting définitif** (débloque le contenu de US-108 et US-112) : accroches hero reining, storytelling, bio Camille — validation Camille. Les structures sont livrables en placeholder marqué.
+
+---
+
