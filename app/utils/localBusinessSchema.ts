@@ -47,7 +47,7 @@ export function getLocalBusinessSchema(): LocalBusinessSchema {
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Brèches',
-      postalCode: '37220',
+      postalCode: '37330',
       addressCountry: 'FR',
     },
     openingHoursSpecification: [

@@ -163,7 +163,7 @@ const currentYear = new Date().getFullYear()
               />
               <!-- TODO: confirmer adresse exacte avec Camille -->
               <span class="font-sans text-sm text-cgws-ink-soft/80 leading-snug">
-                Brèches, 37320 Indre-et-Loire
+                Brèches, 37330 Indre-et-Loire
               </span>
             </li>
             <!-- Téléphone -->

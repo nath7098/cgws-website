@@ -425,7 +425,7 @@ onUnmounted(() => {
                   <p class="font-sans text-sm text-cgws-ink leading-relaxed">
                     CGWS<br>
                     Brèches<br>
-                    37320 Indre-et-Loire
+                    37330 Indre-et-Loire
                   </p>
                 </div>
               </div>

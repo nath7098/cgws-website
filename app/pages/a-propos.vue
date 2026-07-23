@@ -283,7 +283,7 @@ onUnmounted(() => {
               <div class="flex items-start gap-3">
                 <UIcon name="i-lucide-map-pin" class="w-4 h-4 mt-0.5 text-cgws-accent flex-shrink-0" aria-hidden="true" />
                 <!-- TODO: confirmer adresse exacte avec Camille -->
-                <dd>Brèches, 37320 Indre-et-Loire</dd>
+                <dd>Brèches, 37330 Indre-et-Loire</dd>
               </div>
               <div class="flex items-start gap-3">
                 <UIcon name="i-lucide-clock" class="w-4 h-4 mt-0.5 text-cgws-accent flex-shrink-0" aria-hidden="true" />

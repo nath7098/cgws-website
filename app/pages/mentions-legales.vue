@@ -70,7 +70,7 @@ useSeoMeta({
           <div class="flex flex-wrap gap-x-2">
             <dt class="font-semibold text-cgws-ink">Adresse :</dt>
             <!-- TODO: confirmer adresse exacte avec Camille -->
-            <dd>Brèches, 37320 Indre-et-Loire, France</dd>
+            <dd>Brèches, 37330 Indre-et-Loire, France</dd>
           </div>
           <div class="flex flex-wrap gap-x-2">
             <dt class="font-semibold text-cgws-ink">Email :</dt>
