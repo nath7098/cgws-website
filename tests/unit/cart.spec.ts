@@ -31,6 +31,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     status: 'active',
     images: ['https://example.supabase.co/storage/v1/object/public/product-images/products/a/1.jpg'],
     stock: 1,
+    camilleApproved: false,
     createdAt: '2026-07-01T00:00:00.000Z',
     updatedAt: '2026-07-01T00:00:00.000Z',
     ...overrides,

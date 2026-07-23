@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import gsap from 'gsap'
+import { BRAND_SHORT, BRAND_ENDORSEMENT } from '~/utils/brand'
 import CgwsButton from '../ui/CgwsButton.vue';
 
 const props = defineProps<{ open: boolean }>()
@@ -147,8 +148,19 @@ onUnmounted(() => {
         @keydown="handleKeydown"
       >
         <div class="h-14 flex items-center justify-between px-5 flex-shrink-0 border-b border-cgws-hairline">
-          <span class="font-display text-[22px] leading-none uppercase tracking-[0.2em] text-cgws-accent">
-            CGWS
+          <!-- Lockup de façade « Spin & Slide » + endossement CGWS (wordmark
+               PROVISOIRE Bebas Neue). Pas de troncature : max-width du panneau
+               340px, le wordmark tient sur une ligne sans wrap. -->
+          <span class="flex flex-col items-start gap-0 min-w-0">
+            <span class="font-display text-[20px] leading-none uppercase tracking-[0.06em] whitespace-nowrap text-cgws-accent">
+              {{ BRAND_SHORT }}
+            </span>
+            <span
+              class="font-sans text-[9px] leading-none uppercase tracking-[0.2em] mt-0.5 whitespace-nowrap text-cgws-ink-soft"
+              aria-hidden="true"
+            >
+              {{ BRAND_ENDORSEMENT }}
+            </span>
           </span>
           <button
             type="button"

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import type { SelectOption } from '~/components/ui/CgwsSelect.vue'
+import { BRAND_NAME } from '~/utils/brand'
 
 // ---------------------------------------------------------------------------
 // SEO
 // ---------------------------------------------------------------------------
 
 useSeoMeta({
-  title: 'Contact — CGWS Western Shop à Brèches (37)',
+  title: 'Contact — Brèches (37)',
   description:
-    'Contactez la boutique CGWS à Brèches, Indre-et-Loire. Formulaire de contact, adresse, horaires et carte pour nous trouver facilement.',
-  ogTitle: 'Contact — CGWS Western Shop',
+    `Contactez la boutique ${BRAND_NAME} (CGWS) à Brèches, Indre-et-Loire. Formulaire de contact, adresse, horaires et carte pour nous trouver facilement.`,
+  ogTitle: `Contact — ${BRAND_NAME}`,
   ogDescription:
     'Une question, un rendez-vous ou un projet de consignation ? Contactez Camille et l\'équipe CGWS à Brèches (37).',
   ogType: 'website',

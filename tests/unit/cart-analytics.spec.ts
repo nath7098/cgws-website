@@ -26,6 +26,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     status: 'active',
     images: [],
     stock: 1,
+    camilleApproved: false,
     createdAt: '2026-07-01T00:00:00.000Z',
     updatedAt: '2026-07-01T00:00:00.000Z',
     ...overrides,

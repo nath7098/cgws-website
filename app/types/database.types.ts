@@ -278,6 +278,7 @@ export type Database = {
       products: {
         Row: {
           brand: string | null
+          camille_approved: boolean
           category: string
           condition: string
           consignment_id: string | null
@@ -298,6 +299,7 @@ export type Database = {
         }
         Insert: {
           brand?: string | null
+          camille_approved?: boolean
           category: string
           condition: string
           consignment_id?: string | null
@@ -318,6 +320,7 @@ export type Database = {
         }
         Update: {
           brand?: string | null
+          camille_approved?: boolean
           category?: string
           condition?: string
           consignment_id?: string | null

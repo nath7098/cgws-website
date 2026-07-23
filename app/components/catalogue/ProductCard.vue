@@ -48,12 +48,20 @@ const primaryImageData = computed(() =>
   primaryImage.value !== null ? imageProps(primaryImage.value) : null,
 )
 
+// US-110 — le sceau `sm` en coin d'image est décoratif (aria-hidden via son
+// role="img" imbriqué dans un lien serait un anti-pattern a11y) : le sens
+// « approuvé » est porté par le libellé accessible de la carte, comme
+// « — Produit vendu ». Masqué sur une carte vendue (une pièce vendue n'a plus
+// à afficher la caution d'achat, spec §7.1).
+const showApprovedSeal = computed(() => props.product.camilleApproved && !isSold.value)
+
 const ariaLabel = computed(() => {
   let label = `${props.product.title} — ${props.product.brand} — ${formattedPrice.value} €`
   if (isSold.value) label += ' — Produit vendu'
   if (isReserved.value) label += ' — Produit réservé'
   if (isOutOfStock.value) label += ' — Actuellement épuisé'
   if (isLowStock.value) label += ` — Plus que ${props.product.stock} en stock`
+  if (showApprovedSeal.value) label += ' — Sélection Camille, testé et approuvé'
   return label
 })
 
@@ -182,6 +190,18 @@ const cardContent = computed(() => ({
           <span class="font-display text-[16px] text-cgws-brand-cream uppercase tracking-widest">
             Voir le produit
           </span>
+        </div>
+
+        <!-- US-110 — sceau « Testé et approuvé par Camille » (sm), symétrique du
+             badge « Vendu » (top-3 left-3). Décoratif ici : le sens est porté
+             par l'aria-label de la carte, d'où aria-hidden pour éviter la double
+             lecture. -->
+        <div
+          v-if="showApprovedSeal"
+          class="absolute top-3 right-3 z-10 pointer-events-none"
+          aria-hidden="true"
+        >
+          <CgwsApprovedBadge size="sm" />
         </div>
       </div>
 

@@ -718,3 +718,56 @@ Les 6 événements de la taxonomie actée (et RIEN d'autre — audit grep exhaus
 - Verrouillage compilateur de la taxonomie : ajouter des `@ts-expect-error` dans les tests du repo pour matérialiser la garantie en CI (suggestion QA US-103).
 - Le chunk posthog-js (~228 kB) reste prefetché même sans clé (comportement Vite, jamais exécuté) — acté non bloquant, à réévaluer seulement si un audit perf le pointe.
 - Blocages antérieurs inchangés (Resend cgws.fr, SHIPPING_FLAT_RATE, PayPal Dashboard, contenus Camille, issue #30 focus rings, edge case stock US-082) — voir bilans Sprints 8-10.
+
+---
+
+## Sprint 12 — Épic E13 · Repositionnement « Spin & Slide » (rebranding & recentrage reining) · 2026-07-23
+
+> Cadré après un atelier de repositionnement Nathan + Camille (source de vérité : `docs/BRAND_DIRECTION.md`). CGWS devient **la boutique de la spécialiste reining** sous la marque commerciale **Spin & Slide** (endossement « CGWS — Spin & Slide Shop »). Branche `feature/sprint-12`. Agents exécutés sous Opus 4.8 (crédits Fable 5 épuisés en cours de sprint).
+
+## US-109 — Refonte de la taxonomie catégories (données + filtres) · 8 pts — PASS (2e passe)
+
+Nouvelle taxonomie 8 slugs : `selles, bridonnerie, etriers, bandes-protections, licols-accessoires, soins, bottes-chaussures, vetements` (bottes/vêtements CONSERVÉS, arbitré). **Source de vérité unique** dans `shared/utils/csvImport.ts` (`PRODUCT_CATEGORIES`, `CATEGORY_LABELS`, `LEGACY_CATEGORY_REDIRECTS`) dont `ProductCategory`, `useCatalogue`, filtres, admin (`ProductForm`, `produits/index`, `SaleForm`), `ProductInfo` et validation Zod serveur dérivent — fin des valeurs hardcodées. Migration `009_reining_taxonomy.sql` rejouable/transactionnelle : drop ancien CHECK → UPDATE remappage (`brides-licols→bridonnerie`, `protections→bandes-protections`, `accessoires→licols-accessoires`) → nouveau CHECK 8 slugs → upsert catégories → désactivation (`is_active=false`, jamais DELETE) des anciennes → garde-fou `RAISE EXCEPTION` zéro-orphelin. **Validée en dry-run BEGIN/ROLLBACK sur données prod réelles** (9 produits remappés, 0 orphelin) — NON appliquée en prod. Rétrocompat des anciens slugs d'URL (`initFromUrl` + `normalizeCategory`). **QA : FAIL 1re passe** (bonne prise) — `supabase/tests/rls_admin.sql` insérait `category='accessoires'`, rendu illégal par le nouveau CHECK → `check_violation` non capté avortant le test RLS ; corrigé en `selles`. + alignement `CLAUDE.md` (type ProductCategory documenté) + 8 tests neufs `csvImport.spec.ts` (remaps legacy). Gates : typecheck 0 · eslint 0 · **154 tests**.
+
+## US-106 — Rebranding vitrine (lockup, header, footer, favicon, SEO/OG) · 5 pts — PASS (2e passe)
+
+Marque **Spin & Slide** en façade avec endossement « Shop — by CGWS ». **Source unique** `app/utils/brand.ts` (BRAND_NAME/SHORT/ENDORSEMENT/LOCKUP/MONOGRAM/LEGAL_NAME/BASELINE) consommée par header, menu mobile, footer, `useSeo`, `localBusinessSchema`, `nuxt.config`, `app.vue` — leçon US-092/093. **Baseline SEO « Sellerie western & reining » préservée** à 3 endroits (titleTemplate, footer, Schema.org). Raison sociale « CGWS — Camille Guignon Western Shop » cantonnée au bloc légal/mentions. Favicon + image OG **provisoires** (wordmark typographique du design system, en attente de l'asset vectoriel définitif). **QA : FAIL 1re passe** — critère 6 (centralisation) : des chaînes de la nouvelle marque restaient hardcodées (aria-labels footer, wordmark login admin, meta SEO) ; corrigé (bindings + interpolation `${BRAND_NAME}`). Non-régression vérifiée : domaine/URL canonique inchangé (US-107), tokens/fonts intacts. Gates : typecheck 0 · eslint 0 · **154 tests**.
+
+## US-110 — Badge « Testé et approuvé par Camille » · 5 pts — PASS (1re passe)
+
+Spec design `ux-designer` d'abord (`docs/design-specs/US-110-badge-curation.md`, concept « sceau de maître-sellier » + note de juge `+1½`). Composant `app/components/ui/CgwsApprovedBadge.vue` présentationnel (props sm/md/lg + withArgument), **entièrement en rôles de token theme-aware v3** (accent/on-accent paire AA, aucun littéral cuir/cuivre), `role=img` + aria-label. Colonne `products.camille_approved` (migration `010`, additive/idempotente `ADD COLUMN IF NOT EXISTS`, non appliquée prod). Toggle admin persisté/pré-rempli (Zod + INSERT/UPDATE serveur, mappers `?? false`). **Gate `camilleApproved === true` partout — jamais affiché par défaut** (verrouillé par 3 tests de mapping). Intégré fiche produit (md + argumentaire placeholder) et carte catalogue (sm). **QA : PASS 1re passe.** Gates : typecheck 0 · eslint 0 · **157 tests**.
+
+## US-108 — Refonte homepage reining-first · 5 pts — PASS (1re passe)
+
+Nouvelle hiérarchie : hero reining → `FeaturedProducts` (catalogue, `useAsyncData` limit(4), tri `camille_approved desc`, réutilise ProductCard) → `CurationPromise` (badge `lg` + argumentaire) → `ConsignmentPillar` (consignation en pilier secondaire, **après** la boutique) → StatsBar → histoire. **Critère central vérifié** : le catalogue précède la consignation. Badge US-110 intégré en soft (section fonctionne sans produit approuvé). Copy en placeholders marqués (pattern US-011/099). LCP hero préservé (NuxtPicture eager/preload inchangé) ; GSAP scoped + `prefers-reduced-motion` + cleanup `onUnmounted`. Décision documentée : CTA secondaire hero en `outline-light` (le rôle denim n'existe que dans la peau Rugueux — cf. US-073 §1.3). **QA : PASS 1re passe.** Gates : typecheck 0 · eslint 0 · **157 tests**.
+
+## US-111 — Politique de retour des selles + clarté livraison en fiche produit · 3 pts — PASS (1re passe)
+
+Composant `ProductDeliveryReturn.vue` (blocs « Livraison & retrait » — expédition + click & collect Brèches — et « Essai & retour ») + page `livraison-retour.vue` (calquée sur `mentions-legales.vue`, rétractation 14 j + modalités retour selle + invitation essai/retrait magasin), reliée depuis footer ET chaque fiche. **Réutilise le contrat `#shared/utils/checkout`** (`FULFILLMENT_LABELS`, `PICKUP_COST`) — pas de reconstruction du checkout ni de valeur hardcodée. Distinction selle (`category==='selles'`) vs non-selle. Texte juridique en **placeholder marqué « à valider »** (délai 14 j = cadre légal général ; frais/modalités = provisoire), page en `noindex` tant que non validé. **QA : PASS 1re passe.** Gates : typecheck 0 · eslint 0 · **157 tests**.
+
+## US-112 — Révision du ton éditorial · 3 pts — PASS (1re passe)
+
+Le grep central `maroquinerie|haut de gamme|façon hermès|luxe` était **déjà vide** (registre luxe purgé par US-106/108). Seule `app/pages/a-propos.vue` restait en registre « premium/exigence » sans mention reining → recadrée sur le ton « spécialiste passionnée reining » / curation (« sélection courte et défendable, testée et approuvée »). Baseline « Sellerie western & reining » et signal SEO western préservés, « reining » ajouté (gain SEO). Aucun token/font/composant du design system touché (git diff = 1 fichier, contenu seul). Placeholders « à valider » conservés. **QA : PASS 1re passe.** Gates : typecheck 0 · eslint 0 · **157 tests**.
+
+## US-107 — Domaine canonique / email Spin & Slide — NON RÉALISÉE (bloquée)
+
+Volontairement reportée : dépend de l'achat des domaines (`spinandslide.fr` + variantes), de la config DNS et de la vérification du domaine dans Resend — actions humaines de Nathan non encore faites. Le code est déjà piloté par env var (US-092) avec fallback sûr : la bascule se fera par simple changement de `NUXT_PUBLIC_SITE_URL` / `CGWS_EMAIL_FROM` une fois les domaines actifs, sans nouveau développement.
+
+---
+
+## Bilan Sprint 12 — 31 pts planifiés · 26 pts livrés (US-107 reportée, bloquée) · vélocité 84 % · 2026-07-23
+
+**Objectif ATTEINT** (hors bascule domaine) : la marque Spin & Slide est visible partout sans perdre l'endossement CGWS ni le signal SEO « western » ; la homepage met le catalogue et l'expertise reining devant la consignation ; la taxonomie reflète le nouveau périmètre ; la promesse de curation est incarnée par le badge « Testé et approuvé par Camille » ; le modèle de vente hybride et la politique de retour des selles sont explicites en fiche ; le ton éditorial a quitté le registre luxe. **6 US livrées, 6 PASS** (2 en 2e passe : US-109 test RLS cassé par le nouveau CHECK, US-106 centralisation incomplète — deux vraies prises QA). 7 commits sur `feature/sprint-12`. Gates finaux : typecheck 0 · eslint 0 · **157 tests** · aucun `any`. Note capacité : les 26 pts livrés en une itération dépassent la vélocité récente (~18-20) — sprint volontairement dense de repositionnement.
+
+### Actions Nathan pour activer le sprint (ordre important)
+1. **Migrations DB avant/avec le déploiement du code** : appliquer `009_reining_taxonomy.sql` PUIS `010_product_camille_approved.sql` en prod. Tant que 009 n'est pas appliquée, la prod garde l'ancien CHECK → créer/éditer un produit avec un nouveau slug échouerait ; 010 est requise car l'admin écrit désormais `camille_approved`. Les deux sont validées et non destructives, mais **non poussées** (garde-fou respecté).
+2. **Domaines & marque (débloque US-107)** : achat `spinandslide.fr` (+ `spinslide.fr`, `spin-slide.fr` en 301, `cgws.fr` défensif — tous libres au 2026-07-23), DNS, **vérification du domaine dans Resend**. En amont : recherche INPI (classes 18 & 35) + handles Instagram/Facebook. Puis basculer `NUXT_PUBLIC_SITE_URL`/`CGWS_EMAIL_FROM`.
+3. **Assets design définitifs** (remplacent les provisoires, sans refonte) : logo/lockup vectoriel « CGWS — Spin & Slide Shop », favicon (`public/favicon.svg`), image OG (`public/og-default.png`), visuel final du badge « +1½ ».
+4. **Texte juridique politique d'essai/retour des selles** (débloque le contenu de US-111) : frais de retour (~60-100 €), conditions d'essai — validation Camille (+ comptable/juriste), puis repasser `livraison-retour.vue` en `index, follow`.
+5. **Copywriting définitif** (US-108/112) : hero reining, bio/storytelling a-propos, accroches — remplacer les placeholders marqués.
+6. **Tri fin des catégories** : reclasser dans l'admin les ex-`accessoires`/`brides-licols` remappés par défaut (ex. « Chapeau Resistol » → `vetements`).
+
+### Observations / tensions à arbitrer
+- `StatsBar` affiche « 250+ articles en stock » — en tension avec le message « catalogue court et défendable / testé et approuvé ». Repositionné en bas de homepage par US-108 ; contenu à trancher avec Camille (relève d'un futur arbitrage éditorial).
+- Défaut catégorie du produit créé à l'acceptation d'un dépôt : réaligné `accessoires→selles` (cœur métier consignation) — à confirmer si un autre défaut est préféré.
+- Décisions de branding actées ce sprint (marque, architecture, domaines) : voir `docs/BRAND_DIRECTION.md`.

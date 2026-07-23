@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Product, ProductCategory, ProductCondition } from '~/types'
+import type { Product, ProductCondition } from '~/types'
+import { CATEGORY_LABELS } from '#shared/utils/csvImport'
 import { useCartStore } from '~/stores/cart'
 
 interface Props {
@@ -111,15 +112,6 @@ const conditionLabel: Record<ProductCondition, string> = {
   fair: "État correct — marques d'usure visibles",
 }
 
-const categoryLabel: Record<ProductCategory, string> = {
-  selles: 'Selles',
-  'brides-licols': 'Brides & Licols',
-  'bottes-chaussures': 'Bottes & Chaussures',
-  vetements: 'Vêtements',
-  accessoires: 'Accessoires',
-  protections: 'Protections',
-}
-
 const priceColorClass = computed(() =>
   isSold.value ? 'text-cgws-ink-soft' : 'text-cgws-accent',
 )
@@ -138,9 +130,11 @@ onMounted(async () => {
       '.product-info-meta',
       '.product-info-price',
       '.product-info-details',
+      '.product-info-approved',
       '.product-info-description',
       '.product-info-consignment',
       '.product-info-cta',
+      '.product-info-delivery',
     ], {
       opacity: 0,
       x: 16,
@@ -177,7 +171,7 @@ onUnmounted(() => {
     <p class="product-info-meta font-sans text-sm text-cgws-ink-soft flex items-center gap-2">
       <span>{{ product.brand }}</span>
       <span aria-hidden="true">·</span>
-      <span>{{ categoryLabel[product.category] }}</span>
+      <span>{{ CATEGORY_LABELS[product.category] }}</span>
     </p>
 
     <!-- Séparateur -->
@@ -224,6 +218,13 @@ onUnmounted(() => {
         <span class="w-1.5 h-1.5 rounded-full bg-cgws-accent flex-shrink-0" aria-hidden="true" />
         {{ stockUrgencyLabel }}
       </p>
+    </div>
+
+    <!-- Badge de curation « Testé et approuvé par Camille » (US-110) — affiché
+         uniquement si le produit est marqué approuvé, avec l'argumentaire de
+         curation (placeholder « à valider par Camille » tant que non validé). -->
+    <div v-if="product.camilleApproved" class="product-info-approved">
+      <CgwsApprovedBadge size="md" with-argument />
     </div>
 
     <!-- Séparateur -->
@@ -329,5 +330,11 @@ onUnmounted(() => {
         Article vendu
       </CgwsButton>
     </div>
+
+    <!-- Livraison & retrait + Essai & retour (US-111) — modèle de vente hybride
+         rendu explicite en fiche produit + politique de retour des selles
+         expédiées. Réutilise le contrat fulfillment partagé, traitement
+         différencié selle/non-selle géré dans le composant. -->
+    <ProductDeliveryReturn class="product-info-delivery" :product="product" />
   </div>
 </template>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import CgwsButton from '../ui/CgwsButton.vue'
 
-const TITLE = "L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
+// PLACEHOLDER — titre hero à valider par Camille avant mise en ligne (US-108).
+// Positionnement reining-first (BRAND_DIRECTION §Positionnement) : LA
+// spécialiste reining, l'équitation western et la randonnée en rayonnement.
+const TITLE = 'LA SPÉCIALISTE DU REINING'
 
 interface TitleLetter {
   char: string
@@ -34,6 +37,12 @@ onMounted(async () => {
 
   ctx = gsap.context(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+
+    tl.from('.hero-eyebrow', {
+      opacity: 0,
+      y: 12,
+      duration: 0.5,
+    }, 0)
 
     tl.from('.hero-letter', {
       opacity: 0,
@@ -104,7 +113,7 @@ onUnmounted(() => {
 <template>
   <section
     class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-ground"
-    aria-label="Accueil CGWS — Sellerie équestre western"
+    aria-label="Accueil — Spin & Slide Shop, sellerie western & reining"
   >
     <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
     <NuxtPicture
@@ -136,12 +145,21 @@ onUnmounted(() => {
     >
       <!-- Bloc titre (H1) -->
       <div class="hero-title-block relative pt-6 md:pt-7">
+        <!-- Eyebrow : promesse de curation exprimée dès le haut de page (US-108) -->
+        <p
+          class="hero-eyebrow font-eyebrow text-[13px] text-cgws-brand-sand
+                 uppercase tracking-[0.2em] mb-4 md:mb-5"
+        >
+          <!-- PLACEHOLDER — libellé à valider par Camille -->
+          Testé &amp; approuvé par Camille · Spécialiste reining
+        </p>
+
         <!-- H1 : mots insécables (whitespace-nowrap) → lettres animables (.hero-letter) -->
         <h1
           class="font-display font-bold uppercase leading-none text-cgws-brand-cream
                  text-[52px] sm:text-[68px] md:text-[80px] lg:text-[96px] xl:text-[108px]
                  mb-5 md:mb-7 max-w-[15ch] lg:max-w-[12ch]"
-          aria-label="L'AUTHENTIQUE WESTERN À VOTRE PORTÉE"
+          aria-label="La spécialiste du reining"
         >
           <template v-for="(word, wi) in titleWords" :key="word.key">
             <span class="inline-block whitespace-nowrap">
@@ -166,8 +184,9 @@ onUnmounted(() => {
                text-[17px] md:text-[19px] lg:text-[21px]
                leading-relaxed mb-8 md:mb-10 max-w-[45ch] md:max-w-[38ch]"
       >
-        Équipements authentiques pour cavaliers passionnés —
-        neuf, occasion et consignation.
+        <!-- PLACEHOLDER — accroche hero à valider par Camille avant mise en ligne -->
+        Selles, bridonnerie et équipement choisis par une compétitrice —
+        pour le reining, l'équitation western et la randonnée.
       </p>
 
       <!-- CTAs -->
@@ -182,6 +201,11 @@ onUnmounted(() => {
           Découvrir le catalogue
         </CgwsButton>
 
+        <!-- CTA secondaire (contre-accent) → consignation. Sur le hero photo,
+             le contre-accent denim de la charte n'existe pas dans les peaux
+             Élégante (--cgws-denim = Rugueux uniquement, cf. CgwsButton.vue) :
+             le variant `outline-light` reste le traitement contre-accent
+             théme-safe sur scrim photo (US-073 §1.3). -->
         <CgwsButton
           as="NuxtLink"
           to="/consignation"
@@ -189,7 +213,7 @@ onUnmounted(() => {
           size="md"
           class="w-full sm:w-auto"
         >
-          Service consignation
+          Dépôt-vente de selles
         </CgwsButton>
       </div>
     </div>

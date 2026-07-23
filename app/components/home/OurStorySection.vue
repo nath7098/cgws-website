@@ -77,7 +77,7 @@ onUnmounted(() => {
                    text-[28px] md:text-[36px] lg:text-[44px]
                    mb-5 md:mb-6 max-w-[20ch]"
           >
-            L'histoire de Camille&nbsp;&amp;&nbsp;CGWS
+            L'histoire de Camille
           </h2>
 
           <!-- Corps du texte — placeholder à personnaliser -->
@@ -86,16 +86,14 @@ onUnmounted(() => {
                    leading-relaxed mb-6 md:mb-8 max-w-[52ch]"
           >
             <!-- PLACEHOLDER — texte à personnaliser par Camille avant mise en ligne -->
-            Cavalière depuis l'enfance, Camille a grandi avec la passion du western
-            dans le sang. C'est au cœur de l'Indre-et-Loire, à Brèches, qu'elle a
-            décidé de transformer cette vocation en un vrai projet de vie : une boutique
-            entièrement dédiée aux cavaliers western. CGWS, c'est avant tout une
-            sélection rigoureuse d'équipements authentiques — selles, brides, bottes
-            et vêtements — choisis avec l'œil d'une cavalière exigeante. Le service
-            de consignation est né d'un besoin réel&nbsp;: offrir aux cavaliers une
-            alternative fiable pour vendre leur matériel en toute confiance. Ici, on
-            parle le même langage que vous — celui des selles qui sentent bon le cuir
-            et des matins en selle dans la lumière de la Loire.
+            Cavalière de reining, Camille connaît le matériel de l'intérieur —
+            en concours comme à l'entraînement. C'est au cœur de l'Indre-et-Loire,
+            à Brèches, qu'elle a ouvert sa boutique : une sélection courte et
+            défendable, où chaque article (hors selles) a été personnellement
+            testé et approuvé. Spécialiste reining, elle équipe aussi les cavaliers
+            western et les randonneurs qui cherchent du matériel de confiance.
+            Le dépôt-vente de selles complète le tout — l'alternative fiable pour
+            vendre votre matériel. Ici, on parle le même langage que vous.
           </p>
 
           <!-- CTA -->

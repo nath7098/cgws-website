@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Product, ProductCategory, ProductStatus, QuickSalePayload } from '~/types'
+import { CATEGORY_LABELS, PRODUCT_CATEGORIES } from '#shared/utils/csvImport'
 
 definePageMeta({
   middleware: 'admin',
@@ -81,17 +82,6 @@ const modalBoxRef = ref<HTMLElement | null>(null)
 interface Toast { type: 'success' | 'error', message: string }
 const toast = ref<Toast | null>(null)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const CATEGORY_LABELS: Record<string, string> = {
-  'selles': 'Selles',
-  'brides-licols': 'Brides & Licols',
-  'bottes-chaussures': 'Bottes & Chaussures',
-  'vetements': 'Vêtements',
-  'accessoires': 'Accessoires',
-  'protections': 'Protections',
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -382,23 +372,12 @@ onUnmounted(() => {
         <option value="">
           Toutes catégories
         </option>
-        <option value="selles">
-          Selles
-        </option>
-        <option value="brides-licols">
-          Brides &amp; Licols
-        </option>
-        <option value="bottes-chaussures">
-          Bottes &amp; Chaussures
-        </option>
-        <option value="vetements">
-          Vêtements
-        </option>
-        <option value="accessoires">
-          Accessoires
-        </option>
-        <option value="protections">
-          Protections
+        <option
+          v-for="cat in PRODUCT_CATEGORIES"
+          :key="cat"
+          :value="cat"
+        >
+          {{ CATEGORY_LABELS[cat] }}
         </option>
       </select>
 

@@ -1,4 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+// Libellés de marque : source unique app/utils/brand.ts (US-106).
+import { BRAND_NAME, BRAND_BASELINE } from './app/utils/brand'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -94,10 +97,11 @@ export default defineNuxtConfig({
   },
 
   site: {
+    // url : domaine canonique inchangé ici (bascule = US-107, pilotée par
+    // NUXT_PUBLIC_SITE_URL). name = marque commerciale → alimente og:site_name.
     url: 'https://cgws.fr',
-    name: 'CGWS — Camille Guignon Western Shop',
-    description:
-      'Sellerie équestre western à Brèches, Indre-et-Loire. Vente neuf & occasion, service de consignation de selles.',
+    name: BRAND_NAME,
+    description: `${BRAND_BASELINE} à Brèches, Indre-et-Loire.`,
     defaultLocale: 'fr',
   },
 

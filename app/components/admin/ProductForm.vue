@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectOption } from '~/components/ui/CgwsSelect.vue'
 import type { Product, ProductCategory, ProductCondition, ProductFormPayload } from '~/types'
+import { CATEGORY_LABELS, PRODUCT_CATEGORIES } from '#shared/utils/csvImport'
 
 interface Props {
   mode: 'create' | 'edit'
@@ -20,14 +21,12 @@ const emit = defineEmits<{
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORY_OPTIONS: SelectOption[] = [
-  { value: 'selles', label: 'Selles' },
-  { value: 'brides-licols', label: 'Brides & Licols' },
-  { value: 'bottes-chaussures', label: 'Bottes & Chaussures' },
-  { value: 'vetements', label: 'Vêtements' },
-  { value: 'accessoires', label: 'Accessoires' },
-  { value: 'protections', label: 'Protections' },
-]
+// Dérivé de la taxonomie cible partagée (US-109) — seule la nouvelle taxonomie
+// est sélectionnable, aucune ancienne valeur ne subsiste.
+const CATEGORY_OPTIONS: SelectOption[] = PRODUCT_CATEGORIES.map(value => ({
+  value,
+  label: CATEGORY_LABELS[value],
+}))
 
 const CONDITION_OPTIONS: SelectOption[] = [
   { value: 'new', label: 'Neuf' },
@@ -57,6 +56,9 @@ const form = reactive({
   isConsignment: props.initialData?.isConsignment ?? false,
   consignmentId: props.initialData?.consignmentId ?? '' as string,
   status: props.initialData?.status ?? 'active',
+  // US-110 — curation « Testé et approuvé par Camille » : pré-rempli à la
+  // réédition, jamais coché par défaut à la création.
+  camilleApproved: props.initialData?.camilleApproved ?? false,
   // Image management (v-model bound to ImageUploader)
   keptImages: props.initialData?.images ?? [] as string[],
   newFiles: [] as File[],
@@ -181,6 +183,7 @@ function handleSubmit() {
       consignmentId: form.isConsignment && form.consignmentId ? form.consignmentId : null,
       slug: slugPreview.value,
       status: form.status as 'active' | 'sold' | 'reserved' | 'inactive',
+      camilleApproved: form.camilleApproved,
     },
     newImages: [...form.newFiles],
     keptImages: [...form.keptImages],
@@ -351,6 +354,40 @@ defineExpose({ setServerError })
             />
           </div>
         </Transition>
+      </fieldset>
+
+      <!-- Fieldset 4: Curation (US-110) -->
+      <fieldset class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5">
+        <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-3">
+          Curation
+        </legend>
+
+        <label
+          class="flex items-center gap-3 cursor-pointer group"
+          for="field-camille-approved"
+        >
+          <input
+            id="field-camille-approved"
+            v-model="form.camilleApproved"
+            type="checkbox"
+            class="w-4 h-4 rounded-sm border-cgws-edge accent-cgws-accent focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
+          >
+          <span class="font-sans text-sm font-medium text-cgws-ink group-hover:text-cgws-accent transition-colors">
+            Testé et approuvé par Camille
+          </span>
+        </label>
+        <p class="font-sans text-xs text-cgws-ink-soft mt-1 ml-7">
+          Cochez si Camille a personnellement testé et validé cet article. Le badge de curation
+          apparaîtra alors sur la fiche produit et la carte catalogue.
+        </p>
+
+        <!-- Aperçu live du badge tel qu'affiché côté public -->
+        <div v-if="form.camilleApproved" class="mt-4 ml-7">
+          <p class="font-sans text-[11px] uppercase tracking-wider text-cgws-ink-soft mb-2">
+            Aperçu
+          </p>
+          <CgwsApprovedBadge size="md" />
+        </div>
       </fieldset>
 
       <!-- Server error banner -->

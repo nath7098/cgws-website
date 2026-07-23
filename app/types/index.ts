@@ -47,6 +47,10 @@ export interface Product {
   status: ProductStatus
   images: string[]
   stock: number
+  /** US-110 — Article personnellement testé et approuvé par Camille (curation
+   *  manuelle). Pilote l'affichage du badge `CgwsApprovedBadge`. Jamais `true`
+   *  par défaut (colonne DB `camille_approved`, défaut `false`). */
+  camilleApproved: boolean
   createdAt: string
   updatedAt: string
 }
@@ -123,6 +127,7 @@ export interface ProductFormPayload {
     consignmentId: string | null
     slug: string
     status?: ProductStatus
+    camilleApproved: boolean
   }
   newImages: File[]
   keptImages: string[]

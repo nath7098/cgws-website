@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { compassStarPoints, compassStarCenterRadius } from '~/utils/compassStar'
 import { getLocalBusinessSchema } from '~/utils/localBusinessSchema'
+import { BRAND_NAME } from '~/utils/brand'
 
 // ---------------------------------------------------------------------------
 // Contenu — constantes isolées (garantie « swap » — voir §7 de la spec design
@@ -48,9 +49,9 @@ const STAR_CENTER_R = compassStarCenterRadius()
 // ---------------------------------------------------------------------------
 
 usePageSeo({
-  title: "À propos — Camille, l'atelier de Brèches et la consignation",
+  title: "À propos — Camille, spécialiste reining, et l'atelier de Brèches",
   description:
-    "Camille Guignon Western Shop : découvrez Camille, l'atelier de Brèches (37) et notre service de consignation de selles western.",
+    `${BRAND_NAME} : Camille, spécialiste reining, son atelier de Brèches (37) et le dépôt-vente de selles western. Une sélection courte, testée et approuvée.`,
   image: CAMILLE_PHOTO,
   type: 'website',
 })
@@ -68,7 +69,7 @@ useHead({
         image: CAMILLE_PHOTO,
         worksFor: {
           '@type': 'LocalBusiness',
-          name: 'CGWS — Camille Guignon Western Shop',
+          name: BRAND_NAME,
           url: 'https://cgws.fr',
         },
       }),
@@ -152,8 +153,8 @@ onUnmounted(() => {
         </h1>
         <p class="font-serif italic text-cgws-ink-soft text-base md:text-lg max-w-2xl mx-auto">
           <!-- PLACEHOLDER — à personnaliser par Camille -->
-          Une boutique à taille humaine, pensée par et pour les cavaliers western —
-          à Brèches, au cœur de l'Indre-et-Loire.
+          La boutique de la spécialiste reining — pensée pour les cavaliers western
+          et de randonnée, à Brèches, au cœur de l'Indre-et-Loire.
         </p>
       </div>
     </section>
@@ -181,22 +182,22 @@ onUnmounted(() => {
             </h2>
 
             <!-- PLACEHOLDER — à personnaliser par Camille — reprend puis étend le
-                 texte de OurStorySection.vue -->
+                 texte de OurStorySection.vue (registre reining/curation, US-112) -->
             <p class="font-sans text-[15px] md:text-base text-cgws-ink leading-relaxed mb-5 max-w-[56ch]">
-              Cavalière depuis l'enfance, Camille a grandi avec la passion du western
-              dans le sang. C'est au cœur de l'Indre-et-Loire, à Brèches, qu'elle a
-              décidé de transformer cette vocation en un vrai projet de vie&nbsp;: une
-              boutique entièrement dédiée aux cavaliers western. CGWS, c'est avant tout
-              une sélection rigoureuse d'équipements authentiques — selles, brides,
-              bottes et vêtements — choisis avec l'œil d'une cavalière exigeante.
+              Cavalière de reining, Camille connaît le matériel de l'intérieur — en
+              concours comme à l'entraînement. C'est au cœur de l'Indre-et-Loire, à
+              Brèches, qu'elle a fait de cette passion sa boutique&nbsp;: spécialiste
+              reining, elle équipe aussi les cavaliers western et les randonneurs qui
+              cherchent du matériel de confiance. Hors selles, chaque article du
+              catalogue, elle l'a personnellement monté, testé et approuvé — une
+              sélection courte et défendable, jamais un catalogue à rallonge.
             </p>
             <p class="font-sans text-[15px] md:text-base text-cgws-ink leading-relaxed mb-5 max-w-[56ch]">
-              Le service de consignation est né d'un besoin réel&nbsp;: offrir aux
+              Le dépôt-vente de selles est né d'un besoin réel&nbsp;: offrir aux
               cavaliers une alternative fiable pour vendre leur matériel en toute
               confiance, sans les tracas d'une annonce entre particuliers. Chaque
               selle déposée est examinée avec le même soin que si elle était la
-              sienne — c'est cette exigence qui fait la réputation de CGWS bien
-              au-delà de Brèches.
+              sienne.
             </p>
             <p class="font-sans text-[15px] md:text-base text-cgws-ink leading-relaxed max-w-[56ch]">
               Ici, on parle le même langage que vous — celui des selles qui sentent

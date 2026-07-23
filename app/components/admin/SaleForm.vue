@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PaymentMethod, Product, QuickSalePayload } from '~/types'
+import { CATEGORY_LABELS } from '#shared/utils/csvImport'
 
 interface ClientSelection {
   clientId: string | null
@@ -231,20 +232,11 @@ function handleModalKeydown(event: KeyboardEvent): void {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'selles': 'Selles',
-  'brides-licols': 'Brides & licols',
-  'bottes-chaussures': 'Bottes & chaussures',
-  'vetements': 'Vêtements',
-  'accessoires': 'Accessoires',
-  'protections': 'Protections',
-}
-
 function formatPrice(price: number): string {
   return price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
 }
 
-function formatCategory(cat: string): string {
+function formatCategory(cat: Product['category']): string {
   return CATEGORY_LABELS[cat] ?? cat
 }
 </script>

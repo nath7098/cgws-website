@@ -20,6 +20,7 @@ function mapProductRow(row: ProductRow): Product {
     status: (row.status ?? 'active') as ProductStatus,
     images: row.images ?? [],
     stock: row.stock ?? 1,
+    camilleApproved: row.camille_approved ?? false,
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
   }

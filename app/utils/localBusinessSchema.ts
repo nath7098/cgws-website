@@ -15,6 +15,8 @@ export interface LocalBusinessSchema {
   '@context': string
   '@type': string
   name: string
+  alternateName: string
+  legalName: string
   description: string
   url: string
   image: string
@@ -39,9 +41,14 @@ export function getLocalBusinessSchema(): LocalBusinessSchema {
   return {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
-    name: 'CGWS — Camille Guignon Western Shop',
+    // Nom commercial « Spin & Slide Shop » ; l'endossement/raison sociale CGWS
+    // reste porté par alternateName/legalName (source : app/utils/brand.ts).
+    name: BRAND_NAME,
+    alternateName: BRAND_LOCKUP,
+    legalName: BRAND_LEGAL_NAME,
     description:
-      "Boutique d'équipements équestres western : selles, brides, bottes, vêtements et service de consignation.",
+      'Sellerie western & reining à Brèches (37) : selles neuves & occasion, '
+      + 'bridonnerie, accessoires et service de dépôt-vente de selles.',
     url: 'https://cgws.fr',
     image: DEFAULT_OG_IMAGE,
     address: {
