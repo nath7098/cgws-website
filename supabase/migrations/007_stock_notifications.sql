@@ -16,14 +16,25 @@ CREATE INDEX IF NOT EXISTS idx_stock_notifications_product_id ON stock_notificat
 -- produit" exécutée à chaque réapprovisionnement admin (WHERE notified_at IS NULL).
 CREATE INDEX IF NOT EXISTS idx_stock_notifications_pending ON stock_notifications(product_id) WHERE notified_at IS NULL;
 
--- RLS — aligné sur le pattern `orders` (004_orders.sql) : AUCUN accès public
--- (ni lecture ni écriture), les emails inscrits ne doivent pas être lisibles
--- via l'anon key. Toutes les écritures (inscription publique ET marquage
--- notified_at au réapprovisionnement) passent par le service role côté serveur
--- (bypass RLS) : server/api/products/[id]/notify-restock.post.ts (public) et
--- server/api/admin/products/[id].put.ts (admin). Seul l'admin authentifié peut
--- lire la table (pas de policy INSERT/UPDATE — RLS bloque tout accès direct
--- via anon/authenticated hors service role, cohérent avec `orders`).
+-- RLS — PLUS STRICT que le pattern `orders` (004_orders.sql), à dessein.
+-- `orders` accorde une policy SELECT à `auth.role() = 'authenticated'`, en
+-- partant de l'hypothèse implicite que seul l'admin porte ce rôle. C'est FAUX
+-- dans ce projet : l'espace déposant (US-066) s'authentifie via
+-- `supabase.auth.signInWithOtp` (magic link), donc un déposant connecté porte
+-- lui aussi un JWT `authenticated`. Reprendre ce pattern ici aurait permis à
+-- N'IMPORTE QUEL déposant connecté de lire tous les emails inscrits aux
+-- alertes de retour en stock (PII) depuis sa session navigateur (anon key
+-- publique) — fuite corrigée avant merge (revue de sécurité).
+--
+-- Décision : ENABLE ROW LEVEL SECURITY, AUCUNE policy. Résultat : ni anon ni
+-- authenticated (admin OU déposant) n'ont le moindre accès — seul le service
+-- role (qui bypass RLS) peut lire/écrire cette table. C'est strictement
+-- suffisant : aucune UI (admin ou déposant) ne lit `stock_notifications`
+-- aujourd'hui ; toutes les écritures (inscription publique ET marquage
+-- notified_at au réapprovisionnement) passent déjà par `getAdminSupabase()`
+-- côté serveur : server/api/products/[id]/notify-restock.post.ts (public) et
+-- server/api/admin/products/[id].put.ts (admin, via server/utils/stockNotifications.ts).
+-- Si une UI admin de lecture est ajoutée plus tard, elle devra passer par une
+-- route serveur `requireAdminAuth()` + `getAdminSupabase()` (jamais une policy
+-- `auth.role() = 'authenticated'` ouverte au rôle déposant).
 ALTER TABLE stock_notifications ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "stock_notifications_select_admin" ON stock_notifications FOR SELECT USING (auth.role() = 'authenticated');
