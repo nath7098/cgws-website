@@ -200,6 +200,18 @@ useSeoMeta({
           (préférences de session). Aucun cookie de tracking publicitaire ou analytique tiers
           n'est déposé sans votre consentement explicite.
         </p>
+        <!-- TODO: formulation légale à valider par Nathan (transparence exemption CNIL mesure d'audience — US-102) -->
+        <p
+          class="font-sans text-[14px] md:text-[15px] text-cgws-ink/80 leading-relaxed mt-4"
+        >
+          Ce site utilise par ailleurs un outil de mesure d'audience (PostHog, hébergé dans
+          l'Union européenne) configuré en mode strictement anonyme : aucun cookie ni traceur
+          n'est déposé sur votre appareil, aucune donnée permettant de vous identifier n'est
+          collectée et votre adresse IP n'est pas conservée. Ce dispositif, limité à la
+          production de statistiques anonymes de fréquentation, est exempté de consentement
+          conformément aux lignes directrices de la CNIL — c'est pourquoi aucun bandeau de
+          consentement ne vous est présenté.
+        </p>
       </section>
 
       <!-- 6. Conditions Générales de Vente -->

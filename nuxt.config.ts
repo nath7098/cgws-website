@@ -25,6 +25,11 @@ export default defineNuxtConfig({
       // Stripe publishable key — nécessaire côté client pour monter le
       // Checkout embarqué (pk_...). Publique par nature (aucun secret).
       stripePublishableKey: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
+      // PostHog — mesure d'audience cookieless (US-102). Clé PROJET publique
+      // (phc_...) ; absente en dev/preview → le plugin est un no-op silencieux.
+      // Hébergement UE obligatoire (exemption CNIL, données dans l'UE).
+      posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY ?? '',
+      posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
     },
   },
 

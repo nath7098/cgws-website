@@ -176,6 +176,11 @@ ADMIN_EMAIL=camille@cgws.fr
 # Fallback si absent : 'CGWS <onboarding@resend.dev>' (domaine de test Resend).
 # ⚠️ Nécessite le domaine cgws.fr VÉRIFIÉ dans Resend avant de pointer cgws.fr.
 CGWS_EMAIL_FROM=
+# PostHog — mesure d'audience cookieless (US-102). OPTIONNEL en local : sans
+# NUXT_PUBLIC_POSTHOG_KEY, le plugin est un no-op silencieux (aucun script,
+# aucune erreur console). Clé PROJET publique (phc_...), hébergement UE.
+NUXT_PUBLIC_POSTHOG_KEY=
+NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 ```bash
@@ -188,6 +193,8 @@ SITE_URL=
 COMMISSION_RATE=20
 ADMIN_EMAIL=
 CGWS_EMAIL_FROM=
+NUXT_PUBLIC_POSTHOG_KEY=
+NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 ### 4. Design System CSS
@@ -841,6 +848,80 @@ finale : **toutes les lignes doivent avoir `ok = true`**. À rejouer à chaque
 contenant des PII ou des données de gestion doit soit utiliser
 `public.is_admin()`, soit activer RLS sans policy (accès service role
 uniquement, pattern `stock_notifications` de la migration 007).
+
+---
+
+## Mesure d'audience — PostHog cookieless (US-102)
+
+### Cadrage (NON négociable)
+
+Pas de bandeau de consentement → la configuration doit rester dans le cadre de
+l'**exemption CNIL de mesure d'audience** :
+
+| Contrainte | Implémentation |
+|------------|----------------|
+| Aucun cookie ni localStorage/sessionStorage | `persistence: 'memory'` (identité anonyme éphémère par session de navigation) |
+| Aucun profil personne / aucune identification | `person_profiles: 'never'` + **JAMAIS d'appel `identify()`** dans le codebase |
+| Pas de session recording ni heatmaps | `disable_session_recording: true`, `capture_heatmaps: false`, `disable_surveys: true`, `disable_external_dependency_loading: true` |
+| Pas d'autocapture DOM (PII accidentelle) | `autocapture: false` — taxonomie exclusivement explicite (US-103) |
+| Données dans l'UE | `NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` (PostHog Cloud EU) |
+
+### Architecture
+
+- `app/plugins/posthog.client.ts` — plugin **client only**, init différée via
+  `onNuxtReady` + import dynamique de `posthog-js` (hors bundle d'entrée, zéro
+  impact LCP/TBT). Sans `NUXT_PUBLIC_POSTHOG_KEY` : no-op silencieux. Les
+  `$pageview` sont capturés **manuellement** (initial + `router.afterEach`),
+  la capture automatique ne couvrant pas les navigations SPA.
+- `app/composables/useAnalytics.ts` — **point d'entrée unique** des événements
+  côté client : `useAnalytics().capture(event, properties)`. Inerte sans clé,
+  buffer borné avant l'init différée. **Aucun composant ne doit importer
+  `posthog-js` directement.**
+- `app/utils/analytics.ts` — `sanitizeAnalyticsEvent()`, branché sur le hook
+  d'init `before_send` : voir ci-dessous.
+
+### ⚠️ Anti-fuite d'URL — `before_send` obligatoire (correctif QA US-102)
+
+PostHog attache `$current_url` = `window.location.href` **complet** (query
+string + fragment) à **chaque** événement — pageviews ET événements custom.
+Certaines routes CGWS portent des jetons sensibles en query/fragment :
+`/espace-deposant/callback?code=…` / `?token_hash=…` (auth Supabase) et
+`/checkout/success?session_id=cs_…` (session Stripe → commande/identité).
+Les envoyer au tiers contredirait l'anonymat revendiqué (mentions légales /
+exemption CNIL).
+
+Le plugin passe donc `before_send: sanitizeAnalyticsEvent`
+(`app/utils/analytics.ts`) : query string et fragment sont supprimés de toute
+propriété porteuse d'URL (`$current_url`, `$referrer`, `$initial_current_url`,
+`…_url`, `…_pathname`) dans `properties`, `$set` et `$set_once`, sur **tous**
+les événements. Pourquoi `before_send` et pas une autre option (vérifié dans
+`@posthog/types`) : `get_current_url` ne réécrit **pas** `$current_url` (URL
+targeting uniquement, sa JSDoc renvoie vers `before_send`) et
+`sanitize_properties` est **dépréciée** au profit de `before_send`.
+
+**Règle pour US-103/104** : ne JAMAIS mettre d'URL complète (avec query) dans
+une propriété métier custom. Si une propriété doit porter une URL, la nettoyer
+avec `stripQueryAndHash()` — ou nommer la clé en `…_url` pour bénéficier du
+nettoyage automatique du hook. Aucune query string n'est nécessaire à
+l'analytics (pas d'allowlist).
+
+### Variables d'environnement
+
+| Variable | Rôle |
+|----------|------|
+| `NUXT_PUBLIC_POSTHOG_KEY` | Clé PROJET publique (`phc_...`). Absente = analytics désactivé (dev local, preview). |
+| `NUXT_PUBLIC_POSTHOG_HOST` | Hôte d'ingestion. Défaut : `https://eu.i.posthog.com` (UE obligatoire). |
+| `POSTHOG_PERSONAL_API_KEY` | Clé personnelle **SECRÈTE** (`phx_...`) — API privée serveur/CLI uniquement (US-105). Ne JAMAIS la préfixer `NUXT_PUBLIC_*`. |
+
+### Config projet PostHog (action Nathan, hors code)
+
+1. Projet sur **PostHog Cloud EU** (eu.posthog.com).
+2. Activer **« Discard client IP data »** (Project Settings) — l'IP n'est
+   jamais conservée, condition de l'anonymat revendiqué dans les mentions
+   légales.
+3. Saisir `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` dans Vercel
+   (production uniquement — laisser vide en preview pour ne pas polluer les
+   stats).
 
 ---
 
