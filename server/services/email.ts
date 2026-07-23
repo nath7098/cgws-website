@@ -1,6 +1,67 @@
 import { Resend } from 'resend'
 
 // ---------------------------------------------------------------------------
+// Construction du client — nettoie la clé API avant `new Resend()` : une env
+// var Vercel polluée (BOM U+FEFF, caractère non-ASCII — voir issue #16)
+// produit un header Authorization invalide et fait échouer TOUS les envois en
+// production alors que la même clé fonctionne en local. Même pattern que
+// `sanitizeCredential` dans `server/utils/adminSupabase.ts`.
+// ---------------------------------------------------------------------------
+
+function createResendClient(apiKey: string): Resend | null {
+  const sanitized = apiKey.replace(/[^\x21-\x7E]/g, '')
+  if (!sanitized) return null
+  return new Resend(sanitized)
+}
+
+// ---------------------------------------------------------------------------
+// Expéditeur centralisé (US-092) — source UNIQUE du `from` des 6 templates.
+// La valeur vient de runtimeConfig.emailFrom (mappée sur CGWS_EMAIL_FROM dans
+// nuxt.config.ts). Le fallback ci-dessous est défensif (env var vidée, config
+// écrasée au runtime) : domaine de test Resend, seul expéditeur fonctionnel
+// tant que cgws.fr n'est pas vérifié dans Resend. La bascule vers le domaine
+// réel se fait par SEUL changement de l'env var CGWS_EMAIL_FROM — zéro code.
+// ---------------------------------------------------------------------------
+
+const FALLBACK_EMAIL_FROM = 'CGWS <onboarding@resend.dev>'
+
+function resolveEmailFrom(): string {
+  const configured = useRuntimeConfig().emailFrom
+  return configured || FALLBACK_EMAIL_FROM
+}
+
+// ---------------------------------------------------------------------------
+// Détection du fallback (US-094) — exposée UNIQUEMENT pour permettre à la
+// route `server/api/admin/email-status.get.ts` de savoir si les emails
+// partent encore depuis le domaine de test Resend, sans jamais exposer
+// `resolveEmailFrom()` (l'adresse elle-même) au client. Aucun changement de
+// comportement d'envoi : ce helper ne fait qu'une comparaison.
+// ---------------------------------------------------------------------------
+
+export function isFallbackSender(): boolean {
+  return resolveEmailFrom() === FALLBACK_EMAIL_FROM
+}
+
+// ---------------------------------------------------------------------------
+// Helper d'envoi — le SDK Resend ne throw PAS en cas d'erreur API : il
+// retourne { data, error }. Sans inspection explicite, les échecs sont
+// silencieux (aucun log en production). Ce helper logge chaque issue.
+// ---------------------------------------------------------------------------
+
+async function sendViaResend(
+  resend: Resend,
+  payload: Parameters<Resend['emails']['send']>[0],
+  label: string,
+): Promise<void> {
+  const { data, error } = await resend.emails.send(payload)
+  if (error) {
+    console.error(`[email] ${label} FAILED:`, error.name, error.message)
+    return
+  }
+  console.info(`[email] ${label} sent — id: ${data?.id ?? 'unknown'}`)
+}
+
+// ---------------------------------------------------------------------------
 // Contact email
 // ---------------------------------------------------------------------------
 
@@ -121,18 +182,18 @@ export async function sendContactEmail(
   data: ContactEmailData,
   recipientEmail: string,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
   const subjectLabel = subjectLabels[data.subject] ?? data.subject
 
-  await resend.emails.send({
-    from: 'CGWS <noreply@cgws.fr>',
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
     to: [recipientEmail],
     replyTo: data.senderEmail,
     subject: `[CGWS Contact] ${subjectLabel} — ${data.senderName}`,
     html: buildContactEmailHtml(data),
-  })
+  }, 'contact')
 }
 
 export interface ConsignmentEmailData {
@@ -256,16 +317,15 @@ export async function sendConsignmentConfirmation(
   apiKey: string,
   data: ConsignmentEmailData,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
-
-  await resend.emails.send({
-    from: 'CGWS <noreply@cgws.fr>',
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre demande de consignation est bien reçue — CGWS',
     html: buildConsignmentConfirmationHtml(data),
-  })
+  }, 'consignment-confirmation')
 }
 
 // ---------------------------------------------------------------------------
@@ -376,16 +436,15 @@ export async function sendConsignmentAcceptEmail(
   apiKey: string,
   data: ConsignmentAcceptEmailData,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
-
-  await resend.emails.send({
-    from: 'CGWS <noreply@cgws.fr>',
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre consignation a été acceptée — CGWS',
     html: buildConsignmentAcceptHtml(data),
-  })
+  }, 'consignment-accept')
 }
 
 export interface ConsignmentRejectEmailData {
@@ -478,16 +537,15 @@ export async function sendConsignmentRejectEmail(
   apiKey: string,
   data: ConsignmentRejectEmailData,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
-
-  await resend.emails.send({
-    from: 'CGWS <noreply@cgws.fr>',
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre demande de consignation — CGWS',
     html: buildConsignmentRejectHtml(data),
-  })
+  }, 'consignment-reject')
 }
 
 // ---------------------------------------------------------------------------
@@ -617,16 +675,15 @@ export async function sendConsignmentSaleEmail(
   apiKey: string,
   data: ConsignmentSaleEmailData,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
-
-  await resend.emails.send({
-    from: 'CGWS <noreply@cgws.fr>',
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
     to: [data.depositorEmail],
     subject: 'Votre article a été vendu — CGWS',
     html: buildConsignmentSaleHtml(data),
-  })
+  }, 'consignment-sale')
 }
 
 // ---------------------------------------------------------------------------
@@ -658,13 +715,20 @@ function buildOrderConfirmationHtml(data: OrderConfirmationEmailData): string {
   const formatEur = (amount: number): string =>
     new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
 
+  // US-096 (achat multiple) : `item.price` est le prix UNITAIRE — la ligne
+  // affiche `× quantité` à côté du titre (uniquement si > 1, pour ne rien
+  // changer visuellement au cas majoritaire quantité=1) et le montant affiché
+  // est le TOTAL de la ligne (prix unitaire × quantité), pour rester cohérent
+  // avec le sous-total additionné juste en dessous.
   const itemRows = data.items
-    .map(
-      item => `<tr>
-              <td>${escapeHtml(item.title)}</td>
-              <td style="text-align:right;white-space:nowrap;">${formatEur(item.price)}</td>
-            </tr>`,
-    )
+    .map((item) => {
+      const quantity = item.quantity ?? 1
+      const label = quantity > 1 ? `${escapeHtml(item.title)} × ${quantity}` : escapeHtml(item.title)
+      return `<tr>
+              <td>${label}</td>
+              <td style="text-align:right;white-space:nowrap;">${formatEur(item.price * quantity)}</td>
+            </tr>`
+    })
     .join('\n            ')
 
   const fulfillmentBlock
@@ -783,18 +847,98 @@ export async function sendOrderConfirmationEmail(
   apiKey: string,
   data: OrderConfirmationEmailData,
 ): Promise<void> {
-  if (!apiKey) return
+  const resend = createResendClient(apiKey)
+  if (!resend) return
 
-  const resend = new Resend(apiKey)
-
-  await resend.emails.send({
-    // Le domaine cgws.fr n'est pas encore vérifié dans Resend : on utilise le
-    // domaine de test `onboarding@resend.dev` (n'envoie qu'à l'adresse du
-    // compte Resend). À remplacer par 'CGWS <noreply@cgws.fr>' une fois le
-    // domaine vérifié — idem pour les autres emails transactionnels du fichier.
-    from: 'CGWS <onboarding@resend.dev>',
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
     to: [data.customerEmail],
     subject: 'Confirmation de votre commande — CGWS',
     html: buildOrderConfirmationHtml(data),
-  })
+  }, 'order-confirmation')
+}
+
+// ---------------------------------------------------------------------------
+// Restock notification email (US-097) — envoyé à chaque inscrit non encore
+// notifié quand un produit épuisé repasse au-dessus de 0 en stock.
+// ---------------------------------------------------------------------------
+
+export interface RestockNotificationEmailData {
+  recipientEmail: string
+  productTitle: string
+  productUrl: string
+}
+
+function buildRestockNotificationHtml(data: RestockNotificationEmailData): string {
+  const title = escapeHtml(data.productTitle)
+  const url = escapeHtml(data.productUrl)
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>De nouveau disponible — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; text-align: center; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .product-name { font-size: 20px; font-weight: 700; color: #B8650A; margin: 0 0 24px; }
+    .cta { display: inline-block; background: #B8650A; color: #FAF3E3; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; padding: 14px 32px; border-radius: 2px; }
+    .note { font-size: 13px; color: #1A0B03; opacity: 0.7; margin: 24px 0 0; font-style: italic; line-height: 1.6; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .back-badge { display: inline-block; background: #B8650A; color: #FAF3E3; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 2px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">SELLERIE WESTERN · BRÈCHES · INDRE-ET-LOIRE</p>
+      <h1 class="header-h1">CGWS</h1>
+    </div>
+
+    <div class="body">
+      <div class="body-inner">
+        <span class="back-badge">De retour en stock !</span>
+        <p class="greeting">Bonne nouvelle !</p>
+        <p class="intro">
+          L'article que vous attendiez est de nouveau disponible sur notre boutique en ligne.
+        </p>
+        <p class="product-name">${title}</p>
+        <a href="${url}" class="cta">Voir l'article</a>
+        <p class="note">
+          Les stocks étant limités, nous vous invitons à ne pas trop tarder si cet article vous intéresse toujours.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendRestockNotification(
+  apiKey: string,
+  data: RestockNotificationEmailData,
+): Promise<void> {
+  const resend = createResendClient(apiKey)
+  if (!resend) return
+
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
+    to: [data.recipientEmail],
+    subject: `De nouveau disponible : ${data.productTitle} — CGWS`,
+    html: buildRestockNotificationHtml(data),
+  }, 'restock-notification')
 }

@@ -1,6 +1,27 @@
 <script setup lang="ts">
 import type { ProductCondition } from '~/types'
 import type { SelectOption } from '~/components/ui/CgwsSelect.vue'
+import type { PhotoCompressionResult } from '~/utils/consignmentPhotoUpload'
+import {
+  compressPhotos,
+  CUMULATIVE_PHOTO_LIMIT_MESSAGE,
+  exceedsCumulativeLimit,
+  PHOTO_COMPRESSION_OPTIONS,
+  totalFileSize,
+} from '~/utils/consignmentPhotoUpload'
+
+/** Type guards de discrimination — nécessaires pour que `.filter()` étroitise
+ * réellement le type (un simple `r => r.status === 'success'` ne le fait pas). */
+function isCompressionSuccess(
+  result: PhotoCompressionResult,
+): result is Extract<PhotoCompressionResult, { status: 'success' }> {
+  return result.status === 'success'
+}
+function isCompressionFailure(
+  result: PhotoCompressionResult,
+): result is Extract<PhotoCompressionResult, { status: 'failure' }> {
+  return result.status === 'failure'
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,12 +72,17 @@ const isDragOver = ref(false)
 const uploadError = ref('')
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
+// Analytics (US-103) — capture inerte sans PostHog, n'échoue jamais.
+const { capture } = useAnalytics()
+
 // UI state
 const errors = ref<Record<string, string>>({})
 const isSubmitting = ref(false)
+const isCompressing = ref(false)
 const isSuccess = ref(false)
 const submittedPrenom = ref('')
 const serverError = ref('')
+const uploadErrorRef = ref<HTMLParagraphElement | null>(null)
 
 // ---------------------------------------------------------------------------
 // Validation helpers
@@ -183,6 +209,29 @@ function removeFile(index: number): void {
   uploadError.value = ''
 }
 
+/**
+ * Retire les fichiers (et leurs previews) dont la compression a échoué
+ * (US-095) — `indices` réfère à la position dans `uploadedFiles`/`previewUrls`
+ * AVANT filtrage, telle que renvoyée par `compressPhotos`.
+ */
+function removeFilesByIndices(indices: Set<number>): void {
+  const keptFiles: File[] = []
+  const keptUrls: string[] = []
+
+  uploadedFiles.value.forEach((file, index) => {
+    if (indices.has(index)) {
+      const url = previewUrls.value[index]
+      if (url) URL.revokeObjectURL(url)
+    } else {
+      keptFiles.push(file)
+      keptUrls.push(previewUrls.value[index]!)
+    }
+  })
+
+  uploadedFiles.value = keptFiles
+  previewUrls.value = keptUrls
+}
+
 function openFilePicker(): void {
   fileInputRef.value?.click()
 }
@@ -198,6 +247,18 @@ function handleUploadKeydown(event: KeyboardEvent): void {
 // Form submission
 // ---------------------------------------------------------------------------
 
+/**
+ * Compresse une photo via `browser-image-compression` — importée
+ * DYNAMIQUEMENT (jamais en haut de fichier : la lib est browser-only et
+ * casserait le rendu SSR du composant si elle était chargée au niveau
+ * module). Voir app/utils/consignmentPhotoUpload.ts pour le détail des
+ * options (~1600px de large max, qualité ~75%).
+ */
+async function compressOnePhoto(file: File): Promise<File> {
+  const { default: imageCompression } = await import('browser-image-compression')
+  return imageCompression(file, PHOTO_COMPRESSION_OPTIONS)
+}
+
 async function handleSubmit(): Promise<void> {
   serverError.value = ''
 
@@ -209,8 +270,45 @@ async function handleSubmit(): Promise<void> {
   }
 
   isSubmitting.value = true
+  uploadError.value = ''
 
   try {
+    // ---------------------------------------------------------------------
+    // US-095 — Compression client + garde de payload cumulé, AVANT tout
+    // envoi réseau : évite un échec réseau opaque au-delà de la limite de
+    // corps des fonctions serverless (voir app/utils/consignmentPhotoUpload.ts).
+    // ---------------------------------------------------------------------
+    let filesToUpload: File[] = uploadedFiles.value
+
+    if (uploadedFiles.value.length > 0) {
+      isCompressing.value = true
+      const results = await compressPhotos(uploadedFiles.value, compressOnePhoto)
+      isCompressing.value = false
+
+      const successes = results.filter(isCompressionSuccess)
+      const failures = results.filter(isCompressionFailure)
+
+      if (failures.length > 0) {
+        removeFilesByIndices(new Set(failures.map(f => f.index)))
+        const names = failures.map(f => f.originalName).join(', ')
+        uploadError.value = `Certaines photos n'ont pas pu être traitées et ont été retirées : ${names}`
+      }
+
+      filesToUpload = successes.map(s => s.file)
+
+      const totalBytes = totalFileSize(filesToUpload)
+      if (exceedsCumulativeLimit(totalBytes)) {
+        uploadError.value = uploadError.value
+          ? `${uploadError.value} ${CUMULATIVE_PHOTO_LIMIT_MESSAGE}`
+          : CUMULATIVE_PHOTO_LIMIT_MESSAGE
+        isSubmitting.value = false
+        await nextTick()
+        uploadErrorRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        uploadErrorRef.value?.focus()
+        return
+      }
+    }
+
     const formData = new FormData()
     formData.append('prenom', prenom.value.trim())
     formData.append('nom', nom.value.trim())
@@ -220,7 +318,7 @@ async function handleSubmit(): Promise<void> {
     formData.append('brand', brand.value.trim())
     formData.append('condition', condition.value)
     formData.append('askingPrice', askingPrice.value)
-    for (const file of uploadedFiles.value) {
+    for (const file of filesToUpload) {
       formData.append('images', file, file.name)
     }
 
@@ -228,6 +326,12 @@ async function handleSubmit(): Promise<void> {
       method: 'POST',
       body: formData,
     })
+
+    // US-103 — UNIQUEMENT dans la branche succès (le serveur a confirmé la
+    // création ; un échec de validation ou serveur passe par le catch et ne
+    // capture rien). `photos_count` est un COMPTE — jamais les fichiers ni
+    // leurs noms. Pas de `category` : le formulaire n'en collecte pas.
+    capture('consignment_submitted', { photos_count: filesToUpload.length })
 
     submittedPrenom.value = prenom.value.trim()
     isSuccess.value = true
@@ -248,6 +352,7 @@ async function handleSubmit(): Promise<void> {
     }
   } finally {
     isSubmitting.value = false
+    isCompressing.value = false
   }
 }
 
@@ -277,6 +382,12 @@ function resetForm(): void {
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
+
+// US-103 — consignment_form_viewed : affichage du formulaire de dépôt
+// (onMounted = client only, une capture par visite de /consignation).
+onMounted(() => {
+  capture('consignment_form_viewed')
+})
 
 onUnmounted(() => {
   for (const url of previewUrls.value) URL.revokeObjectURL(url)
@@ -551,11 +662,36 @@ onUnmounted(() => {
               @change="handleFileInput"
             >
 
+            <!-- Compression in progress feedback (US-095) — explicite pour ne
+                 pas laisser croire que le formulaire est planté pendant que
+                 les photos se compressent avant l'envoi -->
+            <p
+              v-if="isCompressing"
+              role="status"
+              aria-live="polite"
+              class="font-sans text-xs text-cgws-ink-soft mt-2 flex items-center gap-1.5"
+            >
+              <UIcon name="i-lucide-loader-circle" class="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+              Compression de vos photos en cours, veuillez patienter…
+            </p>
+
             <!-- Upload error -->
+            <!-- `focus:` (et non `focus-visible:`) délibérément : cet élément
+                 ne reçoit JAMAIS le focus par un clic/tab direct de
+                 l'utilisateur — uniquement via un `.focus()` programmatique
+                 (voir handleSubmit, seuil cumulé dépassé). L'heuristique
+                 `:focus-visible` des navigateurs ne garantit pas le
+                 déclenchement du ring sur un focus scripté (dépend de la
+                 dernière modalité d'interaction détectée) ; `focus:` assure
+                 un repère visuel fiable dans tous les cas, sans l'inconvénient
+                 habituel (ring qui « traîne » après un clic souris) puisque
+                 personne ne clique directement sur ce `<p>`. -->
             <p
               v-if="uploadError"
+              ref="uploadErrorRef"
               role="alert"
-              class="font-sans text-xs text-cgws-danger mt-2"
+              tabindex="-1"
+              class="font-sans text-xs text-cgws-danger mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cgws-accent rounded-sm"
             >
               {{ uploadError }}
             </p>
@@ -619,7 +755,7 @@ onUnmounted(() => {
               :loading="isSubmitting"
               class="w-full sm:w-auto min-w-[240px]"
             >
-              {{ isSubmitting ? 'ENVOI EN COURS…' : 'ENVOYER MA DEMANDE' }}
+              {{ isCompressing ? 'COMPRESSION DES PHOTOS…' : isSubmitting ? 'ENVOI EN COURS…' : 'ENVOYER MA DEMANDE' }}
             </CgwsButton>
 
             <p class="font-sans text-sm text-cgws-ink/60 text-center">

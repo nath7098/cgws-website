@@ -888,19 +888,15 @@ onUnmounted(() => {
               >
                 Annuler
               </CgwsButton>
-              <button
+              <CgwsButton
+                variant="destructive"
+                size="sm"
                 type="button"
-                :disabled="isDeleting"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-cgws-danger text-cgws-on-danger font-sans text-sm font-semibold hover:bg-cgws-danger/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
+                :loading="isDeleting"
                 @click="confirmDelete()"
               >
-                <span
-                  v-if="isDeleting"
-                  class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
-                  aria-hidden="true"
-                />
                 Supprimer définitivement
-              </button>
+              </CgwsButton>
             </div>
           </div>
         </div>

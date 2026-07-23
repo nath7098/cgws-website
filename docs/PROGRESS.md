@@ -403,3 +403,318 @@ Corrections QA : polygones SVG passés de fill hardcodé à class="fill-cgws-cop
 4. **Validation e2e réelle** (paiement carte test, réception webhook signé, emails Resend, rejeu webhook, concurrence) : à faire une fois Supabase + Stripe live.
 
 **À arbitrer plus tard** (non bloquant) : réservation temporaire au panier (deux acheteurs peuvent créer chacun une commande `pending` sur la même pièce unique sans verrou — acceptable à faible trafic) ; quantité toujours = 1 par ligne (modèle pièce unique).
+
+---
+
+## US-082 — Rework E8 : Checkout Stripe embarqué + réservation des pièces uniques — PASS (2e passe)
+
+**2026-07-08 · branche `feature/US-082-embedded-checkout` · décisions Nathan** : checkout **embarqué** (plutôt que redirection hébergée) · **tous moyens de paiement** éligibles (Dashboard-driven, plus de `payment_method_types` figé) · **réservation** des pièces uniques (correction de la double-vente actée « à arbitrer » en E8) · **livraison/adresse déléguées à Stripe** (`shipping_address_collection` + `shipping_options`).
+
+**Architecture** : le formulaire CGWS de coordonnées/adresse/mode de réception est SUPPRIMÉ — Stripe collecte tout dans le Checkout embarqué (`ui_mode: 'embedded_page'`, monté via `@stripe/stripe-js` dans `/checkout`, `return_url` → `/checkout/success?session_id=…`). Le serveur ne reçoit plus que `{ productIds, previousOrderId? }` ; les coordonnées sont rapatriées au paiement par le webhook (`customer_details`, `collected_information.shipping_details`), d'où la migration **005** (orders `email`/`customer_name`/`fulfillment_method` nullable + `products.reserved_until`/`reserved_order_id`). Mode de réception déduit du shipping choisi dans Stripe (coût > 0 ⇒ livraison ; retrait Brèches = option 0 €).
+
+**Réservation anti double-vente** : à la création de session, verrou atomique `active → reserved` (update conditionnel `eq status active`) + `reserved_order_id` (ne touche jamais une réservation manuelle admin) ; course perdue ⇒ rollback complet + 409. `expires_at` session 35 min aligné sur `reserved_until`. Libération sur `expired`/`async_payment_failed` (webhook) et sur retour au checkout après abandon (`previousOrderId` → release, l'acheteur ne se bloque pas lui-même).
+
+**Fulfillment partagé** (`server/utils/fulfillment.ts`) : source de vérité unique appelée par le webhook (`completed`/`async_payment_succeeded`) ET par la landing page (`GET /api/checkout/session-status`) — reco Stripe. Idempotence conservée (update conditionnel `pending → paid`). Paiements asynchrones gérés (`completed`+`unpaid` ne fulfille pas). Produits `reserved → sold` + `sales` (CA admin) + emails, comme avant.
+
+**QA** : FAIL 1re passe (bloquant : insert `order_items` perdu à la réécriture de `session.post.ts` → fulfillment à vide, produits bloqués `reserved`, aucune vente/email ; + code mort `reservedIds`) → fix → **PASS 2e passe**. vue-tsc 0 err · ESLint 0 err · tests unitaires 18/18 · build EXIT 0 · 0 `any`.
+
+**Fichiers** : migration `005_orders_reservation.sql` ; `server/utils/fulfillment.ts` (nouveau) ; `server/api/checkout/{session.post,webhook.post,session-status.get}.ts` ; `server/api/orders/[id].get.ts` (null-safe) ; `app/composables/useCheckout.ts` ; `app/pages/checkout/{index,success}.vue` ; `app/stores/cart.ts` (`pendingOrderId`) ; `app/types/index.ts` ; `nuxt.config.ts` (+`public.stripePublishableKey`) ; dépendance `@stripe/stripe-js@8`.
+
+**Actions requises avant mise en service** (Nathan) :
+1. Appliquer la migration `005_orders_reservation.sql` sur le projet Supabase prod.
+2. Ajouter `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (pk_…) en env Vercel.
+3. Mettre à jour l'endpoint webhook Stripe : ajouter les événements `checkout.session.async_payment_succeeded` + `checkout.session.async_payment_failed` (en plus de `completed`/`expired`).
+4. Test e2e en mode test Stripe (compte « environnement de test cgws » connecté au MCP) : carte 4242…, vérif produit `reserved→sold`, ligne `sales`, emails.
+
+**Non bloquant, acté** : `GET /api/orders/[id]` orphelin côté front (conservé) ; `previousOrderId` non authentifié (UUID non devinable, risque faible, cohérent avec le modèle de sécurité existant) ; `SHIPPING_FLAT_RATE` 9,90 € toujours placeholder Camille.
+
+---
+
+## US-082 — Recette prod & correctifs (2026-07-09/10)
+
+Recette e2e réelle par Nathan sur https://cgws.vercel.app (mode test Stripe). **Checkout embarqué, réservation, webhook et fulfillment validés en conditions réelles.** Quatre problèmes trouvés et corrigés dans la foulée (boucle dev/QA à chaque fois) :
+
+1. **Link imposé + modal d'identité intempestive** → Link désactivé dans la configuration des moyens de paiement du compte Stripe (`payment_method_configurations`, `link → off`, via API — le MCP Stripe n'expose pas cette ressource). Effet immédiat.
+2. **Emails Resend jamais envoyés — cause 1 (observabilité)** : le SDK Resend ne throw pas (`{ data, error }` ignoré) → échecs 100 % silencieux. Fix commit `f46cd12` : helper `sendViaResend` loggant chaque envoi (id ou erreur) dans les logs Vercel.
+3. **Emails — cause 2 (serverless)** : envois fire-and-forget non awaités → **lambda Vercel gelée dès la réponse partie, requête Resend tuée en vol** (`application_error Unable to fetch data`, apparaissant sous une AUTRE requête 20 s plus tard). Fix commit `7ca0b2f` : tous les envois serveur awaités dans try/catch (non-bloquant conservé, webhook répond toujours 200) + sanitize de la clé (défense issue #16). **Cause 3** : `RESEND_API_KEY` de prod invalide (`validation_error API key is invalid`) → nouvelle clé fournie par Nathan, remplacée sur Vercel (Prod+Preview) + `.env.local`. **Emails confirmés reçus.** ⚠️ Incident Resend le 2026-07-09 au soir (dashboard + status page down, API up) — sans lien avec notre bug.
+4. **Bug multi-stock** : acheter 1 exemplaire d'un produit en stock N vendait TOUT le produit (modèle « pièce unique » appliqué aveuglément). Fix commit `7c4dfac` + **migration `006_stock_reservation_functions.sql`** (appliquée en prod) : fonctions SQL atomiques `reserve_product_unit`/`release_product_unit` — stock décrémenté à la réservation, statut `reserved` seulement sur la dernière unité (owner `reserved_order_id`), `sold` au paiement seulement si la commande détient le verrou, restitution idempotente (barrière `pending→cancelled`). REVOKE EXECUTE FROM PUBLIC (le revoke nominatif seul était inefficace — grant implicite Postgres). **Edge case acté non traité** : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité et paie ensuite → produit `sold` avec stock résiduel 1 (réactivation admin nécessaire) — rare, arbitrage produit ultérieur.
+
+**Découverte majeure de la QA** : `npm run typecheck` (`vue-tsc --noEmit` sur le tsconfig racine « solution » `files:[]`) **ne vérifiait RIEN depuis le début du projet** — tous les « typecheck ✅ » historiques étaient des faux positifs. Script remplacé par `nuxi typecheck` (commit `7c4dfac`). **Dette révélée : 11 erreurs préexistantes hors périmètre** (CartDrawer aria-label UButton, useSeo ogType, useHead children→innerHTML ×2, @vueuse/motion visibleOnce, supabase-provider useRuntimeConfig, catégories/consignments update dynamique ×2, mapConsignmentRow condition, Content-Length number) → **US dédiée « dette typecheck » à planifier**.
+
+**Nettoyage recette** (2026-07-10) : base remise à zéro (sales/orders/order_items purgés, historique webhook purgé, 9 produits restaurés actifs) + les 8 paiements test Stripe remboursés via API (~1 721 € test). Pour effacer l'historique des paiements test : Dashboard → Delete all test data (manuel uniquement).
+
+**Autres actions infra de la recette** : clé publishable ajoutée (Vercel Prod+Preview + `.env.local`) ; webhook Stripe existant nettoyé (~80 événements parasites → les 4 checkout utiles) ; `RESEND_API_KEY` présente en prod. Le frontmatter cassé de `.claude/agents/nuxt-developer.md` (ligne `mcp__stripe` orpheline) réparé — l'agent était invisible du registre.
+
+---
+
+## Go-live v0 (PR #19) + hotfixes production post-E8
+
+**Statut prod (2026-07-08, confirmé Nathan)** : `develop` a été **squash-mergé dans `main`** (commit unique `15c26e7` « v0 (#19) »), puis `develop` **recréé depuis `main`** → les deux branches sont alignées sur `v0`. Tout l'historique détaillé ci-dessus (Sprints 0→7 + Epic E8) est collapsé dans ce commit unique ; **`git log` ne montre plus que `v0` + `iniital setup`** (la reconstitution fine passe par le reflog). **Tout le code est déployé en production** via Vercel (auto-deploy sur `main`).
+
+**Conséquence sur US-002 (Supabase live)** : le blocage historique est **levé de facto**. Un projet Supabase réel tourne en production — attesté par la série de hotfixes runtime ci-dessous qui ne pouvaient se manifester que contre une vraie instance. Le journal antérieur mentionne encore US-002 « bloqué » : c'est de l'historique, **ne plus le considérer comme ouvert**.
+
+### Hotfixes runtime appliqués après l'Epic E8 (non journalisés individuellement à l'époque — rattrapage documentaire)
+
+Tous mergés dans `develop` puis inclus dans le squash `v0`. Reconstitués depuis le reflog + lecture du code en place :
+
+| Sujet | Fichier(s) | Nature du fix |
+|-------|-----------|---------------|
+| **Images Supabase cassées (issue #6)** | `~/providers/supabase-provider.ts`, `nuxt.config.ts` | baseURL du provider `nuxt/image` mal résolue en prod → images produit 404. Provider Supabase custom + `render/image/...` corrigé. |
+| **Crash header clé Supabase** | `app/composables/useSupabase.ts`, `server/utils/adminSupabase.ts` | Env var Vercel « sale » (BOM UTF-8 `U+FEFF` en tête d'URL / caractère non-Latin1 dans la clé, **issue #16**) → **toutes** les requêtes échouaient (503/headers invalides) en prod alors que la même clé marchait en local. Fix : `sanitizeCredential()` (retire tout hors ASCII imprimable `\x21-\x7E`) **symétrique** côté client public ET client admin service-role. |
+| **BOM dans image provider** | provider image | Même famille de bug (BOM) côté résolution d'URL image. |
+| **Sanitisation credentials admin** | `server/utils/adminSupabase.ts` | `getAdminSupabase()` applique `sanitizeCredential` sur `supabaseUrl` + `supabaseServiceRoleKey`. |
+| **Email de confirmation commande** | `server/services/email.ts` | Expéditeur de l'email **acheteur** basculé sur `CGWS <onboarding@resend.dev>` (domaine de test Resend, n'envoie qu'à l'adresse du compte) car `cgws.fr` **pas encore vérifié dans Resend**. ⚠️ Les autres templates (consignation, contact, vente) sont restés en `noreply@cgws.fr` — **incohérence à traiter** : ils échoueront tant que le domaine n'est pas vérifié. |
+
+### Points de blocage encore réellement ouverts (mis à jour)
+
+1. ~~US-002 Supabase live~~ → **RÉSOLU** (projet Supabase en prod).
+2. **Domaine Resend `cgws.fr` non vérifié** : seul l'email de confirmation commande a été rabattu sur `onboarding@resend.dev` ; les 4 autres templates pointent toujours `noreply@cgws.fr` et n'enverront pas. À vérifier le domaine dans Resend puis réunifier l'expéditeur.
+3. **`SHIPPING_FLAT_RATE = 9,90 €`** : toujours un placeholder non confirmé par Camille.
+4. **Clés Stripe prod** (`STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`) : présence/validité en env Vercel à confirmer ; endpoint webhook `POST /api/checkout/webhook`.
+5. **Contenus réels Camille** : textes légaux, coordonnées, vraies photos, CGV/SIRET — inchangé.
+
+---
+
+# Épic E9 — Qualité & Dette Technique · Sprint 8
+
+**Branche `feature/sprint-8` · 20 pts planifiés · 20 pts livrés (vélocité 100 %) · 2026-07-22**
+
+Sprint entièrement consacré à la dette révélée par la recette prod d'US-082. Ordre impératif respecté (US-090 en premier : les autres se valident contre un typecheck qui vérifie réellement). **Objectif de sprint atteint** : `npm run typecheck && npm run lint && npm run test:unit && npm run build` passe en EXIT 0, la CI n'est plus jamais rouge par défaut, le chemin de l'argent est couvert par des tests.
+
+## US-090 — Gate TypeScript réel à zéro erreur · 5 pts — PASS
+
+Commit `4643306`. `npm run typecheck` était un **no-op** (tsconfig « solution » racine avec `files:[]`) → tous les « typecheck ✅ » de l'historique du projet étaient des faux positifs. Script remplacé par `nuxi typecheck`.
+
+Les **11 erreurs préexistantes** révélées ont été corrigées **à la source**, sans aucun `any` ni `@ts-ignore` : `ogType` via `useHead` meta, `useHead` `children`→`innerHTML` (×2), slot `#close` d'`USlideover`, `v-motion` `visible-once`, `TablesUpdate` au lieu de `Record` (×2), type predicates dans `mapConsignmentRow`, `Content-Length` en number, déclaration node du provider Nuxt Image. `database.types.ts` régénéré via `supabase gen types` (migrations 001→006). `DEV_GUIDE` documente la procédure de régénération (même commit que la migration).
+
+## US-091 — CI verte + tests du chemin de paiement · 8 pts — PASS
+
+Commit `8d8cf97`. **`npm ci` réparé** : `package-lock.json` régénéré sous npm 10 (désynchronisation `crossws`/`h3` introduite par npm 11) — le blocage CI historique est levé.
+
+**CI `e2e.yml` restructurée en 3 jobs** : `quality` (typecheck + lint + test:unit, sans secret requis → **vrai gate bloquant**), `e2e-secrets-check` (toujours vert, annonce si les secrets sont absents), `e2e` (Skipped proprement si secrets absents, **jamais rouge**).
+
+**23 nouveaux tests** (41 au total à ce stade) sur la logique de paiement : fulfillment (idempotence, garde `unpaid`, `fulfillment_method`, `sold` conditionnel au verrou, email commission), release idempotent, rollback + 409 sur course perdue, routing webhook sur les 4 événements. `fakeSupabase` typé (`Database`/`Tables`, zéro `any`) reproduisant fidèlement l'update conditionnel. `DEV_GUIDE` liste les secrets GitHub à créer par Nathan (`SUPABASE_URL`, `SUPABASE_ANON_KEY`).
+
+## US-092 — Emails : expéditeur centralisé et configurable · 2 pts — PASS
+
+Commit `3531e86`. `runtimeConfig.emailFrom` (serveur) alimenté par `CGWS_EMAIL_FROM`, fallback sûr `onboarding@resend.dev`. Les **6 templates** lisent `resolveEmailFrom()` → plus aucun `from` hardcodé divergent (l'incohérence relevée au go-live v0 est résorbée). La bascule vers `noreply@cgws.fr` se fera par **simple variable d'env, zéro code** — prérequis : domaine `cgws.fr` vérifié dans Resend par Nathan (blocage 2 ci-dessus, toujours ouvert). `.env.example` + `DEV_GUIDE` documentent `CGWS_EMAIL_FROM`.
+
+## US-093 — Nettoyage code mort et duplications · 5 pts — PASS (2e passe)
+
+Commit `42c29ee`. Les 6 items de dette actés lors des QA des sprints 6/7 et de la recette US-082 :
+
+1. Endpoint orphelin `server/api/orders/[id].get.ts` supprimé (la page checkout success passe par `/api/checkout/session-status`) — zéro référence résiduelle.
+2. `CONSIGNMENT_STATUS_LABELS` dédupliqué : source canonique unique dans `app/utils/consignment.ts`, importée par les 3 pages admin, libellés FR strictement inchangés.
+3. Code mort supprimé dans `useDepositorAuth.ts` (entrées rate-limit inatteignables par design anti-énumération, acté QA US-066) — message neutre et comportement anti-énumération préservés à l'identique.
+4. Boutons bruts → `CgwsButton` (variants `destructive`/`primary`) dans `produits/index.vue`, `SaleModal.vue`, `SaleForm.vue` ; états loading/disabled et spinners conservés (`aria-busy` propagé nativement).
+5. `RevenueChart` theme-aware : couleurs résolues au runtime depuis les tokens `--cgws-*`, réactif au changement de peau sans rechargement.
+6. **N+1 éliminé** dans `/api/depositor/consignments` : requêtes groupées `.in()`, nombre de requêtes Supabase constant (3 max, indépendant du nombre de consignations vendues), réponse identique champ à champ, barrières de sécurité US-066 intouchées.
+
+**QA : FAIL 1re passe** sur l'item 5 uniquement. Le mécanisme theme-aware était correct, mais la sous-clause « distinction visuelle CA propre vs CA consignation reste lisible » échouait mesurablement : `--cgws-accent` et `--cgws-accent-deco` sont à **1.71:1 (Jour) / 1.10:1 (Nuit) / 1.43:1 (Rugueux)** l'un de l'autre — les deux segments empilés étaient indiscernables en Nuit. **Fix** : délimiteur 1px `borderColor: --cgws-ground` + `borderWidth: 1` sur les deux datasets (`borderSkipped: false` déjà présent), c'est-à-dire un séparateur **indépendant de la teinte**. Contrastes vérifiés indépendamment par la QA : ground/accent 5.60 / 6.88 / 6.04 et ground/accent-deco 3.28 / 6.26 / 4.22 — tous ≥ 3:1 (WCAG 1.4.11). `--cgws-surface` écarté (2.96:1 contre accent-deco en Jour, sous le seuil). **Aucun token de `tokens.css` modifié** : la palette v3 reste une décision actée en US-070/072, la correction est purement au niveau du rendu Chart.js. **PASS 2e passe.**
+
+Test dédié ajouté : `tests/unit/depositor-consignments.spec.ts` (constance du nombre de requêtes + invariants de sécurité US-066 : filtre `depositor_email` dérivé exclusivement du JWT, échappement ILIKE avec test du joker `_`, zéro fuite de `notes`/commission brute). `fakeSupabase` étendu d'un `.ilike()` fidèle (traduction pattern LIKE→RegExp) — la QA a explicitement vérifié que le test n'est **pas complaisant** : un mock laxiste ferait échouer le cas du `_`.
+
+**Gates finaux** : `typecheck` / `lint` / `test:unit` (51 tests, 4 fichiers) / `build` → EXIT 0.
+
+## Points relevés pendant le sprint
+
+- **Faux positif d'environnement (résolu, rien à faire)** : `nuxt-developer` a rapporté un `npm run lint` cassé (résolution vers un ESLint global 9.0.0 orphelin, `Cannot find module '...acorn.js'`). Vérifié par la QA : le dépôt est en ESLint **9.39.4** et `npm run lint` préfixe `node_modules/.bin` au PATH → EXIT 0 stable sur deux exécutions. **Artefact du shell du subagent, ni le dépôt ni la CI ne sont affectés.**
+- **Hors périmètre, laissé non commité** : modifications de `.claude/agents/*.md`, nouvel agent `session-starter.md`, `docs/LAUNCH_PROMPT.md` (configuration d'agents, sans impact produit).
+
+## Blocages ouverts après Sprint 8
+
+Inchangés par rapport à la liste ci-dessus (§ « Points de blocage encore réellement ouverts »), **sauf** que l'incohérence d'expéditeur email est désormais résolue côté code : il ne reste que l'action infra de Nathan (vérifier `cgws.fr` dans Resend, puis positionner `CGWS_EMAIL_FROM`). Reste également l'**edge case acté non traité** de la recette US-082 : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité et paie ensuite → produit `sold` avec stock résiduel 1 (réactivation admin nécessaire) — rare, arbitrage produit ultérieur.
+
+---
+
+# Épic E10 — Fiabilité & confiance du site public · Sprint 9
+
+**Branche `feature/sprint-9` · 18 pts planifiés · 18 pts livrés (vélocité 100 %) · 2026-07-22**
+
+Sprint consacré à la perte silencieuse de prospects et aux défauts déjà visibles en production. **Objectif de sprint atteint** : les deux bugs qui cassaient la conversion en silence sont traités, le lien mort `/a-propos` ne renvoie plus de 404, et PayPal est débloqué sans une ligne de code. Les 5 US sont commitées, `typecheck` / `lint` / `test:unit` (68 tests) / `build` en EXIT 0.
+
+## US-094 — Garde-fou expéditeur email de test visible en admin · 3 pts — PASS
+
+Commit `cdd0474`. Diagnostic confirmé : `sendViaResend()` avale les erreurs API (par design, pour ne jamais bloquer l'UI) et le fallback `onboarding@resend.dev` ne délivre **qu'à l'adresse du titulaire du compte Resend** — ce qui explique exactement #27 (le visiteur voit un succès, l'email ne part jamais) et #24 (« mail d'achat non reçu sur d'autres adresses que la mienne » est littéralement le comportement du domaine de test).
+
+Nouveau `GET /api/admin/email-status` (`requireAdminAuth`, retourne strictement `{ isFallback }` — ni `runtimeConfig` brut ni adresse expéditrice), adossé à `isFallbackSender()` exporté depuis `server/services/email.ts` (diff strictement additif, 12 lignes, aucun changement de comportement d'envoi). Bandeau non fermable dans le dashboard admin.
+
+**Décision design notable** : `UAlert` explicitement écarté — sa prop `color` tape dans la palette Nuxt UI par défaut, délibérément non câblée aux tokens CGWS (`app/app.config.ts`) ; l'utiliser aurait rejoué le FAIL QA du Sprint 8. Bandeau custom aligné sur les patterns `RejectModal`/`KpiCard`. Contrastes recalculés indépendamment par la QA : `danger`/`surface` = 5.05 (Jour) / 5.47 (Nuit) / 4.72 (Rugueux), tous ≥ 4.5:1. Fail-safe vérifié : le `catch` du fetch force `isFallback = true`, une erreur réseau **affiche** le bandeau au lieu de le masquer.
+
+Livrable documentaire : checklist de recette manuelle des 6 templates dans `DEV_GUIDE` § emails, + procédure pour lever le bandeau.
+
+## US-095 — Fiabiliser la soumission du dépôt de selle · 5 pts — PASS (2e passe)
+
+Commit `0c74406`. Cause racine de #26 confirmée dans le code : validation de taille **par fichier uniquement** (5 Mo), aucune compression client → 5 photos smartphone = payload multipart de 15-25 Mo, au-delà de la limite serverless Vercel (~4,5 Mo). L'échec survient **avant** la validation Zod, avec une erreur réseau opaque perçue comme « une erreur survient ».
+
+Compression client (1600px / qualité 0.75) via **import dynamique** de `browser-image-compression` dans le handler (lib browser-only — jamais en import statique, sous peine de casser le SSR). Garde de payload cumulé à **3 Mo**, appliquée après compression et avant tout appel réseau : marge sous la limite Vercel pour absorber l'overhead multipart et les champs texte. Un fichier dont la compression échoue est retiré et signalé sans faire échouer la soumission des autres. Côté serveur, `readMultipartFormData` et la boucle d'upload Storage sont enveloppés en try/catch renvoyant des `createError` 400/502 actionnables.
+
+Logique extraite dans `app/utils/consignmentPhotoUpload.ts` + 13 tests unitaires — la QA a explicitement vérifié que le test d'isolement des échecs **n'est pas complaisant**.
+
+**QA : FAIL 1re passe** sur un point d'accessibilité : le message d'erreur reçoit un focus programmatique mais portait `outline-none` sans ring de remplacement — un utilisateur clavier voyant était déplacé sans repère visuel. **Fix** : ring de focus en `focus:` (et non `focus-visible:`) — choix délibéré et documenté : l'heuristique `:focus-visible` des moteurs ne garantit pas le ring sur un `.focus()` scripté franchissant une frontière asynchrone démarrée par un clic souris, ce qui aurait laissé le trou pour une partie des utilisateurs. **PASS 2e passe.**
+
+## US-099 — Page À propos · 5 pts — PASS (2e passe)
+
+Commit `1683aea`. Le lien `/a-propos` était référencé par `AppHeader`, `MobileMenu` et `AppFooter` et renvoyait une **404 depuis toutes les pages du site en production** — défaut visible, pas simple absence de feature.
+
+Page en 5 sections (hero, Camille, atelier de Brèches, activités + consignation avec CTA vers `/consignation`, CTA contact), texte repris et étendu depuis `OurStorySection.vue` plutôt que réinventé. JSON-LD `Person` + `LocalBusiness` via `innerHTML` (jamais `children`, cf. US-090). Le `LocalBusiness` de `index.vue` est factorisé dans `app/utils/localBusinessSchema.ts` et partagé — la QA a vérifié la sortie rendue **byte-identique** à l'existant, le risque de divergence SEO sur une page déjà en prod étant le vrai danger de cette factorisation.
+
+**QA : FAIL 1re passe** — la QA a lancé le build de production et `curl`é la page : le `<title>` portait le **suffixe de marque en double**. Cause racine : `usePageSeo()` (écrit en US-023, **jamais branché sur une page jusqu'ici** — bug latent révélé, pas introduit) concaténait manuellement un suffixe que `@nuxtjs/seo` applique déjà via son `titleTemplate` global. Fix d'une ligne dans le composable, revérifié par `curl` sur le build. **PASS 2e passe.**
+
+## US-098 — PayPal comme moyen de paiement · 3 pts — PASS
+
+Commit `2c69ca2`. **Zéro ligne de code**, comme l'anticipait le PO : `session.post.ts` ne fige aucun `payment_method_types` et pose déjà une `return_url` — le prérequis technique des moyens de paiement à redirection. Vérification faite en amont contre la doc Stripe : PayPal est supporté par Checkout **y compris en formulaire embarqué** (redirection pleine page vers PayPal puis retour), compte marchand FR et devise EUR bien dans les listes éligibles. Le webhook `checkout.session.completed` → `fulfillOrder` et `release_product_unit` sont agnostiques du moyen de paiement.
+
+`DEV_GUIDE` documente désormais que les moyens de paiement sont **Dashboard-driven**, pour éviter qu'un futur ticket du même genre soit sur-estimé comme du développement.
+
+## US-100 — Hero homepage épuré · 2 pts — PASS
+
+Commit `ff3144a`. Arche SVG décorative, bloc eyebrow et appel GSAP mort `tl.from('.hero-eyebrow', ...)` retirés ; espacement du bloc titre réinjecté en `pt-6 md:pt-7` pour compenser les marges perdues. H1 et animation lettre par lettre intacts, image de fond LCP non touchée. Diff : 2 insertions / 37 suppressions dans un seul fichier.
+
+## Points relevés pendant le sprint
+
+- **Faux positif d'environnement (récurrent, rien à faire sur le dépôt)** : `npm run lint` échoue dans les shells de subagent en résolvant un ESLint global 9.0.0 corrompu (`Cannot find module '...acorn.js'`) hors projet. Confirmé une nouvelle fois par la QA : le dépôt est en ESLint 9.39.4 local et passe à zéro erreur. Identique au Sprint 8. **Nettoyer l'ESLint global de la machine éviterait ce bruit à chaque sprint.**
+- **Ordonnancement** : les 4 US développables ont été menées en parallèle (fichiers disjoints), avec sérialisation volontaire des `npm install` et limitation des `build`/`typecheck` concurrents — plusieurs agents partagent le même arbre de travail et le même `.nuxt/`.
+
+## Blocages et dettes ouverts après Sprint 9
+
+1. **Domaine Resend `cgws.fr` non vérifié** (inchangé, action Nathan) — désormais **signalé visuellement** dans le backoffice par le bandeau US-094. Le 4e scénario Gherkin d'US-094 (recette réelle des 6 templates depuis une adresse hors compte Resend) reste **non exécuté** : il est bloqué par cette action infra. Checklist prête à cocher dans `DEV_GUIDE`.
+2. **Activation PayPal dans le Dashboard Stripe** (action Nathan) + recette bout en bout en mode test avant communication à Camille.
+3. **Confirmation logs Vercel pour #26** (action Nathan, recommandée par le PO) : consulter Functions → `consignments/create` pour confirmer la signature d'erreur exacte (413 / `FUNCTION_PAYLOAD_TOO_LARGE` / timeout) avant de clore définitivement l'issue. Le correctif traite l'hypothèse la plus solide, mais elle n'est pas prouvée par les logs.
+4. **⚠️ Incohérence d'adresse à arbitrer (nouveau, relevé par la QA)** : le JSON-LD `LocalBusiness` porte le code postal **`37220`** alors que tout le texte visible du site (footer, mentions légales, contact, à propos) porte **`37320`**. C'est une incohérence NAP qui pèse sur le SEO local. La bonne valeur doit être confirmée par Camille, puis propagée à la source unique (`app/utils/localBusinessSchema.ts`).
+5. **Dette design system — contraste des anneaux de focus (nouveau)** : `ring-offset-color` n'est jamais spécifié, donc `#fff` par défaut. Contraste de `cgws-accent` contre ce fond : ≈6.5:1 en Jour mais **≈2.5:1 en Nuit** et ≈3.0:1 en Rugueux (sous ou à la limite du seuil 3:1, WCAG 1.4.11). Défaut **transverse et préexistant** : `CgwsButton`, `ThemeSwitcher`, `ProductCard`, `ProductForm`, `CategoryPanel`, `CategoryTreeItem`, `StatusDropdown` — soit la quasi-totalité des éléments focusables du site, déjà en production. Seul `AppFooter` le corrige (`ring-offset-cgws-surface`). **Candidat US pour un prochain sprint** — à traiter au niveau du design system, pas composant par composant.
+6. **Dette mineure US-095** : quand une compression échoue de façon isolée sans dépasser le seuil, le message « photos retirées » peut être démonté par la transition vers l'écran de succès avant que le déposant l'ait lu. Un rappel dans l'écran de succès améliorerait la perceptibilité.
+7. **Contenus réels Camille** (inchangé) : bio définitive et 3-4 vraies photos de l'atelier pour `/a-propos`, textes légaux, CGV/SIRET, vraies photos catalogue. La page À propos est construite pour que ce soit un **swap de constantes**, sans retouche de structure ni de SEO.
+8. **`SHIPPING_FLAT_RATE = 9,90 €`** (inchangé) : toujours un placeholder non confirmé par Camille.
+9. **Edge case US-082** (inchangé) : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel 1.
+
+---
+
+# Épic E11 — Stock multi-unités & rupture · Sprint 10
+
+**Branche `feature/sprint-10` · 16 pts planifiés · 16 pts livrés (vélocité 100 %) · 2026-07-23**
+
+Sprint entièrement séquentiel (US-097 étend le modèle de stock consolidé par US-096, aucune parallélisation possible). Une spec UX unique a couvert les deux US pour garantir un continuum d'états de stock cohérent sur la fiche produit (en stock → stock bas → épuisé → de nouveau disponible). **Objectif de sprint atteint** : un produit non-consigné peut être vendu en plusieurs exemplaires avec quantité restante visible, et un produit en rupture reste consultable avec option d'alerte email au retour en stock. Les 2 US commitées, `typecheck` / `lint` / `test:unit` (108 tests) / `build` en EXIT 0.
+
+## US-096 — Quantité restante affichée + achat multiple · 8 pts — PASS (2e passe)
+
+Commit `cd6cd7b`. Le socle SQL était déjà multi-unités depuis le rework E8 (`reserve_product_unit` décrémente 1 unité/appel, ne verrouille que sur la dernière) : le travail était purement applicatif. Champ `quantity` par ligne de panier (`addCartLine` remplace au lieu de dupliquer — décision produit « nouvelle quantité totale », pas cumul), `computeSubtotal` multiplié, `count` = total d'unités, payload checkout `items[{productId, quantity}]` borné à 30 unités totales. Boucle de réservation appelant `reserve_product_unit` × quantité avec rollback multi-unités (restitue toutes les unités déjà réservées, ce produit ET les autres, avant 409). `QuantitySelector.vue` custom (pas `UInputNumber` — palette Nuxt UI non câblée aux tokens CGWS, même raison que le rejet d'`UAlert` en US-094), masqué pour les consignations. État « Épuisé » dérivé (`active` + stock 0) distinct de « Vendu », préparant US-097.
+
+**QA : FAIL 1re passe** — les 7 scénarios Gherkin passaient, mais la QA a trouvé **deux bugs réels non testés** en creusant le module :
+1. **CA admin sous-évalué (chemin de l'argent)** : `fulfillment.ts` ne sélectionnait pas `quantity` et insérait une ligne `sales` au prix unitaire pour une ligne multi-unités → le dashboard sous-comptait le CA. Corrigé : `sale_price = prix × quantity` (une ligne au total, préservant la sémantique « 1 ligne sales = 1 vente » du modèle existant), commission inchangée (consignations toujours quantité 1).
+2. **Panier legacy → NaN + checkout bloqué** : un `CartItem` en localStorage sans champ `quantity` (antérieur au déploiement) donnait `NaN` au badge et envoyait `quantity: undefined` → rejet Zod 422, checkout bloqué. Corrigé par gardes `?? 1` sur `count` et le payload.
+
+Corrigé aussi dans la foulée (défaut introduit de fait par la feature multi-unités, pas « préexistant ») : le template email de confirmation affichait toujours « quantité 1 » (le champ était ignoré) → « Titre × N » + total ligne, rendu inchangé pour N=1. `releaseOrderReservation` corrigé pour restituer `quantity` unités par ligne (sous-restituait le stock des commandes multi-unités). Log `[stock-anomaly]` distinctif quand un produit passe `sold` avec stock résiduel (Gherkin 6, edge case Sprint 8 rendu visible sans corriger l'atomicité SQL sous-jacente). **PASS 2e passe.**
+
+## US-097 — Rupture de stock : parcage catalogue + alerte email retour en stock · 8 pts — PASS
+
+Commit `3d51533`. Deux décisions d'architecture tranchées en amont par l'orchestrateur pour dérisquer :
+
+1. **État de rupture DÉRIVÉ**, pas de nouvelle valeur DB `out_of_stock`. Justification vérifiée : le catalogue filtre `status IN ('active','reserved')` et 38 fichiers référencent le statut produit ; garder `status='active'` (stock 0) maintient automatiquement le produit dans le catalogue (exigence Gherkin) sans toucher à la contrainte CHECK ni auditer 38 fichiers. Le « repasse à Disponible » est automatique — le produit n'a jamais quitté `active`, l'affichage suit le stock.
+2. **Détection du réappro APPLICATIVE** dans `server/api/admin/products/[id].put.ts` (transition stock 0 → >0), pas un trigger SQL : Postgres ne peut pas envoyer d'email, un trigger-to-email exigerait pg_net + edge function, disproportionné, et les critères Gherkin n'exercent que le chemin admin. Vérifié que `status.patch.ts` ne touche jamais le stock et que l'import CSV ne fait que des INSERT.
+
+Table `stock_notifications` (UNIQUE `(product_id, email)`, index partiel `notified_at IS NULL`), RLS calquée sur `orders` : aucune lecture publique des emails, écritures en service role uniquement. Route publique `notify-restock` avec upsert idempotent et réponse **strictement neutre** dans tous les cas (déjà inscrit / nouveau / hors rupture / consignation) — aucune fuite d'information. 7e template `sendRestockNotification` réutilisant `resolveEmailFrom()`. À la réactivation : email à chaque inscrit `notified_at IS NULL` + marquage pour empêcher tout re-spam ultérieur ; envoi non bloquant (une panne Resend ne casse pas la mise à jour produit admin). `RestockNotifyForm.vue` remplace le CTA d'achat sur la fiche épuisée. Migration 007 appliquée, `database.types.ts` régénéré.
+
+**QA : PASS 1re passe.** Sécurité RLS vérifiée (calquée sur `004_orders.sql`), non-fuite de la route confirmée, détection de transition strictement `0 → >0`, non-régression consignation, 15 tests dédiés non complaisants.
+
+## Points relevés pendant le sprint
+
+- **Décision UX notable** : `QuantitySelector` custom plutôt que `UInputNumber` — la palette `ui.colors` de Nuxt UI n'est délibérément pas câblée aux tokens CGWS (`app/app.config.ts`), un composant natif brut détonnerait à côté d'un CTA `cgws-accent`. Cohérent avec le rejet d'`UAlert` en US-094.
+- **Issue #30 non aggravée** : les deux nouveaux composants (`QuantitySelector`, `RestockNotifyForm`) spécifient un `ring-offset-cgws-ground` thème-aware explicite, plutôt que le `ring-offset-2` nu (blanc) responsable du défaut transverse de contraste ouvert en fin de Sprint 9.
+- **Faux positif d'environnement (récurrent, inchangé)** : `npm run lint` échoue dans les shells de subagent (ESLint global 9.0.0 corrompu hors projet, `Cannot find module '...acorn.js'`). Dépôt sain (ESLint 9.39.4 local). Nettoyer l'ESLint global de la machine supprimerait ce bruit.
+- **Migration appliquée sur le projet Supabase live** via MCP (table `stock_notifications` + RLS) — additive et réversible.
+
+## Blocages et dettes ouverts après Sprint 10
+
+1. **Domaine Resend `cgws.fr` non vérifié** (inchangé, action Nathan) : bloque la validation end-to-end réelle de l'alerte de retour en stock US-097 (envoi testé avec mocks uniquement, conforme au pattern acté US-063/US-066). Le bandeau admin US-094 signale toujours le fallback actif.
+2. **Dette produit — affichage qté×prix dans le panier (nouveau, non bloquant)** : `CartLineItem.vue` / `CartDrawer.vue` et le récap `/checkout` affichent le prix unitaire par ligne, pas « qté × prix », pour les lignes multi-unités. Descopé explicitement par la spec design §0.2 ; sous-total et totaux Stripe corrects ; aucun scénario Gherkin US-096 ne l'exige. À traiter dans une future US de polish panier.
+3. **Limite assumée US-097 — chemin import CSV** : si un futur import CSV se met à METTRE À JOUR le stock de produits existants (aujourd'hui il ne fait que des INSERT), la détection de réappro applicative ne se déclencherait pas. Documenté en commentaire dans `[id].put.ts`. À rouvrir si/quand l'import CSV évolue vers l'update de stock.
+4. **Pas d'UI admin pour visualiser les inscriptions `stock_notifications`** : non demandé par le Sprint Plan ; amélioration opérationnelle possible (voir aussi spec design §7.5).
+5. **Edge case US-082 (inchangé, désormais VISIBLE)** : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel. L'atomicité SQL sous-jacente reste hors périmètre (acté non-bloquant US-091), mais l'anomalie est désormais tracée par le log `[stock-anomaly]` (US-096) pour réactivation admin rapide.
+6. **Issue #30 (dette design system, ouverte fin Sprint 9)** : contraste des anneaux de focus (`ring-offset-color` par défaut blanc) sous le seuil WCAG en peaux Nuit/Rugueux, transverse à ~8 composants existants. Les nouveaux composants de ce sprint ne l'aggravent pas. Candidat US pour un prochain sprint.
+7. **Contenus réels Camille, `SHIPPING_FLAT_RATE`, activation PayPal, logs Vercel #26** (inchangés) — voir bilans Sprints 8-9.
+
+---
+
+# Épic E12 — Sécurité & Analytics produit · Sprint 11
+
+**Branche `feature/sprint-11` · 18 pts planifiés · en cours · démarré 2026-07-23**
+
+Ordre strict acté en interview : US-101 (faille RLS #34) en premier, puis US-102→105 (PostHog #31, cookieless sans consentement, pas de replay/heatmaps).
+
+## US-101 — RLS admin réel — rôle admin vérifié dans les policies · 5 pts — PASS (1re passe)
+
+Fermeture de #34 : `auth.role() = 'authenticated'` servait de critère « admin » sur 7 tables (002/004) — depuis l'espace déposant US-066, tout déposant magic-link pouvait lire les PII de tous les déposants/clients via PostgREST ou écrire dans le catalogue.
+
+**Migration `008_admin_role_rls.sql`** : fonction `public.is_admin()` (SQL, STABLE, `SET search_path = ''`) lisant `auth.jwt() -> 'app_metadata' ->> 'cgws_role' = 'admin'` — jamais `user_metadata` (modifiable par l'utilisateur via `updateUser()`, ce serait recréer la faille). Les 12 policies fautives droppées/recréées sous le même nom avec `is_admin()` : `products_{insert,update,delete}_admin`, `categories_{insert,update,delete}_admin`, `consignments_{select,update}_admin`, `sales_all_admin`, `clients_all_admin`, `orders_select_admin`, `order_items_select_admin`. `consignments_insert_public` conservée (formulaire public de dépôt). **Bonus assumé et validé QA** : `product_status_history` n'avait JAMAIS eu de RLS depuis 003 (anon pouvait lire ET écrire) → RLS activée + `psh_select_admin` ; zéro impact applicatif (toutes les écritures passent par le service role).
+
+**Script de non-régression rejouable `supabase/tests/rls_admin.sql`** (transactionnel, ROLLBACK final) : 4 scénarios via `SET LOCAL ROLE` + `request.jwt.claims` — déposant sans claim, déposant avec `user_metadata` forgé (`role: admin` écrit via updateUser → toujours refusé), admin `app_metadata`, anonyme. **Exécuté sur la base de dev : 58/58 assertions PASS** (2026-07-23). Ordre de déploiement respecté sur dev : claim attribué AVANT la migration aux 2 comptes admin (`nathcouton@gmail.com`, `camille.guignon37@gmail.com`).
+
+**QA : PASS 1re passe** (analyse statique exhaustive — le MCP supabase n'était pas exposé dans sa session ; contre-vérification live faite par l'orchestrateur : `pg_policies` post-migration ne contient plus AUCUNE policy `auth.role()='authenticated'`, tout passe par `is_admin()`). Barrières US-066 (`server/api/depositor/*` en service role) vérifiées intouchées ; aucun code public `app/` ne lit les tables durcies avec le JWT. `nuxi typecheck` EXIT 0 (diff SQL/doc uniquement).
+
+`docs/DEV_GUIDE.md` § « Sécurité — Rôle admin & RLS » : SQL/Dashboard d'attribution du claim + **checklist de déploiement prod ordonnée** — le claim doit être attribué aux comptes de Camille et Nathan sur la base de PRODUCTION avant d'y déployer 008, sinon le backoffice se verrouille ; reconnexion requise pour que le claim entre dans le JWT.
+
+**⚠️ Action prod en attente (Nathan)** : seule la base de dev est traitée. En prod : (1) attribuer le claim aux 2 comptes, (2) déployer la migration 008, (3) reconnexion admin, (4) rejouer `rls_admin.sql`.
+
+**Remarque QA non bloquante** : `server/utils/adminAuth.ts` compare `user.email` à un unique `process.env.ADMIN_EMAIL` — si un seul email y figure, l'un des deux comptes admin serait bloqué sur les routes `server/api/admin/*`, indépendamment du claim. À vérifier/faire évoluer (candidat future US).
+
+## US-102 — Socle PostHog cookieless — plugin client SSR-safe et différé · 3 pts — PASS (2e passe)
+
+Cadrage CNIL respecté à la lettre : `persistence: 'memory'` (zéro cookie/storage), `person_profiles: 'never'`, aucun `identify()`, `autocapture: false`, recording/heatmaps/surveys désactivés, `disable_external_dependency_loading: true`, host UE par défaut. Config 100 % explicite (pas de snapshot `defaults`, plus auditable). `posthog-js@1.407.1` en **import dynamique** dans `app/plugins/posthog.client.ts`, init différée `onNuxtReady` — chunk isolé (~228 kB) jamais dans le bundle d'entrée, prefetch idle uniquement. `$pageview` manuels (initial + `router.afterEach`), pas de double comptage. Sans clé : `return` précoce avant tout import — no-op strictement silencieux. `app/composables/useAnalytics.ts` = point d'entrée unique pour US-103/104 (typage structurel sans import posthog-js, guard SSR, buffer borné 20 événements pré-init rejoués au branchement).
+
+**QA : FAIL 1re passe — excellente prise** : PostHog attache par défaut `$current_url = window.location.href` COMPLET à chaque événement → les query params sensibles auraient fui vers le tiers : `?code=`/`?token_hash=` (jeton magic link, `espace-deposant/callback`) et `?session_id=cs_…` (session Stripe, `checkout/success`). Contredisait frontalement le « aucune donnée identifiante » des mentions légales.
+
+**Fix** : hook `before_send: sanitizeAnalyticsEvent` (`app/utils/analytics.ts`) — les alternatives ont été écartées preuves à l'appui dans les types installés (`get_current_url` ne touche pas `$current_url` per JSDoc ; `sanitize_properties` dépréciée). `stripQueryAndHash()` tronque query ET fragment (couvre le flow implicite Supabase `#access_token=`) sur toute clé finissant par `url`/`pathname`/`referrer` dans `properties`/`$set`/`$set_once`. La QA a vérifié dans le code compilé de la lib que `before_send` intercepte TOUT le pipeline capture (pageviews, buffer rejoué, futurs événements US-103/104). 11 tests dédiés (`tests/unit/analytics-url.spec.ts`) incluant les deux cas exacts du FAIL. Règle anti-fuite documentée dans DEV_GUIDE pour US-103/104. Try/catch global du callback différé (échec adblocker/réseau → silencieux en prod). **PASS 2e passe.**
+
+Mentions légales : paragraphe mesure d'audience anonyme ajouté (section Cookies), **formulation placeholder à valider par Nathan** (TODO marqué). Actions Nathan restantes : projet PostHog Cloud **EU** + « Discard client IP data » + clés `NUXT_PUBLIC_POSTHOG_KEY`/`NUXT_PUBLIC_POSTHOG_HOST` dans Vercel. Gates : typecheck 0 · eslint 0 · **126 tests PASS** · build 0.
+
+## US-103 — Taxonomie d'événements produit — funnels achat, consignation, contact · 5 pts — PASS (1re passe)
+
+Les 6 événements de la taxonomie actée (et RIEN d'autre — audit grep exhaustif QA) : `product_viewed` (`catalogue/[slug].vue`, onMounted post-résolution), `cart_item_added` (`stores/cart.ts`, après mutation réussie — jamais sur les no-op), `checkout_opened` (`checkout/index.vue`, après `checkout.mount()` effectif, flag one-shot par instance, recompte à chaque visite), `consignment_form_viewed` / `consignment_submitted` (`ConsignmentForm.vue`, submitted UNIQUEMENT dans la branche succès du try), `contact_submitted` (`contact.vue`, idem).
+
+**Taxonomie verrouillée au COMPILATEUR** : `app/utils/analytics-events.ts` (union type des 6 noms + `AnalyticsEventPayloadMap` event→payload) + surcharges de `capture()` — un nom hors taxonomie ou une propriété hors payload ne compile pas. La QA l'a prouvé par reproduction isolée (`tsc --strict` + `@ts-expect-error` sur 3 cas pirates : tous rejetés), et vérifié zéro échappatoire `as` dans `app/`. Résilience durcie : `safeForward()` try/catch sur tout appel client (adblocker → parcours intacts, testé sur le résultat métier réel). Zéro PII vérifié champ par champ ; `photos_count` = compte seul ; même distinct_id anonyme sur tout le funnel (memory persistence, aucun reset/identify).
+
+**Déviations statuées par la QA (les 3 validées)** : `consignment_submitted.category` omise (le formulaire ne collecte pas de catégorie — typée optionnelle pour plus tard) ; `cart_item_added` aussi sur remplacement de quantité US-096 (sémantique remplacement confirmée, quantité résultante capturée) ; `items_count` = total d'unités et `cart_value` = sous-total hors port (aligné badge US-096 ; à reconfirmer si le funnel montre des écarts vs total payé).
+
+**QA : PASS 1re passe.** Gates : typecheck 0 · eslint 0 · **135 tests PASS** (dont 7 cart-analytics + use-analytics réécrit taxonomie-valide) · build 0. Suggestion QA future : matérialiser le verrouillage compilateur par des `@ts-expect-error` dans les tests du repo (garantie continue en CI).
+
+## US-104 — Capture serveur fiable « commande payée » via webhook Stripe · 2 pts — PASS (1re passe)
+
+`order_paid` capturé côté serveur via `posthog-node@5.46` — compteur de conversion insensible aux adblockers/fermetures d'onglet. **Déviation architecturale validée QA** : capture dans `fulfillCheckoutSession` (`server/utils/fulfillment.ts`), PAS dans `webhook.post.ts` — le fulfillment a 2 déclencheurs (webhook + landing `session-status`) derrière la barrière d'idempotence `pending → paid` ; la capture en dernière instruction de la branche gagnante garantit exactement UNE capture par commande payée, après fulfillment complet, jamais sur rejeu, quel que soit le déclencheur vainqueur de la course.
+
+`server/services/analytics.ts` (nouveau, seul module serveur parlant à PostHog) : `captureOrderPaid()` no-op sans clé, ne lève jamais (try/catch interne + ceinture dans fulfillment). Pattern serverless vérifié sur le package installé : `flushAt: 1` + `flushInterval: 0` + `await client._shutdown(3000)` — la QA a contre-vérifié dans les `.d.ts` que `_shutdown()` est bien l'API v5.46 (`shutdown()` public n'existe plus). Propriétés : `amount_total` en euros, `currency`, `items_count` (somme des quantités order_items, sémantique US-096), `payment_method_type`, `$process_person_profile: false`, `disableGeoip: true` (l'IP vue est celle de Stripe) — `customer_details` JAMAIS lu (vérifié ligne à ligne QA).
+
+**Jonction funnel anonyme** : `getDistinctId()` exposé par `useAnalytics` (inerte SSR/bloqué) → `analyticsId` optionnel (Zod, borne 100) → `metadata.analytics_id` Stripe → capture avec CE distinct_id ; fallback `randomUUID()` si absent (comptage exhaustif même adblocké). Taxonomie client `analytics-events.ts` intacte (exhaustive à 6) : `SERVER_ANALYTICS_EVENTS` séparée — `order_paid` jamais capturable côté client par construction.
+
+**QA : PASS 1re passe.** 11 tests via le vrai fulfillment (posthog-node mocké au module, `toHaveBeenCalledWith` sur l'objet complet = preuve zéro PII résiduelle) : idempotence rejeu, no-op sans clé, échecs constructeur/capture avalés avec fulfillment/email intacts, ordre capture-après-email. Gates : typecheck 0 · eslint 0 · **146 tests PASS** · build 0.
+
+## US-105 — Funnels & dashboards PostHog + guide de lecture pour Nathan · 3 pts — PASS (1re passe)
+
+**Configuration PostHog faite par l'orchestrateur via le MCP** (connecté en début de session au projet « Default project » 230708, org cgws, PostHog Cloud EU) : dashboard épinglé **« CGWS — Produit »** (https://eu.posthog.com/project/230708/dashboard/843332) avec 5 tuiles — Funnel Achat `product_viewed → cart_item_added → checkout_opened → order_paid` (fenêtre de conversion **1 jour**, choix délibéré aligné sur le mode anonyme intra-session, insight `Z0jGFQrs`) ; Funnel Consignation `consignment_form_viewed → consignment_submitted` (`zbibrb5M`) ; tendance Contact (`3rYfMZY1`) ; Commandes payées volume + CA en somme d'`amount_total` sur 2 axes (`PUMmNYpi`) ; Top produits vus par `product_slug` (`6PRFaGES`). Vérifié côté projet : **`anonymize_ips: true`** (« Discard client IP data » actif — l'affirmation « IP non conservée » des mentions légales US-102 est effective) et `session_recording_opt_in: false`.
+
+**`docs/ANALYTICS.md`** (nouveau, référencé depuis DEV_GUIDE) : table de taxonomie des 7 événements (6 client + `order_paid` serveur) croisée mot pour mot avec le code par la QA (zéro divergence) ; lien + question produit par vue ; **limites explicitées** (funnels valides intra-session uniquement — memory persistence, d'où la fenêtre 1j ; sous-comptage adblockers client vs `order_paid` serveur exhaustif, avec méthode de mesure de l'écart ; pas de replay/heatmaps et pourquoi ; anti-fuite `before_send`) ; règle de gouvernance (nouvel événement = même PR : `analytics-events.ts` ou `SERVER_ANALYTICS_EVENTS` + table du guide) ; **recette e2e en checklist actionnable** (§5) avec LA subtilité qui ferait croire à un funnel cassé : rester dans le même onglet sans rechargement complet (l'identité anonyme meurt au reload).
+
+**QA : PASS 1re passe** (une retouche mineure appliquée par l'orchestrateur avant commit : la case « Discard client IP data » de la recette reflète désormais l'état vérifié actif). Typecheck 0 · eslint 0 (docs only).
+
+**⚠️ Recette e2e NON exécutée — blocage externe (action Nathan)** : les clés `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` ne sont pas dans Vercel — le projet PostHog n'ingère rien (`ingested_event: false` vérifié). Le parcours d'achat test Stripe prouvant la jonction client→serveur reste à dérouler via la checklist ANALYTICS.md §5 une fois les clés posées.
+
+---
+
+## Bilan Sprint 11 — 18 pts planifiés · 18 pts livrés (vélocité 100 %) · 2026-07-23
+
+**Objectif de sprint ATTEINT** (sous réserve des actions infra Nathan) : un déposant connecté ne peut plus lire les PII des autres ni écrire dans le catalogue (US-101, vérifiée live sur la base de dev, 58/58 assertions), et le comportement visiteur est mesurable sans cookie ni consentement (US-102→105 : socle → taxonomie → capture serveur → funnels/dashboard/guide). 5 US, 5 PASS (2 en 2e passe : US-102 fuite `$current_url` attrapée par la QA, US-095-style ; US-096-style pour les autres en 1re). Gates finaux : typecheck 0 · eslint 0 · **146 tests** · build 0. Ordre strict sécurité-d'abord respecté.
+
+**Les 2 FAIL QA du sprint étaient de vraies prises** : la fuite de query params sensibles vers PostHog (jetons magic link + session_id Stripe dans `$current_url`) aurait contredit frontalement les mentions légales — corrigée par `before_send` après démontage documenté des 2 alternatives (`get_current_url` inopérante per JSDoc, `sanitize_properties` dépréciée).
+
+### Actions Nathan pour activer le sprint en production (ordre important)
+1. **US-101 prod** : attribuer le claim admin (`{"cgws_role":"admin"}` dans app_metadata) aux comptes de Camille et Nathan sur la base de PRODUCTION, **PUIS** déployer la migration `008_admin_role_rls.sql`, reconnexion admin, rejouer `supabase/tests/rls_admin.sql` (checklist ordonnée : DEV_GUIDE § Sécurité). Un déploiement sans le claim préalable verrouille le backoffice.
+2. **PostHog** : saisir `NUXT_PUBLIC_POSTHOG_KEY` (clé `phc_…` du projet 230708) + `NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` dans Vercel (Production), redéployer.
+3. **Recette e2e** : dérouler la checklist `docs/ANALYTICS.md` §5 (achat test Stripe + dépôt test), consigner ici.
+4. **Valider la formulation** du paragraphe mesure d'audience des mentions légales (TODO marqué, sujet légal).
+5. À la fermeture des issues : #34 → référencer la migration 008 + `rls_admin.sql` ; #31 → mentionner explicitement l'abandon du bandeau de consentement au profit du mode anonyme exempté (décision interview 2026-07-23) pour éviter une réouverture sur ce critère obsolète.
+
+### Dettes/observations nouvelles du sprint
+- `server/utils/adminAuth.ts` compare `user.email` à un unique `ADMIN_EMAIL` — pourrait bloquer l'un des 2 comptes admin sur `server/api/admin/*` indépendamment du claim RLS (remarque QA US-101, candidat future US, à unifier avec `is_admin()`).
+- Verrouillage compilateur de la taxonomie : ajouter des `@ts-expect-error` dans les tests du repo pour matérialiser la garantie en CI (suggestion QA US-103).
+- Le chunk posthog-js (~228 kB) reste prefetché même sans clé (comportement Vite, jamais exécuté) — acté non bloquant, à réévaluer seulement si un audit perf le pointe.
+- Blocages antérieurs inchangés (Resend cgws.fr, SHIPPING_FLAT_RATE, PayPal Dashboard, contenus Camille, issue #30 focus rings, edge case stock US-082) — voir bilans Sprints 8-10.

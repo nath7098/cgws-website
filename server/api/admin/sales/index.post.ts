@@ -158,17 +158,22 @@ export default defineEventHandler(async (event: H3Event) => {
     const apiKey = config.resendApiKey as string | undefined
 
     if (apiKey) {
-      sendConsignmentSaleEmail(apiKey, {
-        depositorName: consignmentData.depositor_name,
-        depositorEmail: consignmentData.depositor_email,
-        itemDescription: consignmentData.item_description,
-        salePrice: input.salePrice,
-        commissionAmount,
-        agreedPrice,
-        consignmentId: consignmentData.id,
-      }).catch(() => {
-        // Non-blocking — email failure does not affect the sale
-      })
+      // Awaité impérativement : en serverless (Vercel), un fire-and-forget est
+      // gelé/tué dès que la réponse part — l'email n'est jamais envoyé.
+      try {
+        await sendConsignmentSaleEmail(apiKey, {
+          depositorName: consignmentData.depositor_name,
+          depositorEmail: consignmentData.depositor_email,
+          itemDescription: consignmentData.item_description,
+          salePrice: input.salePrice,
+          commissionAmount,
+          agreedPrice,
+          consignmentId: consignmentData.id,
+        })
+      }
+      catch {
+        // Non-bloquant : l'échec d'email n'affecte pas la vente.
+      }
     }
   }
 

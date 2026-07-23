@@ -62,6 +62,23 @@ const { data: relatedProducts, pending: relatedPending } = await useAsyncData(
   },
 )
 
+// ── Analytics (US-103) ───────────────────────────────────────────────────────
+// product_viewed : onMounted (client only), après résolution du produit — une
+// capture par affichage de fiche (la page est remontée à chaque slug). Aucune
+// PII : identifiants produit + prix affiché public uniquement.
+const { capture } = useAnalytics()
+onMounted(() => {
+  const viewed = product.value
+  if (!viewed) return
+  capture('product_viewed', {
+    product_id: viewed.id,
+    product_slug: viewed.slug,
+    category: viewed.category,
+    price: viewed.price,
+    is_consignment: viewed.isConsignment,
+  })
+})
+
 // ── SEO dynamique ────────────────────────────────────────────────────────────
 useSeoMeta({
   title: `${product.value!.title} — ${product.value!.brand} | CGWS`,
@@ -69,16 +86,18 @@ useSeoMeta({
   ogTitle: `${product.value!.title} — CGWS`,
   ogDescription: product.value!.description.slice(0, 160),
   ogImage: product.value!.images[0] ?? undefined,
-  ogType: 'product',
   twitterCard: 'summary_large_image',
 })
 
-// ── JSON-LD Product schema ────────────────────────────────────────────────────
+// ── JSON-LD Product schema + og:type product ─────────────────────────────────
+// `og:type: product` est hors de l'union stricte d'unhead v2 pour `ogType` :
+// on le déclare via une entrée meta brute (échappatoire documentée unhead).
 useHead({
+  meta: [{ property: 'og:type', content: 'product' }],
   script: [
     {
       type: 'application/ld+json',
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.value!.title,

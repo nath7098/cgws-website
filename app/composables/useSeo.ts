@@ -40,13 +40,26 @@ export function usePageSeo({
   const resolvedImage = resolveOgImage(image, baseUrl)
 
   useSeoMeta({
-    title: `${title} | ${SITE_NAME}`,
+    // Pas de concaténation manuelle du suffixe ici : @nuxtjs/seo applique
+    // déjà son `titleTemplate` global (basé sur `site.name`, nuxt.config.ts)
+    // à tout titre défini via useSeoMeta/useHead. Un titre déjà suffixé en
+    // dur ici produisait un double suffixe " | CGWS — ... | CGWS — ..." sur
+    // la page qui a révélé le bug (US-099, /a-propos) — cf. contact.vue et
+    // consignation.vue, qui passent déjà un titre brut sans suffixe.
+    title,
     description,
     ogTitle: title,
     ogDescription: description,
     ogImage: resolvedImage,
-    ogType: type,
     twitterCard: 'summary_large_image',
     twitterImage: resolvedImage,
+  })
+
+  // `og:type: product` (extension OG commerce) n'appartient pas à l'union
+  // stricte typée par unhead v2 pour `ogType` — on passe par une entrée meta
+  // brute de useHead, l'échappatoire documentée d'unhead pour les valeurs
+  // hors schéma (aucun cast nécessaire).
+  useHead({
+    meta: [{ property: 'og:type', content: type }],
   })
 }

@@ -30,6 +30,7 @@ export type BadgeVariant =
   | 'reserved'
   | 'pending'
   | 'accepted'
+  | 'out-of-stock'
 
 export interface Product {
   id: string
@@ -217,7 +218,11 @@ export type FulfillmentMethod = (typeof FULFILLMENT_METHODS)[number]
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
 /** Ligne de panier — snapshot d'affichage du produit au moment de l'ajout.
- *  1 ligne = 1 exemplaire (pièces uniques, pas de quantité). */
+ *  Toujours 1 ligne par produit (dé-duplication par `productId`, jamais de
+ *  doublon) : `quantity` porte le nombre d'exemplaires de CETTE ligne (US-096).
+ *  Pour une pièce en consignation (`isConsignment=true`), `quantity` vaut
+ *  toujours 1 — le sélecteur de quantité est masqué côté UI pour ces pièces
+ *  uniques, le comportement reste strictement celui d'avant l'US-096. */
 export interface CartItem {
   productId: string
   slug: string
@@ -226,10 +231,17 @@ export interface CartItem {
   price: number
   image: string | null
   size?: string
+  quantity: number
   addedAt: string
 }
 
-export interface ShippingAddress {
+/**
+ * `type` (et non `interface`) à dessein : les alias objet ont une signature
+ * d'index implicite qui les rend structurellement assignables à `Json`
+ * (colonne jsonb `orders.shipping_address`) — aucun cast nécessaire côté
+ * fulfillment. Une interface ne l'est pas.
+ */
+export type ShippingAddress = {
   street: string
   postalCode: string
   city: string
@@ -265,14 +277,17 @@ export interface Order {
   updatedAt: string
 }
 
-/** Récapitulatif public renvoyé par GET /api/orders/[id] (page success).
- *  Volontairement restreint — pas de payment_intent ni de client_id. */
+/** Récapitulatif public renvoyé par GET /api/checkout/session-status (page success).
+ *  Volontairement restreint — pas de payment_intent ni de client_id.
+ *  Les coordonnées (nom/email) et le mode de réception sont collectés par
+ *  Stripe et rapatriés par le webhook : ils sont `null` tant que le paiement
+ *  n'est pas confirmé (commande encore `pending`). */
 export interface OrderRecap {
   id: string
   status: OrderStatus
-  customerName: string
-  email: string
-  fulfillmentMethod: FulfillmentMethod
+  customerName: string | null
+  email: string | null
+  fulfillmentMethod: FulfillmentMethod | null
   shippingAddress: ShippingAddress | null
   subtotal: number
   shippingCost: number
@@ -281,14 +296,29 @@ export interface OrderRecap {
   createdAt: string
 }
 
-/** Payload POST /api/checkout/session (guest checkout — aucun compte). */
+/** Payload POST /api/checkout/session (checkout embarqué invité, aucun compte).
+ *  Les coordonnées et l'adresse ne sont plus saisies côté CGWS : Stripe les
+ *  collecte dans le formulaire embarqué. On envoie les produits ET leur
+ *  quantité (US-096 — achat multiple), et éventuellement la commande
+ *  précédente à libérer (retour sur le panier après un abandon, pour ne pas
+ *  se bloquer soi-même sur ses propres réservations). */
 export interface CheckoutPayload {
-  email: string
-  name: string
-  phone?: string
-  fulfillmentMethod: FulfillmentMethod
-  address?: ShippingAddress
-  productIds: string[]
+  items: Array<{ productId: string, quantity: number }>
+  previousOrderId?: string
+  /** distinct_id PostHog anonyme éphémère (US-104) — raccorde le funnel
+   *  client à l'événement serveur `order_paid` via les metadata Stripe.
+   *  Absent si PostHog est bloqué/désactivé. */
+  analyticsId?: string
+}
+
+/** Statut renvoyé par GET /api/checkout/session-status (page de retour).
+ *  `status` = statut de la session Stripe, `paymentStatus` = état du paiement
+ *  (valeurs Stripe natives ; `unpaid` + status `complete` = paiement asynchrone
+ *  en cours de traitement). */
+export interface CheckoutSessionStatus {
+  status: 'open' | 'complete' | 'expired'
+  paymentStatus: 'paid' | 'unpaid' | 'no_payment_required'
+  order: OrderRecap | null
 }
 
 // ─── Reporting (US-043) ───────────────────────────────────────────────────────

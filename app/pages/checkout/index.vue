@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import type { FulfillmentMethod } from '~/types'
+import type { StripeEmbeddedCheckout } from '@stripe/stripe-js'
+import { loadStripe } from '@stripe/stripe-js'
 import { useCartStore } from '~/stores/cart'
-import {
-  SHIPPING_FLAT_RATE,
-  computeShippingCost,
-  computeTotal,
-} from '#shared/utils/checkout'
-import CgwsInput from '~/components/ui/CgwsInput.vue'
 import CgwsButton from '~/components/ui/CgwsButton.vue'
 
 useSeoMeta({
@@ -16,67 +11,40 @@ useSeoMeta({
 })
 
 const route = useRoute()
+const config = useRuntimeConfig()
 const cart = useCartStore()
-const { loading, errorMessage, unavailableProducts, submitCheckout } = useCheckout()
+const { loading, errorMessage, unavailableProducts, createSession } = useCheckout()
 
-// Retour de cancel_url Stripe — panier intact, aucune commande payée.
+// Retour de return_url Stripe après échec/annulation — panier intact.
 const wasCancelled = computed(() => route.query.cancelled === '1')
 
-// ─── Formulaire guest (aucun compte) ────────────────────────────────────────
+const hasPublishableKey = computed(() => Boolean(config.public.stripePublishableKey))
 
-const form = reactive({
-  email: '',
-  name: '',
-  phone: '',
-  street: '',
-  postalCode: '',
-  city: '',
-  country: 'France',
-})
+type MountState = 'idle' | 'loading' | 'mounted' | 'error'
+const mountState = ref<MountState>('idle')
 
-const fulfillment = ref<FulfillmentMethod>('shipping')
+// ── Analytics (US-103) ──────────────────────────────────────────────────────
+// checkout_opened : capturé UNE fois par visite de la page, au montage EFFECTIF
+// du checkout embarqué Stripe (jamais sur panier vide, clé absente ou erreur
+// de session). One-shot : un retry réussi après erreur ne recompte pas une
+// « ouverture » dans le funnel.
+const { capture, getDistinctId } = useAnalytics()
+let checkoutOpenedCaptured = false
 
-const touched = reactive<Record<string, boolean>>({})
-const submitAttempted = ref(false)
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PHONE_RE = /^[0-9+\s\-()]{7,20}$/
-
-const errors = computed<Record<string, string>>(() => {
-  const result: Record<string, string> = {}
-
-  if (!form.email.trim()) result.email = 'L\'adresse email est requise'
-  else if (!EMAIL_RE.test(form.email.trim())) result.email = 'Adresse email invalide'
-
-  if (form.name.trim().length < 2) result.name = 'Le nom est requis (min. 2 caractères)'
-
-  if (form.phone.trim() && !PHONE_RE.test(form.phone.trim())) {
-    result.phone = 'Numéro de téléphone invalide'
-  }
-
-  if (fulfillment.value === 'shipping') {
-    if (form.street.trim().length < 3) result.street = 'L\'adresse est requise'
-    if (form.postalCode.trim().length < 3) result.postalCode = 'Code postal invalide'
-    if (!form.city.trim()) result.city = 'La ville est requise'
-    if (form.country.trim().length < 2) result.country = 'Le pays est requis'
-  }
-
-  return result
-})
-
-const isValid = computed(() => Object.keys(errors.value).length === 0)
-
-/** Erreur affichée en temps réel dès que le champ a été visité (ou après une
- *  tentative de soumission) — le message se met à jour à chaque frappe. */
-function fieldError(field: string): string | undefined {
-  return touched[field] || submitAttempted.value ? errors.value[field] : undefined
+function captureCheckoutOpened(): void {
+  if (checkoutOpenedCaptured) return
+  checkoutOpenedCaptured = true
+  capture('checkout_opened', {
+    // Sous-total payable (articles disponibles) — les frais de port, choisis
+    // dans le formulaire Stripe, ne sont pas connus à l'ouverture.
+    cart_value: cart.subtotal,
+    // Total d'unités (somme des quantités, sémantique US-096 du badge panier).
+    items_count: cart.count,
+  })
 }
 
-function markTouched(field: string): void {
-  touched[field] = true
-}
-
-// ─── Totaux ─────────────────────────────────────────────────────────────────
+const checkoutContainer = ref<HTMLDivElement | null>(null)
+let embeddedCheckout: StripeEmbeddedCheckout | null = null
 
 const formatEur = (amount: number): string =>
   new Intl.NumberFormat('fr-FR', {
@@ -85,14 +53,13 @@ const formatEur = (amount: number): string =>
     maximumFractionDigits: 2,
   }).format(amount)
 
-const shippingCost = computed(() => computeShippingCost(fulfillment.value))
-const total = computed(() => computeTotal(cart.subtotal, fulfillment.value))
-
 // ─── Disponibilité ──────────────────────────────────────────────────────────
 
-onMounted(() => {
-  void cart.refreshAvailability()
-})
+function removeUnavailable(): void {
+  for (const item of cart.unavailableItems) {
+    cart.remove(item.productId)
+  }
+}
 
 // Si le serveur refuse la session (409), il renvoie la liste précise des
 // articles indisponibles — on resynchronise l'état local du panier.
@@ -102,35 +69,93 @@ watch(unavailableProducts, (products) => {
   }
 })
 
-function removeUnavailable(): void {
-  for (const item of cart.unavailableItems) {
-    cart.remove(item.productId)
+// ─── Montage du Checkout embarqué Stripe ────────────────────────────────────
+
+async function mountEmbeddedCheckout(): Promise<void> {
+  if (!import.meta.client) return
+  if (cart.isEmpty || cart.unavailableItems.length > 0) return
+  if (!hasPublishableKey.value) {
+    mountState.value = 'error'
+    return
+  }
+  if (embeddedCheckout) return
+
+  mountState.value = 'loading'
+
+  try {
+    const stripe = await loadStripe(config.public.stripePublishableKey as string)
+    if (!stripe) throw new Error('stripe-load-failed')
+
+    const checkout = await stripe.initEmbeddedCheckout({
+      fetchClientSecret: async () => {
+        const clientSecret = await createSession({
+          // `item.quantity ?? 1` : garde de migration — un panier localStorage
+          // posé avant l'US-096 ne porte pas de champ `quantity` (`undefined`),
+          // ce qui violerait `z.number().int().min(1)` côté API (422, checkout
+          // bloqué) sans cette garde.
+          items: cart.availableItems.map(item => ({ productId: item.productId, quantity: item.quantity ?? 1 })),
+          previousOrderId: cart.pendingOrderId ?? undefined,
+          // US-104 — raccorde le funnel client (checkout_opened) au
+          // `order_paid` serveur : distinct_id anonyme éphémère, absent si
+          // PostHog est bloqué/désactivé (le comptage serveur reste exhaustif
+          // via un id aléatoire côté webhook).
+          analyticsId: getDistinctId() ?? undefined,
+        })
+        if (!clientSecret) throw new Error('checkout-session-failed')
+        return clientSecret
+      },
+    })
+
+    embeddedCheckout = checkout
+    await nextTick()
+    if (checkoutContainer.value) {
+      checkout.mount(checkoutContainer.value)
+      mountState.value = 'mounted'
+      captureCheckoutOpened()
+    }
+    else {
+      // Le conteneur a disparu (navigation) entre-temps — on nettoie.
+      checkout.destroy()
+      embeddedCheckout = null
+    }
+  }
+  catch {
+    mountState.value = 'error'
+    if (!errorMessage.value) {
+      errorMessage.value = 'Impossible de charger le formulaire de paiement. Réessayez dans quelques instants.'
+    }
   }
 }
 
-// ─── Soumission ─────────────────────────────────────────────────────────────
-
-async function onSubmit(): Promise<void> {
-  submitAttempted.value = true
-  if (!isValid.value || cart.availableItems.length === 0) return
-
-  await submitCheckout({
-    email: form.email.trim(),
-    name: form.name.trim(),
-    phone: form.phone.trim() || undefined,
-    fulfillmentMethod: fulfillment.value,
-    address:
-      fulfillment.value === 'shipping'
-        ? {
-            street: form.street.trim(),
-            postalCode: form.postalCode.trim(),
-            city: form.city.trim(),
-            country: form.country.trim(),
-          }
-        : undefined,
-    productIds: cart.availableItems.map(item => item.productId),
-  })
+async function retryMount(): Promise<void> {
+  if (embeddedCheckout) {
+    embeddedCheckout.destroy()
+    embeddedCheckout = null
+  }
+  mountState.value = 'idle'
+  await mountEmbeddedCheckout()
 }
+
+onMounted(async () => {
+  await cart.refreshAvailability()
+  await mountEmbeddedCheckout()
+})
+
+// Une fois les articles indisponibles retirés du panier, on tente le montage
+// (il n'a jamais démarré tant qu'ils étaient présents).
+watch(
+  () => cart.unavailableItems.length,
+  (length) => {
+    if (length === 0 && mountState.value === 'idle' && !cart.isEmpty) {
+      void mountEmbeddedCheckout()
+    }
+  },
+)
+
+onUnmounted(() => {
+  embeddedCheckout?.destroy()
+  embeddedCheckout = null
+})
 </script>
 
 <template>
@@ -146,7 +171,7 @@ async function onSubmit(): Promise<void> {
         Paiement sécurisé par Stripe — aucun compte nécessaire.
       </p>
 
-      <!-- Bannière paiement annulé (retour cancel_url) -->
+      <!-- Bannière paiement annulé/échoué (retour return_url) -->
       <div
         v-if="wasCancelled"
         role="status"
@@ -154,7 +179,7 @@ async function onSubmit(): Promise<void> {
       >
         <UIcon name="i-lucide-info" class="w-5 h-5 text-cgws-accent flex-shrink-0 mt-0.5" aria-hidden="true" />
         <p class="font-sans text-sm text-cgws-ink leading-relaxed">
-          Paiement annulé — votre panier est intact. Vous pouvez reprendre votre commande quand vous le souhaitez.
+          Paiement annulé ou interrompu — votre panier est intact. Vous pouvez reprendre votre commande ci-dessous.
         </p>
       </div>
 
@@ -181,145 +206,11 @@ async function onSubmit(): Promise<void> {
           </CgwsButton>
         </div>
 
-        <!-- Formulaire + récapitulatif -->
-        <form
+        <!-- Récapitulatif + Checkout embarqué -->
+        <div
           v-else
-          class="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 lg:gap-12 items-start"
-          novalidate
-          @submit.prevent="onSubmit"
+          class="mt-8 grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 lg:gap-12 items-start"
         >
-          <!-- ── Colonne formulaire ─────────────────────────────────────── -->
-          <div class="flex flex-col gap-8 min-w-0">
-            <!-- Coordonnées -->
-            <fieldset class="flex flex-col gap-4 border-0 p-0 m-0">
-              <legend class="font-serif font-semibold text-lg text-cgws-ink mb-2 p-0">
-                Vos coordonnées
-              </legend>
-
-              <CgwsInput
-                v-model="form.email"
-                label="Email"
-                type="email"
-                name="email"
-                autocomplete="email"
-                placeholder="vous@exemple.fr"
-                required
-                :error="fieldError('email')"
-                hint="Votre confirmation de commande sera envoyée à cette adresse"
-                @blur="markTouched('email')"
-              />
-              <CgwsInput
-                v-model="form.name"
-                label="Nom complet"
-                type="text"
-                name="name"
-                autocomplete="name"
-                placeholder="Prénom Nom"
-                required
-                :error="fieldError('name')"
-                @blur="markTouched('name')"
-              />
-              <CgwsInput
-                v-model="form.phone"
-                label="Téléphone"
-                type="tel"
-                name="phone"
-                autocomplete="tel"
-                placeholder="06 12 34 56 78"
-                :error="fieldError('phone')"
-                hint="Facultatif — utile pour organiser la livraison ou le retrait"
-                @blur="markTouched('phone')"
-              />
-            </fieldset>
-
-            <!-- Mode de réception -->
-            <fieldset class="flex flex-col gap-3 border-0 p-0 m-0">
-              <legend class="font-serif font-semibold text-lg text-cgws-ink mb-2 p-0">
-                Mode de réception
-              </legend>
-
-              <label
-                v-for="option in ([
-                  { value: 'shipping', label: 'Livraison à domicile', detail: `Frais de port : ${formatEur(SHIPPING_FLAT_RATE)} €` },
-                  { value: 'pickup', label: 'Retrait à la boutique — Brèches (37)', detail: 'Gratuit — nous conviendrons d\'un créneau ensemble' },
-                ] as Array<{ value: FulfillmentMethod, label: string, detail: string }>)"
-                :key="option.value"
-                class="flex items-start gap-3 p-4 rounded-[4px] border-2 cursor-pointer transition-colors duration-150"
-                :class="fulfillment === option.value
-                  ? 'border-cgws-accent bg-cgws-surface'
-                  : 'border-cgws-hairline bg-cgws-ground hover:border-cgws-edge'"
-              >
-                <input
-                  v-model="fulfillment"
-                  type="radio"
-                  name="fulfillment"
-                  :value="option.value"
-                  class="mt-1 w-4 h-4 accent-cgws-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
-                >
-                <span class="flex flex-col gap-0.5">
-                  <span class="font-sans font-semibold text-sm text-cgws-ink">{{ option.label }}</span>
-                  <span class="font-sans text-xs text-cgws-ink-soft">{{ option.detail }}</span>
-                </span>
-              </label>
-            </fieldset>
-
-            <!-- Adresse de livraison (requise si livraison) -->
-            <fieldset
-              v-if="fulfillment === 'shipping'"
-              class="flex flex-col gap-4 border-0 p-0 m-0"
-            >
-              <legend class="font-serif font-semibold text-lg text-cgws-ink mb-2 p-0">
-                Adresse de livraison
-              </legend>
-
-              <CgwsInput
-                v-model="form.street"
-                label="Adresse"
-                type="text"
-                name="street"
-                autocomplete="street-address"
-                placeholder="12 rue de la Sellerie"
-                required
-                :error="fieldError('street')"
-                @blur="markTouched('street')"
-              />
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <CgwsInput
-                  v-model="form.postalCode"
-                  label="Code postal"
-                  type="text"
-                  name="postalCode"
-                  autocomplete="postal-code"
-                  placeholder="37330"
-                  required
-                  :error="fieldError('postalCode')"
-                  @blur="markTouched('postalCode')"
-                />
-                <CgwsInput
-                  v-model="form.city"
-                  label="Ville"
-                  type="text"
-                  name="city"
-                  autocomplete="address-level2"
-                  placeholder="Brèches"
-                  required
-                  :error="fieldError('city')"
-                  @blur="markTouched('city')"
-                />
-              </div>
-              <CgwsInput
-                v-model="form.country"
-                label="Pays"
-                type="text"
-                name="country"
-                autocomplete="country-name"
-                required
-                :error="fieldError('country')"
-                @blur="markTouched('country')"
-              />
-            </fieldset>
-          </div>
-
           <!-- ── Colonne récapitulatif ──────────────────────────────────── -->
           <aside
             class="bg-cgws-surface border-2 border-cgws-edge rounded-[6px] p-5 flex flex-col gap-4 lg:sticky lg:top-[calc(4rem+2rem)]"
@@ -368,47 +259,81 @@ async function onSubmit(): Promise<void> {
 
             <dl class="flex flex-col gap-1.5 border-t border-cgws-hairline pt-3">
               <div class="flex items-baseline justify-between">
-                <dt class="font-sans text-sm text-cgws-ink-soft">Sous-total</dt>
-                <dd class="font-sans text-sm tabular-nums text-cgws-ink">{{ formatEur(cart.subtotal) }} €</dd>
-              </div>
-              <div class="flex items-baseline justify-between">
-                <dt class="font-sans text-sm text-cgws-ink-soft">Frais de port</dt>
-                <dd class="font-sans text-sm tabular-nums text-cgws-ink">
-                  {{ shippingCost > 0 ? `${formatEur(shippingCost)} €` : 'Gratuit' }}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between border-t border-cgws-hairline pt-2 mt-1">
-                <dt class="font-sans font-semibold text-base text-cgws-ink">Total</dt>
-                <dd class="font-display text-2xl tabular-nums text-cgws-accent">{{ formatEur(total) }} €</dd>
+                <dt class="font-sans font-semibold text-base text-cgws-ink">Sous-total</dt>
+                <dd class="font-display text-2xl tabular-nums text-cgws-accent">{{ formatEur(cart.subtotal) }} €</dd>
               </div>
             </dl>
 
-            <!-- Erreur de soumission -->
-            <p
-              v-if="errorMessage"
-              role="alert"
-              class="font-sans text-sm text-cgws-danger leading-snug animate-shake"
-            >
-              {{ errorMessage }}
-            </p>
-
-            <CgwsButton
-              type="submit"
-              variant="primary"
-              size="md"
-              class="w-full justify-center"
-              :loading="loading"
-              :disabled="loading || cart.availableItems.length === 0"
-            >
-              <UIcon name="i-lucide-lock" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
-              Payer {{ formatEur(total) }} €
-            </CgwsButton>
-
-            <p class="font-sans text-[11px] text-cgws-ink-soft text-center leading-snug">
-              Vous serez redirigé vers la page de paiement sécurisée Stripe.
+            <p class="font-sans text-[11px] text-cgws-ink-soft leading-snug">
+              Frais de port calculés dans le formulaire de paiement, selon le mode de réception choisi
+              (livraison à domicile ou retrait gratuit à la boutique de Brèches).
             </p>
           </aside>
-        </form>
+
+          <!-- ── Colonne Checkout embarqué ──────────────────────────────── -->
+          <div
+            class="relative bg-cgws-surface border-2 border-cgws-edge rounded-[6px] p-4 min-h-[600px]"
+          >
+            <!-- Articles indisponibles : le montage n'a pas démarré -->
+            <div
+              v-if="cart.unavailableItems.length > 0"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
+            >
+              <UIcon name="i-lucide-triangle-alert" class="w-8 h-8 text-cgws-danger" aria-hidden="true" />
+              <p class="font-sans text-sm text-cgws-ink-soft max-w-[360px]">
+                Retirez les articles indisponibles de votre panier (colonne de gauche) pour continuer votre paiement.
+              </p>
+            </div>
+
+            <!-- Clé publishable absente : paiement indisponible -->
+            <div
+              v-else-if="!hasPublishableKey"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
+            >
+              <UIcon name="i-lucide-circle-off" class="w-8 h-8 text-cgws-ink-soft" aria-hidden="true" />
+              <p class="font-sans text-sm text-cgws-ink-soft max-w-[360px]">
+                Le paiement en ligne n'est pas disponible pour le moment. Merci de nous contacter directement pour
+                finaliser votre commande.
+              </p>
+            </div>
+
+            <!-- Chargement du formulaire -->
+            <div
+              v-else-if="mountState === 'idle' || mountState === 'loading'"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-3"
+              aria-hidden="true"
+            >
+              <span
+                class="w-10 h-10 inline-block animate-spin rounded-full border-4 border-cgws-accent border-t-transparent"
+              />
+              <p class="font-sans text-sm text-cgws-ink-soft">Chargement du formulaire de paiement…</p>
+            </div>
+
+            <!-- Erreur de création de session -->
+            <div
+              v-else-if="mountState === 'error'"
+              role="alert"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center"
+            >
+              <UIcon name="i-lucide-circle-alert" class="w-8 h-8 text-cgws-danger" aria-hidden="true" />
+              <p class="font-sans text-sm text-cgws-danger leading-snug max-w-[360px]">
+                {{ errorMessage }}
+              </p>
+              <CgwsButton variant="secondary" size="sm" :loading="loading" @click="retryMount">
+                Réessayer
+              </CgwsButton>
+            </div>
+
+            <!-- Conteneur Checkout embarqué Stripe — toujours présent dans le DOM
+                 (v-show, jamais v-if) pour que la référence reste valide tant que
+                 Stripe y a injecté son iframe. -->
+            <div
+              v-show="mountState === 'mounted'"
+              ref="checkoutContainer"
+              class="w-full min-h-[600px]"
+            />
+          </div>
+        </div>
 
         <template #fallback>
           <div class="mt-12 py-12 text-center" aria-hidden="true">

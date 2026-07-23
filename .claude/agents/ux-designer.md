@@ -2,7 +2,7 @@
 name: ux-designer
 description: "Use this agent to produce a detailed UX/UI specification (layout, breakpoints, states, Tailwind classes, animations, accessibility) for a CGWS page or component BEFORE implementation starts, whenever no spec exists yet in docs/design-specs/. MUST BE USED the first time nuxt-developer would touch a new user-facing page or component without a prior spec."
 tools: "Read, Grep, Glob, Write, mcp__nuxt-ui-remote__get-component, mcp__nuxt-ui-remote__get-component-metadata, mcp__nuxt-ui-remote__get-documentation-page, mcp__nuxt-ui-remote__get-example, mcp__nuxt-ui-remote__get-migration-guide, mcp__nuxt-ui-remote__get-template, mcp__nuxt-ui-remote__list-examples, mcp__nuxt-ui-remote__list-templates, mcp__nuxt-ui-remote__search-components, mcp__nuxt-ui-remote__search-composables, mcp__nuxt-ui-remote__search-documentation, mcp__nuxt-ui-remote__search-icons, mcp__plugin_context7_context7__query-docs, mcp__plugin_context7_context7__resolve-library-id"
-model: sonnet
+model: fable
 thinkingLevel: medium
 color: pink
 ---

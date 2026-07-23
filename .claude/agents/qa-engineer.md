@@ -1,7 +1,7 @@
 ---
 name: qa-engineer
 description: "Use this agent to validate a just-implemented CGWS User Story against its Gherkin acceptance criteria and quality standards (TypeScript, accessibility, responsive, performance) BEFORE any commit happens. MUST BE USED immediately after nuxt-developer reports a US as implemented, every single time, with no exceptions."
-tools: "Read, Bash, Grep, Glob"
+tools: "Read, Bash, Grep, Glob, mcp__stripe"
 model: sonnet
 thinkingLevel: high
 color: yellow

@@ -299,10 +299,9 @@ onUnmounted(() => {
       <KpiCard
         v-for="(kpi, index) in kpiCards"
         :key="kpi.id"
-        v-motion="{
-          initial: { opacity: 0, y: 8 },
-          visibleOnce: { opacity: 1, y: 0, transition: { delay: index * 80, duration: 300 } },
-        }"
+        v-motion
+        :initial="{ opacity: 0, y: 8 }"
+        :visible-once="{ opacity: 1, y: 0, transition: { delay: index * 80, duration: 300 } }"
         :label="kpi.label"
         :value="kpi.value"
         :icon="kpi.icon"

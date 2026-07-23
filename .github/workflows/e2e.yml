@@ -1,4 +1,4 @@
-name: E2E Tests
+name: CI (typecheck · lint · unit · e2e)
 
 on:
   push:
@@ -7,14 +7,72 @@ on:
     branches: [main, develop]
 
 jobs:
+  # ─── Gate réel (US-091) ─────────────────────────────────────────────────
+  # Ne dépend d'AUCUN secret — tourne toujours. C'est le filet de sécurité
+  # qui bloque effectivement les régressions, notamment sur le chemin de
+  # paiement (tests/unit/fulfillment.spec.ts, checkout-session.spec.ts).
+  quality:
+    name: Typecheck · Lint · Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22 LTS : ESLint 9.39 utilise Object.groupBy (Node >= 21.1) alors
+      # qu'il declare supporter ^20.9.0 — sur Node 20 il crashe avant meme de
+      # lire la config. Node 20 est par ailleurs EOL (avril 2026) et plusieurs
+      # deps remontent deja des EBADENGINE.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:unit
+
+  # ─── Détection des secrets Supabase ─────────────────────────────────────
+  # Job séparé et TOUJOURS vert : c'est ici qu'apparaît la justification
+  # visible du skip (annotation ::notice:: + log), consultable dans le run
+  # même quand le job `e2e` ci-dessous est lui-même marqué Skipped.
+  e2e-secrets-check:
+    name: E2E — vérification des secrets Supabase
+    runs-on: ubuntu-latest
+    outputs:
+      has_secrets: ${{ steps.check.outputs.has_secrets }}
+    steps:
+      - name: Vérifie la présence de SUPABASE_URL / SUPABASE_ANON_KEY
+        id: check
+        run: |
+          if [ -n "${{ secrets.SUPABASE_URL }}" ] && [ -n "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=E2E skippés::Secrets Supabase absents — e2e skippés, voir docs/DEV_GUIDE.md § CI"
+          fi
+
+  # ─── E2E Playwright ──────────────────────────────────────────────────────
+  # SKIPPED (statut de job dédié, pas un échec) tant que les secrets GitHub
+  # SUPABASE_URL / SUPABASE_ANON_KEY ne sont pas configurés. Une fois
+  # renseignés, tourne pour de vrai (build + preview + Playwright).
   e2e:
+    name: E2E (Playwright)
+    needs: e2e-secrets-check
+    if: needs.e2e-secrets-check.outputs.has_secrets == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies

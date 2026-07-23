@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import type { TablesUpdate } from '~/types/database.types'
 
 interface PatchBody {
   agreedPrice?: number
@@ -52,7 +53,7 @@ export default defineEventHandler(async (event: H3Event) => {
   }
 
   // Build update payload
-  const updatePayload: Record<string, unknown> = {}
+  const updatePayload: TablesUpdate<'consignments'> = {}
   if (body.agreedPrice !== undefined) updatePayload.agreed_price = body.agreedPrice
   if (body.notes !== undefined) updatePayload.notes = body.notes || null
 

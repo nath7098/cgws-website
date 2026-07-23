@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OrderRecap } from '~/types'
+import type { CheckoutSessionStatus } from '~/types'
 import { useCartStore } from '~/stores/cart'
 import { FULFILLMENT_LABELS } from '#shared/utils/checkout'
 import CgwsButton from '~/components/ui/CgwsButton.vue'
@@ -17,21 +17,32 @@ const sessionId = computed(() =>
   typeof route.query.session_id === 'string' ? route.query.session_id : null,
 )
 
-// Récap commande via l'API (lookup par stripe_session_id). Peut échouer
-// (visite directe sans session) — on affiche alors un message générique.
-const { data } = await useAsyncData<{ order: OrderRecap } | null>(
-  `checkout-success-${sessionId.value ?? 'none'}`,
+// Statut de la session Stripe (déclenche aussi le fulfillment côté serveur,
+// idempotent). Peut échouer (session inconnue/expirée) — on affiche alors un
+// message générique plutôt que de faire planter la page.
+const { data } = await useAsyncData<CheckoutSessionStatus | null>(
+  `checkout-session-status-${sessionId.value ?? 'none'}`,
   () =>
     sessionId.value
-      ? $fetch<{ order: OrderRecap }>(`/api/orders/${encodeURIComponent(sessionId.value)}`).catch(() => null)
+      ? $fetch<CheckoutSessionStatus>('/api/checkout/session-status', {
+          query: { session_id: sessionId.value },
+        }).catch(() => null)
       : Promise.resolve(null),
 )
 
 const order = computed(() => data.value?.order ?? null)
 
-/** Le webhook peut mettre quelques secondes — 'pending' ici signifie
- *  "paiement effectué, confirmation en cours de traitement". */
-const isConfirmed = computed(() => order.value?.status === 'paid' || order.value?.status === 'fulfilled')
+/** Paiement confirmé (synchrone ou total à 0) — le fulfillment a eu lieu. */
+const isPaid = computed(
+  () =>
+    data.value?.status === 'complete'
+    && (data.value.paymentStatus === 'paid' || data.value.paymentStatus === 'no_payment_required'),
+)
+
+/** Paiement asynchrone (ex. virement) en cours de confirmation. */
+const isProcessing = computed(
+  () => data.value?.status === 'complete' && data.value.paymentStatus === 'unpaid',
+)
 
 const formatEur = (amount: number): string =>
   new Intl.NumberFormat('fr-FR', {
@@ -40,9 +51,19 @@ const formatEur = (amount: number): string =>
     maximumFractionDigits: 2,
   }).format(amount)
 
-// Le paiement est passé : on vide le panier local (US-071).
 onMounted(() => {
-  if (sessionId.value) {
+  if (!sessionId.value || !data.value) return
+
+  // Session encore ouverte : le paiement a échoué ou a été abandonné dans le
+  // formulaire embarqué. On remonte le formulaire — le panier reste intact.
+  if (data.value.status === 'open') {
+    void navigateTo({ path: '/checkout', query: { cancelled: '1' } })
+    return
+  }
+
+  // Paiement confirmé ou en cours de traitement asynchrone : le panier a
+  // rempli son rôle, on le vide (les pièces sont réservées/vendues côté serveur).
+  if (data.value.status === 'complete') {
     cart.clear()
   }
 })
@@ -63,23 +84,29 @@ onMounted(() => {
       </div>
 
       <h1 class="font-serif font-bold text-[28px] sm:text-[32px] text-cgws-ink leading-tight">
-        {{ isConfirmed ? 'Commande confirmée !' : 'Merci pour votre commande !' }}
+        <template v-if="isPaid">Commande confirmée !</template>
+        <template v-else-if="isProcessing">Merci pour votre commande !</template>
+        <template v-else>Merci de votre visite</template>
       </h1>
 
       <p class="font-sans text-base text-cgws-ink-soft leading-relaxed max-w-[440px]">
-        <template v-if="isConfirmed">
+        <template v-if="isPaid">
           Votre paiement a bien été reçu. Un email de confirmation vous a été envoyé
-          <template v-if="order">à <strong class="text-cgws-ink">{{ order.email }}</strong></template>.
+          <template v-if="order?.email"> à <strong class="text-cgws-ink">{{ order.email }}</strong></template>.
+        </template>
+        <template v-else-if="isProcessing">
+          Votre paiement a bien été pris en compte et est en cours de traitement. Vous recevrez un email de
+          confirmation dans quelques instants.
         </template>
         <template v-else>
-          Votre paiement a bien été pris en compte. Votre confirmation est en cours de
-          traitement — vous recevrez un email récapitulatif dans quelques instants.
+          Nous n'avons pas pu retrouver les détails de cette commande. Si vous venez d'effectuer un paiement,
+          vous recevrez un email de confirmation sous peu.
         </template>
       </p>
 
       <!-- Récapitulatif -->
       <div
-        v-if="order"
+        v-if="order && (isPaid || isProcessing)"
         class="w-full bg-cgws-surface border-2 border-cgws-edge rounded-[6px] p-5 flex flex-col gap-4 text-left"
       >
         <h2 class="font-serif font-semibold text-lg text-cgws-ink">
@@ -116,7 +143,7 @@ onMounted(() => {
           </div>
         </dl>
 
-        <div class="border-t border-cgws-hairline pt-3 flex flex-col gap-1">
+        <div v-if="order.fulfillmentMethod" class="border-t border-cgws-hairline pt-3 flex flex-col gap-1">
           <p class="font-sans text-sm text-cgws-ink">
             <strong>{{ FULFILLMENT_LABELS[order.fulfillmentMethod] }}</strong>
           </p>

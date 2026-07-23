@@ -70,7 +70,7 @@ useSeoMeta({
           <div class="flex flex-wrap gap-x-2">
             <dt class="font-semibold text-cgws-ink">Adresse :</dt>
             <!-- TODO: confirmer adresse exacte avec Camille -->
-            <dd>Brèches, 37320 Indre-et-Loire, France</dd>
+            <dd>Brèches, 37330 Indre-et-Loire, France</dd>
           </div>
           <div class="flex flex-wrap gap-x-2">
             <dt class="font-semibold text-cgws-ink">Email :</dt>
@@ -199,6 +199,18 @@ useSeoMeta({
           Ce site utilise uniquement des cookies strictement nécessaires à son fonctionnement
           (préférences de session). Aucun cookie de tracking publicitaire ou analytique tiers
           n'est déposé sans votre consentement explicite.
+        </p>
+        <!-- TODO: formulation légale à valider par Nathan (transparence exemption CNIL mesure d'audience — US-102) -->
+        <p
+          class="font-sans text-[14px] md:text-[15px] text-cgws-ink/80 leading-relaxed mt-4"
+        >
+          Ce site utilise par ailleurs un outil de mesure d'audience (PostHog, hébergé dans
+          l'Union européenne) configuré en mode strictement anonyme : aucun cookie ni traceur
+          n'est déposé sur votre appareil, aucune donnée permettant de vous identifier n'est
+          collectée et votre adresse IP n'est pas conservée. Ce dispositif, limité à la
+          production de statistiques anonymes de fréquentation, est exempté de consentement
+          conformément aux lignes directrices de la CNIL — c'est pourquoi aucun bandeau de
+          consentement ne vous est présenté.
         </p>
       </section>
 

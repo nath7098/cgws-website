@@ -1,5 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '~/types/database.types'
+import type { Consignment, ConsignmentStatus, ProductCondition } from '~/types'
+
+// ─── Narrowing DB text → unions du domaine ───────────────────────────────────
+// Les colonnes `condition`/`status` sont `text` en base (avec contrainte CHECK
+// sur exactement ces valeurs — migration 001) mais typées `string` par le
+// générateur Supabase. On valide à l'exécution via type predicate plutôt que
+// de caster aveuglément ; le fallback ne peut se produire que si la contrainte
+// CHECK a été contournée.
+
+const PRODUCT_CONDITIONS: readonly ProductCondition[] = ['new', 'excellent', 'good', 'fair']
+const CONSIGNMENT_STATUSES: readonly ConsignmentStatus[] = ['pending', 'accepted', 'rejected', 'sold', 'returned']
+
+function isProductCondition(value: string): value is ProductCondition {
+  return PRODUCT_CONDITIONS.some(c => c === value)
+}
+
+function isConsignmentStatus(value: string): value is ConsignmentStatus {
+  return CONSIGNMENT_STATUSES.some(s => s === value)
+}
 
 /**
  * Nettoie une valeur de credential (URL / clé) avant de la passer au client
@@ -99,7 +118,7 @@ export function mapConsignmentRow(row: {
   status: string | null
   notes: string | null
   created_at: string | null
-}) {
+}): Consignment {
   return {
     id: row.id,
     depositorName: row.depositor_name,
@@ -107,11 +126,11 @@ export function mapConsignmentRow(row: {
     depositorPhone: row.depositor_phone ?? '',
     itemDescription: row.item_description,
     brand: row.brand ?? '',
-    condition: row.condition,
+    condition: isProductCondition(row.condition) ? row.condition : 'good',
     askingPrice: row.asking_price,
     agreedPrice: row.agreed_price ?? undefined,
     images: row.images ?? [],
-    status: row.status ?? 'pending',
+    status: row.status !== null && isConsignmentStatus(row.status) ? row.status : 'pending',
     notes: row.notes ?? undefined,
     createdAt: row.created_at ?? '',
   }

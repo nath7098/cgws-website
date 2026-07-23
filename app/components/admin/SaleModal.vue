@@ -348,32 +348,22 @@ function handleModalKeydown(event: KeyboardEvent): void {
             </button>
 
             <!-- Enregistrer la vente -->
-            <button
+            <CgwsButton
+              variant="primary"
+              size="sm"
               type="button"
-              :disabled="isSubmitting"
-              class="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                     px-5 py-2 rounded-sm bg-cgws-accent text-cgws-on-accent
-                     font-sans text-sm font-semibold
-                     hover:bg-cgws-edge transition-colors
-                     disabled:opacity-40 disabled:cursor-not-allowed
-                     focus-visible:ring-2 focus-visible:ring-cgws-accent
-                     focus-visible:ring-offset-2 focus-visible:outline-none"
+              :loading="isSubmitting"
+              class="w-full sm:w-auto"
               @click="submitSale"
             >
-              <span
-                v-if="isSubmitting"
-                class="w-4 h-4 rounded-full border-2 border-current
-                       border-t-transparent animate-spin"
-                aria-hidden="true"
-              />
               {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer la vente' }}
               <UIcon
                 v-if="!isSubmitting"
                 name="i-lucide-arrow-right"
-                class="w-4 h-4"
+                class="w-4 h-4 ml-2"
                 aria-hidden="true"
               />
-            </button>
+            </CgwsButton>
           </div>
         </div>
       </div>

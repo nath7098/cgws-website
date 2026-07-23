@@ -172,6 +172,15 @@ RESEND_API_KEY=re_xxxx
 SITE_URL=http://localhost:3000
 COMMISSION_RATE=20
 ADMIN_EMAIL=camille@cgws.fr
+# Expéditeur unique des emails transactionnels (optionnel).
+# Fallback si absent : 'CGWS <onboarding@resend.dev>' (domaine de test Resend).
+# ⚠️ Nécessite le domaine cgws.fr VÉRIFIÉ dans Resend avant de pointer cgws.fr.
+CGWS_EMAIL_FROM=
+# PostHog — mesure d'audience cookieless (US-102). OPTIONNEL en local : sans
+# NUXT_PUBLIC_POSTHOG_KEY, le plugin est un no-op silencieux (aucun script,
+# aucune erreur console). Clé PROJET publique (phc_...), hébergement UE.
+NUXT_PUBLIC_POSTHOG_KEY=
+NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 ```bash
@@ -183,6 +192,9 @@ RESEND_API_KEY=
 SITE_URL=
 COMMISSION_RATE=20
 ADMIN_EMAIL=
+CGWS_EMAIL_FROM=
+NUXT_PUBLIC_POSTHOG_KEY=
+NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 ### 4. Design System CSS
@@ -268,6 +280,48 @@ export function useSupabaseAdmin() {
     { auth: { persistSession: false } }
   )
 }
+```
+
+### 5bis. Types Supabase générés — `app/types/database.types.ts`
+
+Le fichier `app/types/database.types.ts` est **généré**, jamais édité à la main.
+Il est la source de vérité TypeScript du schéma Postgres (tables, colonnes,
+relations, fonctions RPC) et alimente `createClient<Database>` partout
+(app + server). Un fichier désaligné produit de faux positifs/négatifs au
+typecheck sur tout le code d'accès données.
+
+**Règle absolue : à relancer après CHAQUE nouvelle migration, dans le même
+commit que la migration.** Une migration sans régénération des types est un
+diff incomplet.
+
+**Commande exacte (CLI Supabase)** :
+
+```bash
+# Prérequis : Supabase CLI installée (npm i -g supabase) et authentifiée
+# (supabase login), ou npx. <project-ref> = ref du projet live (dashboard).
+npx supabase gen types typescript --project-id <project-ref> --schema public \
+  > app/types/database.types.ts
+```
+
+**Alternative (session Claude Code)** : le MCP supabase expose
+`generate_typescript_types` — écrire sa sortie **verbatim** dans
+`app/types/database.types.ts` (aucune retouche de style, le diff entre le
+fichier commité et la sortie générée doit être vide).
+
+**Vérification après régénération** :
+
+```bash
+npm run typecheck   # doit rester à 0 erreur — les désalignements révélés
+                    # par les nouveaux types se corrigent dans le même commit
+```
+
+Pour typer les payloads d'écriture, utiliser les helpers générés plutôt que
+`Record<string, unknown>` :
+
+```typescript
+import type { TablesUpdate, TablesInsert } from '~/types/database.types'
+
+const updates: TablesUpdate<'categories'> = {}
 ```
 
 ### 6. Plugin GSAP (client-side)
@@ -537,6 +591,360 @@ npx supabase start           # Supabase local (Docker)
 npx supabase db reset        # Reset DB locale avec migrations
 npx supabase gen types typescript --local > types/supabase.ts
 ```
+
+---
+
+## CI (US-091)
+
+Le workflow `.github/workflows/e2e.yml` se déclenche sur chaque `push` (branches
+`main`, `develop`, `feature/**`) et chaque `pull_request` vers `main`/`develop`.
+Il comporte 3 jobs :
+
+| Job | Dépend d'un secret ? | Rôle |
+|-----|----------------------|------|
+| `quality` | Non | **Le vrai gate.** `npm ci` → `npm run typecheck` → `npm run lint` → `npm run test:unit`. Couvre notamment tout le chemin de paiement (`tests/unit/fulfillment.spec.ts`, `tests/unit/checkout-session.spec.ts`) sans base Supabase réelle (mocks). Doit **toujours** être vert. |
+| `e2e-secrets-check` | Non | Vérifie la présence des secrets Supabase et log une annotation explicite si absents. Toujours vert. |
+| `e2e` | Oui (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) | Playwright contre un vrai build. **Skipped** (statut de job dédié, pas un échec) tant que les secrets ne sont pas configurés dans le dépôt GitHub — sinon tourne pour de vrai. |
+
+Résultat : le run global est **vert par défaut**, avec ou sans les secrets
+Supabase configurés. Ce n'était pas le cas avant l'US-091 (`npm ci` cassé +
+secrets absents faisaient échouer le job e2e systématiquement).
+
+### Secrets GitHub à créer (Nathan)
+
+Dans **Settings → Secrets and variables → Actions** du dépôt GitHub, créer :
+
+| Nom exact du secret | Où trouver la valeur |
+|----------------------|------------------------|
+| `SUPABASE_URL` | Dashboard Supabase → Project Settings → API → **Project URL** (même valeur que `NUXT_PUBLIC_SUPABASE_URL` en local) |
+| `SUPABASE_ANON_KEY` | Dashboard Supabase → Project Settings → API → **anon / public key** (même valeur que `NUXT_PUBLIC_SUPABASE_ANON_KEY` en local) |
+
+Optionnel — pour un scénario e2e checkout complet (paiement Stripe simulé) à
+ajouter dans un futur run Playwright :
+
+| Nom exact du secret | Où trouver la valeur |
+|----------------------|------------------------|
+| `STRIPE_SECRET_KEY` (test) | Dashboard Stripe (mode Test) → Developers → API keys → **Secret key** (`sk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` (test) | Dashboard Stripe (mode Test) → Developers → Webhooks → endpoint concerné → **Signing secret** (`whsec_...`), ou `stripe listen --print-secret` en local |
+| `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Dashboard Stripe (mode Test) → Developers → API keys → **Publishable key** (`pk_test_...`) |
+
+Ces clés Stripe ne sont **pas** requises pour que le job `e2e` actuel passe au
+vert — seules `SUPABASE_URL` / `SUPABASE_ANON_KEY` conditionnent son
+déclenchement aujourd'hui. Elles ne servent que si un futur scénario e2e du
+tunnel de paiement est ajouté à `tests/e2e/`.
+
+### Vérifier localement avant de pousser
+
+```bash
+rm -rf node_modules
+npm ci                # doit terminer en EXIT 0 (package-lock.json à jour)
+npm run build          # doit passer directement derrière npm ci, sans npm install
+npm run typecheck
+npm run lint
+npm run test:unit
+```
+
+Si `npm ci` échoue avec un message du type `Missing: crossws@x.y.z from lock
+file`, c'est une désynchronisation du lockfile liée à une résolution
+différente des peer dependencies optionnelles selon la version majeure de npm
+(observé entre npm 10 et npm 11) — régénérer avec
+`npm install --package-lock-only --ignore-scripts` puis revérifier `npm ci`.
+
+---
+
+## Emails transactionnels (US-092, US-094)
+
+### Expéditeur centralisé et garde-fou de fallback
+
+`server/services/email.ts` centralise le `from` des 6 templates transactionnels
+via `resolveEmailFrom()` (non exportée), qui lit `useRuntimeConfig().emailFrom`
+(mappé sur `CGWS_EMAIL_FROM`, voir §3). Tant que cette variable est vide en
+production, tous les emails partent depuis le fallback `CGWS
+<onboarding@resend.dev>` — un domaine de test Resend qui **ne délivre qu'à
+l'adresse du titulaire du compte Resend**. C'est la cause confirmée des
+issues #27 (formulaire de contact "silencieux" : succès affiché côté visiteur,
+email jamais reçu) et #24 (mail de commande non reçu sur une autre adresse que
+celle de Camille).
+
+Depuis l'US-094, ce risque n'est plus invisible : un bandeau d'alerte
+(`app/components/admin/EmailFallbackBanner.vue`, monté dans
+`app/pages/admin/dashboard.vue`) s'affiche à chaque connexion admin tant que
+`GET /api/admin/email-status` (route protégée par `requireAdminAuth`) retourne
+`{ isFallback: true }`. Ce booléen est calculé par `isFallbackSender()`
+(export minimal de `server/services/email.ts`, dédié à cette seule
+détection) — aucune information de configuration email (adresse `from`,
+`runtimeConfig` brut) n'est jamais exposée côté client, authentifié ou non.
+Le bandeau n'a **volontairement** aucun bouton "fermer définitivement" :
+masquer durablement un vrai problème de production irait à l'encontre de sa
+raison d'être.
+
+### Lever le bandeau (action Nathan, hors périmètre code)
+
+1. Vérifier le domaine `cgws.fr` dans Resend (Dashboard Resend → Domains →
+   Add Domain → suivre les enregistrements DNS à ajouter chez le registrar :
+   SPF, DKIM, et éventuellement DMARC).
+2. Attendre la validation du domaine (statut "Verified" dans Resend — peut
+   prendre de quelques minutes à quelques heures selon la propagation DNS).
+3. Positionner la variable d'environnement `CGWS_EMAIL_FROM` en production sur
+   Vercel (Project Settings → Environment Variables), par exemple :
+   `CGWS <noreply@cgws.fr>`.
+4. Redéployer (ou attendre le prochain déploiement) — aucun changement de code
+   n'est nécessaire, la bascule est purement une variable d'environnement.
+5. Se reconnecter à `/admin/dashboard` : le bandeau doit avoir disparu.
+
+### Checklist de recette manuelle des 6 templates
+
+À exécuter **une fois** le domaine `cgws.fr` vérifié dans Resend et
+`CGWS_EMAIL_FROM` positionnée en production (cf. ci-dessus), en rejouant
+chaque déclencheur manuellement avec une adresse de destination **hors
+compte Resend** (ex. une boîte perso non liée au compte). Objectif : prouver
+que le problème n'est plus circonscrit au domaine de test. Consigner le
+résultat dans `docs/PROGRESS.md`.
+
+| # | Déclencheur | Comment le déclencher | Reçu ? |
+|---|-------------|------------------------|--------|
+| 1 | Contact | Soumettre `/contact` avec une adresse de test | ☐ |
+| 2 | Consignation — confirmation dépôt | Soumettre `/consignation` avec une adresse de test | ☐ |
+| 3 | Consignation — acceptation | Accepter une consignation en attente depuis `/admin/consignations` | ☐ |
+| 4 | Consignation — refus | Refuser une consignation en attente depuis `/admin/consignations` (motif requis) | ☐ |
+| 5 | Consignation — vente au déposant | Enregistrer une vente liée à un produit de consignation depuis `/admin/ventes` | ☐ |
+| 6 | Commande — confirmation acheteur | Finaliser un checkout de test (Stripe mode test) | ☐ |
+
+Chaque ligne doit être cochée avec succès pour considérer la recette
+terminée — un seul échec silencieux suffit à indiquer une régression sur
+l'expéditeur ou la config Resend.
+
+---
+
+## Moyens de paiement — pilotés par le Dashboard Stripe (US-098)
+
+**Règle** : `server/api/checkout/session.post.ts` ne fige **volontairement aucun
+`payment_method_types`**. La liste des moyens de paiement proposés à l'acheteur
+est donc entièrement pilotée depuis le Dashboard Stripe
+(*Paramètres → Moyens de paiement*), sans aucun déploiement.
+
+**Conséquence pratique** : activer ou désactiver un moyen de paiement (PayPal,
+Apple Pay, Google Pay, Link, virement…) est une **action de configuration, pas
+une tâche de développement**. Un ticket « ajouter tel moyen de paiement » ne
+doit pas être estimé comme du dev tant que la vérification ci-dessous n'a pas
+été faite — c'est précisément le piège qu'a évité US-098.
+
+### Cas PayPal (vérifié en Sprint 9)
+
+PayPal est **supporté par Checkout**, y compris en formulaire embarqué, et CGWS
+remplit les prérequis :
+
+| Prérequis | État CGWS |
+|-----------|-----------|
+| Pays du compte marchand dans la liste éligible | ✅ FR |
+| Devise supportée | ✅ EUR |
+| `return_url` configurée (obligatoire dès qu'un moyen de paiement à redirection est actif en `ui_mode` embarqué) | ✅ `/checkout/success?session_id={CHECKOUT_SESSION_ID}` |
+
+**Comportement attendu** : PayPal impose une **redirection pleine page** vers
+PayPal pour l'autorisation, puis un retour sur la `return_url` — y compris
+depuis le formulaire embarqué. Ce n'est pas un défaut d'intégration.
+
+**Aucune branche de code spécifique n'est nécessaire** : le webhook
+`checkout.session.completed` → `fulfillOrder` et la libération de stock
+(`release_product_unit`) sont agnostiques du moyen de paiement.
+
+⚠️ **Seule contrainte à respecter** : ne jamais placer le Checkout embarqué dans
+une iframe à nous — les moyens de paiement à redirection casseraient. Ce n'est
+pas le cas aujourd'hui sur `/checkout`.
+
+**Recette obligatoire** avant de communiquer un nouveau moyen de paiement à
+Camille : un paiement complet de bout en bout en mode test Stripe (compte
+sandbox pour PayPal), en vérifiant que la commande est bien fulfillée et
+l'email de confirmation reçu.
+
+---
+
+## Sécurité — Rôle admin & RLS (US-101)
+
+### Principe
+
+Depuis la migration `supabase/migrations/008_admin_role_rls.sql`, les policies
+RLS « admin » (products/categories en écriture, consignments, sales, clients,
+orders, order_items, product_status_history en lecture) ne reposent **plus** sur
+`auth.role() = 'authenticated'` : ce critère était une faille, car tout déposant
+connecté via magic link (espace déposant, US-066) porte lui aussi une session
+`authenticated` et pouvait donc lire les PII de tous les déposants/clients ou
+écrire dans le catalogue via PostgREST (clé anon + son JWT).
+
+Elles vérifient désormais un **rôle admin réel** via la fonction SQL
+`public.is_admin()`, qui lit le claim `app_metadata.cgws_role` du JWT :
+
+```sql
+-- supabase/migrations/008_admin_role_rls.sql
+SELECT coalesce(auth.jwt() -> 'app_metadata' ->> 'cgws_role', '') = 'admin'
+```
+
+**Pourquoi `app_metadata` et jamais `user_metadata`** : `user_metadata` est
+modifiable par l'utilisateur lui-même via `supabase.auth.updateUser()` — s'y
+fier permettrait à n'importe quel déposant de s'auto-promouvoir admin.
+`app_metadata` n'est modifiable que par le service role (ou le Dashboard) :
+c'est la seule source acceptable pour un contrôle d'accès.
+
+### Attribuer le claim admin à un compte
+
+Via SQL (SQL Editor du Dashboard, ou psql avec les droits postgres) :
+
+```sql
+UPDATE auth.users
+SET raw_app_meta_data = raw_app_meta_data || '{"cgws_role":"admin"}'::jsonb
+WHERE email = 'camille.guignon37@gmail.com';
+```
+
+Ou via le Dashboard Supabase : *Authentication → Users → \[utilisateur\] →
+User Metadata / App Metadata* → ajouter `"cgws_role": "admin"` dans
+**App Metadata** (pas User Metadata).
+
+⏳ **Le claim n'entre dans le JWT qu'à la prochaine émission de token** :
+l'utilisateur doit se **reconnecter** (ou attendre le refresh automatique du
+token, ~1 h max) après l'attribution. Un « ça ne marche pas » juste après
+l'UPDATE est normal tant que la session n'a pas été renouvelée.
+
+### ⚠️ Ordre de déploiement en production — CRITIQUE
+
+Le backoffice interroge Supabase **directement avec le JWT admin**
+(`app/pages/admin/dashboard.vue`, `app/components/admin/ProductForm.vue`).
+Déployer la migration 008 **avant** d'avoir attribué le claim verrouillerait
+donc le backoffice (dashboard vide, sélecteur de consignation vide).
+
+Checklist ordonnée, à suivre strictement :
+
+1. **Attribuer le claim** `cgws_role: 'admin'` aux comptes de **Camille et
+   Nathan** en production (SQL ci-dessus, pour chaque email admin)
+2. Vérifier : `SELECT email, raw_app_meta_data FROM auth.users;` → les deux
+   comptes portent `"cgws_role": "admin"`, aucun compte déposant ne le porte
+3. **Ensuite seulement**, appliquer la migration `008_admin_role_rls.sql`
+4. Demander à Camille/Nathan de se **déconnecter/reconnecter** au backoffice
+5. Recette rapide : dashboard admin (stats visibles), création/édition d'un
+   produit, liste des consignations
+
+Tout nouveau compte créé via l'espace déposant est un compte **déposant** par
+défaut (aucun claim) : il n'a jamais rien à faire de plus. N'attribuer
+`cgws_role: 'admin'` qu'aux comptes réellement gérants.
+
+### Script de non-régression rejouable
+
+`supabase/tests/rls_admin.sql` simule les 4 profils (déposant sans claim,
+déposant avec `user_metadata` forgé, admin `app_metadata`, visiteur anonyme)
+via `SET LOCAL ROLE` + `SET LOCAL request.jwt.claims`, et vérifie chaque table.
+
+```bash
+# psql (les secrets CI étant absents — cf. issue #11 — l'exécution est manuelle)
+psql "$DATABASE_URL" -f supabase/tests/rls_admin.sql
+# ou : copier-coller intégral dans le SQL Editor du Dashboard
+```
+
+Transactionnel (ROLLBACK final, aucune donnée persistée). Résultat = la table
+finale : **toutes les lignes doivent avoir `ok = true`**. À rejouer à chaque
+évolution de schéma ou de policy, et consigner le résultat dans
+`docs/PROGRESS.md`.
+
+**Anti-pattern à ne plus jamais réintroduire** : une policy
+`auth.role() = 'authenticated'` comme critère « admin ». Toute nouvelle table
+contenant des PII ou des données de gestion doit soit utiliser
+`public.is_admin()`, soit activer RLS sans policy (accès service role
+uniquement, pattern `stock_notifications` de la migration 007).
+
+---
+
+## Mesure d'audience — PostHog cookieless (US-102)
+
+> 📊 **Guide de lecture produit** : taxonomie complète, dashboard « CGWS —
+> Produit », questions produit par vue, limites du dispositif, gouvernance des
+> événements et recette de bout en bout → **`docs/ANALYTICS.md`** (US-105).
+
+### Cadrage (NON négociable)
+
+Pas de bandeau de consentement → la configuration doit rester dans le cadre de
+l'**exemption CNIL de mesure d'audience** :
+
+| Contrainte | Implémentation |
+|------------|----------------|
+| Aucun cookie ni localStorage/sessionStorage | `persistence: 'memory'` (identité anonyme éphémère par session de navigation) |
+| Aucun profil personne / aucune identification | `person_profiles: 'never'` + **JAMAIS d'appel `identify()`** dans le codebase |
+| Pas de session recording ni heatmaps | `disable_session_recording: true`, `capture_heatmaps: false`, `disable_surveys: true`, `disable_external_dependency_loading: true` |
+| Pas d'autocapture DOM (PII accidentelle) | `autocapture: false` — taxonomie exclusivement explicite (US-103) |
+| Données dans l'UE | `NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` (PostHog Cloud EU) |
+
+### Architecture
+
+- `app/plugins/posthog.client.ts` — plugin **client only**, init différée via
+  `onNuxtReady` + import dynamique de `posthog-js` (hors bundle d'entrée, zéro
+  impact LCP/TBT). Sans `NUXT_PUBLIC_POSTHOG_KEY` : no-op silencieux. Les
+  `$pageview` sont capturés **manuellement** (initial + `router.afterEach`),
+  la capture automatique ne couvrant pas les navigations SPA.
+- `app/composables/useAnalytics.ts` — **point d'entrée unique** des événements
+  côté client : `useAnalytics().capture(event, properties)`. Inerte sans clé,
+  buffer borné avant l'init différée. **Aucun composant ne doit importer
+  `posthog-js` directement.**
+- `app/utils/analytics.ts` — `sanitizeAnalyticsEvent()`, branché sur le hook
+  d'init `before_send` : voir ci-dessous.
+
+### ⚠️ Anti-fuite d'URL — `before_send` obligatoire (correctif QA US-102)
+
+PostHog attache `$current_url` = `window.location.href` **complet** (query
+string + fragment) à **chaque** événement — pageviews ET événements custom.
+Certaines routes CGWS portent des jetons sensibles en query/fragment :
+`/espace-deposant/callback?code=…` / `?token_hash=…` (auth Supabase) et
+`/checkout/success?session_id=cs_…` (session Stripe → commande/identité).
+Les envoyer au tiers contredirait l'anonymat revendiqué (mentions légales /
+exemption CNIL).
+
+Le plugin passe donc `before_send: sanitizeAnalyticsEvent`
+(`app/utils/analytics.ts`) : query string et fragment sont supprimés de toute
+propriété porteuse d'URL (`$current_url`, `$referrer`, `$initial_current_url`,
+`…_url`, `…_pathname`) dans `properties`, `$set` et `$set_once`, sur **tous**
+les événements. Pourquoi `before_send` et pas une autre option (vérifié dans
+`@posthog/types`) : `get_current_url` ne réécrit **pas** `$current_url` (URL
+targeting uniquement, sa JSDoc renvoie vers `before_send`) et
+`sanitize_properties` est **dépréciée** au profit de `before_send`.
+
+**Règle pour US-103/104** : ne JAMAIS mettre d'URL complète (avec query) dans
+une propriété métier custom. Si une propriété doit porter une URL, la nettoyer
+avec `stripQueryAndHash()` — ou nommer la clé en `…_url` pour bénéficier du
+nettoyage automatique du hook. Aucune query string n'est nécessaire à
+l'analytics (pas d'allowlist).
+
+### Événement serveur `order_paid` (US-104)
+
+La taxonomie CLIENT (`app/utils/analytics-events.ts`) reste exhaustive à 6
+événements. Un unique événement SERVEUR existe en plus : `order_paid`, capturé
+par `server/services/analytics.ts` (`posthog-node`, seul point serveur autorisé
+à parler à PostHog) à la FIN de `fulfillCheckoutSession` — exactement une fois
+par commande payée grâce à la barrière d'idempotence `pending → paid`, que le
+fulfillment soit déclenché par le webhook Stripe ou par la landing page.
+Propriétés : `amount_total` (euros), `currency`, `items_count` (somme des
+quantités, US-096), `payment_method_type` — zéro PII (jamais
+`customer_details`), `$process_person_profile: false`, `disableGeoip: true`.
+Jonction funnel : le navigateur transmet son distinct_id anonyme éphémère
+(`useAnalytics().getDistinctId()`) à la création de session → metadata Stripe
+`analytics_id` → repris comme distinct_id du `order_paid` (id aléatoire en
+fallback : comptage exhaustif même avec PostHog bloqué côté client).
+Serverless : `flushAt: 1` + `flushInterval: 0` + `await _shutdown()` avant le
+retour de la lambda (dans posthog-node v5.x, le shutdown gracieux public est
+`_shutdown()` — l'ancien `shutdown()` n'existe plus).
+
+### Variables d'environnement
+
+| Variable | Rôle |
+|----------|------|
+| `NUXT_PUBLIC_POSTHOG_KEY` | Clé PROJET publique (`phc_...`). Absente = analytics désactivé (dev local, preview). |
+| `NUXT_PUBLIC_POSTHOG_HOST` | Hôte d'ingestion. Défaut : `https://eu.i.posthog.com` (UE obligatoire). |
+| `POSTHOG_PERSONAL_API_KEY` | Clé personnelle **SECRÈTE** (`phx_...`) — API privée serveur/CLI uniquement (US-105). Ne JAMAIS la préfixer `NUXT_PUBLIC_*`. |
+
+### Config projet PostHog (action Nathan, hors code)
+
+1. Projet sur **PostHog Cloud EU** (eu.posthog.com).
+2. Activer **« Discard client IP data »** (Project Settings) — l'IP n'est
+   jamais conservée, condition de l'anonymat revendiqué dans les mentions
+   légales.
+3. Saisir `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` dans Vercel
+   (production uniquement — laisser vide en preview pour ne pas polluer les
+   stats).
 
 ---
 
