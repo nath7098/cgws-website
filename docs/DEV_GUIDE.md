@@ -905,6 +905,25 @@ avec `stripQueryAndHash()` — ou nommer la clé en `…_url` pour bénéficier 
 nettoyage automatique du hook. Aucune query string n'est nécessaire à
 l'analytics (pas d'allowlist).
 
+### Événement serveur `order_paid` (US-104)
+
+La taxonomie CLIENT (`app/utils/analytics-events.ts`) reste exhaustive à 6
+événements. Un unique événement SERVEUR existe en plus : `order_paid`, capturé
+par `server/services/analytics.ts` (`posthog-node`, seul point serveur autorisé
+à parler à PostHog) à la FIN de `fulfillCheckoutSession` — exactement une fois
+par commande payée grâce à la barrière d'idempotence `pending → paid`, que le
+fulfillment soit déclenché par le webhook Stripe ou par la landing page.
+Propriétés : `amount_total` (euros), `currency`, `items_count` (somme des
+quantités, US-096), `payment_method_type` — zéro PII (jamais
+`customer_details`), `$process_person_profile: false`, `disableGeoip: true`.
+Jonction funnel : le navigateur transmet son distinct_id anonyme éphémère
+(`useAnalytics().getDistinctId()`) à la création de session → metadata Stripe
+`analytics_id` → repris comme distinct_id du `order_paid` (id aléatoire en
+fallback : comptage exhaustif même avec PostHog bloqué côté client).
+Serverless : `flushAt: 1` + `flushInterval: 0` + `await _shutdown()` avant le
+retour de la lambda (dans posthog-node v5.x, le shutdown gracieux public est
+`_shutdown()` — l'ancien `shutdown()` n'existe plus).
+
 ### Variables d'environnement
 
 | Variable | Rôle |

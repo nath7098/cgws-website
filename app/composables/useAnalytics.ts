@@ -40,6 +40,8 @@ export type AnalyticsProperties = Record<
  */
 export interface AnalyticsClient {
   capture: (event: string, properties?: AnalyticsProperties) => unknown
+  /** Fourni par posthog-js — distinct_id anonyme éphémère de la session. */
+  get_distinct_id?: () => string
 }
 
 interface QueuedEvent {
@@ -101,5 +103,23 @@ export function useAnalytics() {
     }
   }
 
-  return { capture }
+  /**
+   * distinct_id PostHog anonyme ÉPHÉMÈRE de la session de navigation
+   * (persistence memory — il meurt avec l'onglet, ce n'est jamais un
+   * identifiant utilisateur). Utilisé par l'US-104 pour raccorder le funnel
+   * client au `order_paid` serveur (metadata Stripe). `null` si PostHog est
+   * absent/non initialisé/bloqué — inerte, ne lève jamais.
+   */
+  function getDistinctId(): string | null {
+    if (import.meta.server) return null
+    if (!client?.get_distinct_id) return null
+    try {
+      return client.get_distinct_id()
+    }
+    catch {
+      return null
+    }
+  }
+
+  return { capture, getDistinctId }
 }

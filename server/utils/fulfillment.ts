@@ -5,6 +5,7 @@ import {
   sendConsignmentSaleEmail,
   sendOrderConfirmationEmail,
 } from '~~/server/services/email'
+import { captureOrderPaid } from '~~/server/services/analytics'
 
 /**
  * Fulfillment partagé du Checkout embarqué (E8 rework).
@@ -284,6 +285,27 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
     catch {
       // Non-bloquant : l'échec d'email n'affecte pas la confirmation.
     }
+  }
+
+  // ─── Analytics serveur order_paid (US-104) — DERNIÈRE étape, jamais avant ──
+  // Placé ici (et non dans le webhook) : cette branche ne s'exécute que si CE
+  // appel a gagné la barrière d'idempotence pending → paid — l'événement est
+  // donc capturé EXACTEMENT une fois par commande payée, que le fulfillment
+  // ait été déclenché par le webhook Stripe OU par la landing page (les deux
+  // appellent ce module), et jamais sur un rejeu. Un échec de capture est
+  // avalé par contrat (captureOrderPaid ne lève jamais) — le try/catch est
+  // une ceinture supplémentaire.
+  try {
+    await captureOrderPaid({
+      analyticsId: session.metadata?.analytics_id ?? null,
+      amountTotal: total,
+      currency: session.currency ?? 'eur',
+      itemsCount: (orderItems ?? []).reduce((sum, item) => sum + (item.quantity ?? 1), 0),
+      paymentMethodType: session.payment_method_types?.[0] ?? null,
+    })
+  }
+  catch {
+    // Non-bloquant : l'échec d'analytics n'affecte pas la confirmation.
   }
 }
 

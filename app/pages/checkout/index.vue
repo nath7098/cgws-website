@@ -28,7 +28,7 @@ const mountState = ref<MountState>('idle')
 // du checkout embarqué Stripe (jamais sur panier vide, clé absente ou erreur
 // de session). One-shot : un retry réussi après erreur ne recompte pas une
 // « ouverture » dans le funnel.
-const { capture } = useAnalytics()
+const { capture, getDistinctId } = useAnalytics()
 let checkoutOpenedCaptured = false
 
 function captureCheckoutOpened(): void {
@@ -95,6 +95,11 @@ async function mountEmbeddedCheckout(): Promise<void> {
           // bloqué) sans cette garde.
           items: cart.availableItems.map(item => ({ productId: item.productId, quantity: item.quantity ?? 1 })),
           previousOrderId: cart.pendingOrderId ?? undefined,
+          // US-104 — raccorde le funnel client (checkout_opened) au
+          // `order_paid` serveur : distinct_id anonyme éphémère, absent si
+          // PostHog est bloqué/désactivé (le comptage serveur reste exhaustif
+          // via un id aléatoire côté webhook).
+          analyticsId: getDistinctId() ?? undefined,
         })
         if (!clientSecret) throw new Error('checkout-session-failed')
         return clientSecret
