@@ -59,6 +59,12 @@ const bodySchema = z.object({
       { message: 'Panier trop volumineux' },
     ),
   previousOrderId: z.string().uuid().optional(),
+  // US-104 — distinct_id PostHog anonyme ÉPHÉMÈRE du navigateur (persistence
+  // memory : il meurt avec l'onglet, ce n'est PAS un identifiant utilisateur).
+  // Propagé dans les metadata Stripe pour raccorder le funnel client au
+  // `order_paid` capturé côté webhook. Optionnel : absent si PostHog est
+  // bloqué/désactivé. Longueur bornée défensivement (id PostHog ≈ 36 chars).
+  analyticsId: z.string().min(1).max(100).optional(),
 })
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -73,7 +79,7 @@ export default defineEventHandler(async (event: H3Event) => {
     throw createError({ statusCode: 422, statusMessage: firstError })
   }
 
-  const { items: rawItems, previousOrderId } = parsed.data
+  const { items: rawItems, previousOrderId, analyticsId } = parsed.data
 
   // Dé-duplication par productId : si le client envoie deux fois la même
   // ligne (ne devrait jamais arriver — le panier CGWS garantit 1 ligne par
@@ -270,7 +276,10 @@ export default defineEventHandler(async (event: H3Event) => {
       },
       shipping_options: shippingOptions,
       client_reference_id: order.id,
-      metadata: { order_id: order.id },
+      metadata: {
+        order_id: order.id,
+        ...(analyticsId ? { analytics_id: analyticsId } : {}),
+      },
       expires_at: expiresAtSec,
       return_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     })

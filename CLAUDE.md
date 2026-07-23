@@ -419,6 +419,10 @@ feature/US-XXX-description
 
 Pourquoi : après un squash, les commits d'origine n'existent plus sur `develop` — seul leur contenu y est. Une branche laissée en place apparaît donc éternellement « en avance » sur `develop` (`git log develop..feature/X` liste des commits déjà intégrés), ce qui rend illisible la question « qu'est-ce qui reste vraiment à merger ? ». Toujours raisonner sur `git diff develop..branche` (le contenu), jamais sur le nombre de commits.
 
+**Règle absolue : tout merge vers `develop` inclut le close des issues embarquées.** Le message du commit de squash (et le corps de la PR) porte `Closes #N` pour chaque issue GitHub couverte par la branche, et chaque issue reçoit un commentaire de fermeture avec le contexte requis (livrables de référence, arbitrages de cadrage actés) pour qu'elle ne soit pas rouverte sur un critère devenu obsolète.
+
+Pourquoi : GitHub ne ferme les issues par mot-clé qu'à l'arrivée du commit sur la branche par défaut (`main`) — sans `Closes #N` dans le squash, les issues restent ouvertes après le merge et le backlog ment. Le commentaire de contexte est ce qui permet, des mois plus tard, de comprendre pourquoi l'issue est fermée alors que son texte d'origine décrit un critère abandonné (ex. #31 : bandeau de consentement abandonné au profit du mode anonyme exempté).
+
 ### Standards
 
 - TypeScript strict — aucun `any`, types explicites partout

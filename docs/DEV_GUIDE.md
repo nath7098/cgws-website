@@ -176,6 +176,11 @@ ADMIN_EMAIL=camille@cgws.fr
 # Fallback si absent : 'CGWS <onboarding@resend.dev>' (domaine de test Resend).
 # ⚠️ Nécessite le domaine cgws.fr VÉRIFIÉ dans Resend avant de pointer cgws.fr.
 CGWS_EMAIL_FROM=
+# PostHog — mesure d'audience cookieless (US-102). OPTIONNEL en local : sans
+# NUXT_PUBLIC_POSTHOG_KEY, le plugin est un no-op silencieux (aucun script,
+# aucune erreur console). Clé PROJET publique (phc_...), hébergement UE.
+NUXT_PUBLIC_POSTHOG_KEY=
+NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 ```bash
@@ -188,6 +193,8 @@ SITE_URL=
 COMMISSION_RATE=20
 ADMIN_EMAIL=
 CGWS_EMAIL_FROM=
+NUXT_PUBLIC_POSTHOG_KEY=
+NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 ### 4. Design System CSS
@@ -749,6 +756,195 @@ pas le cas aujourd'hui sur `/checkout`.
 Camille : un paiement complet de bout en bout en mode test Stripe (compte
 sandbox pour PayPal), en vérifiant que la commande est bien fulfillée et
 l'email de confirmation reçu.
+
+---
+
+## Sécurité — Rôle admin & RLS (US-101)
+
+### Principe
+
+Depuis la migration `supabase/migrations/008_admin_role_rls.sql`, les policies
+RLS « admin » (products/categories en écriture, consignments, sales, clients,
+orders, order_items, product_status_history en lecture) ne reposent **plus** sur
+`auth.role() = 'authenticated'` : ce critère était une faille, car tout déposant
+connecté via magic link (espace déposant, US-066) porte lui aussi une session
+`authenticated` et pouvait donc lire les PII de tous les déposants/clients ou
+écrire dans le catalogue via PostgREST (clé anon + son JWT).
+
+Elles vérifient désormais un **rôle admin réel** via la fonction SQL
+`public.is_admin()`, qui lit le claim `app_metadata.cgws_role` du JWT :
+
+```sql
+-- supabase/migrations/008_admin_role_rls.sql
+SELECT coalesce(auth.jwt() -> 'app_metadata' ->> 'cgws_role', '') = 'admin'
+```
+
+**Pourquoi `app_metadata` et jamais `user_metadata`** : `user_metadata` est
+modifiable par l'utilisateur lui-même via `supabase.auth.updateUser()` — s'y
+fier permettrait à n'importe quel déposant de s'auto-promouvoir admin.
+`app_metadata` n'est modifiable que par le service role (ou le Dashboard) :
+c'est la seule source acceptable pour un contrôle d'accès.
+
+### Attribuer le claim admin à un compte
+
+Via SQL (SQL Editor du Dashboard, ou psql avec les droits postgres) :
+
+```sql
+UPDATE auth.users
+SET raw_app_meta_data = raw_app_meta_data || '{"cgws_role":"admin"}'::jsonb
+WHERE email = 'camille.guignon37@gmail.com';
+```
+
+Ou via le Dashboard Supabase : *Authentication → Users → \[utilisateur\] →
+User Metadata / App Metadata* → ajouter `"cgws_role": "admin"` dans
+**App Metadata** (pas User Metadata).
+
+⏳ **Le claim n'entre dans le JWT qu'à la prochaine émission de token** :
+l'utilisateur doit se **reconnecter** (ou attendre le refresh automatique du
+token, ~1 h max) après l'attribution. Un « ça ne marche pas » juste après
+l'UPDATE est normal tant que la session n'a pas été renouvelée.
+
+### ⚠️ Ordre de déploiement en production — CRITIQUE
+
+Le backoffice interroge Supabase **directement avec le JWT admin**
+(`app/pages/admin/dashboard.vue`, `app/components/admin/ProductForm.vue`).
+Déployer la migration 008 **avant** d'avoir attribué le claim verrouillerait
+donc le backoffice (dashboard vide, sélecteur de consignation vide).
+
+Checklist ordonnée, à suivre strictement :
+
+1. **Attribuer le claim** `cgws_role: 'admin'` aux comptes de **Camille et
+   Nathan** en production (SQL ci-dessus, pour chaque email admin)
+2. Vérifier : `SELECT email, raw_app_meta_data FROM auth.users;` → les deux
+   comptes portent `"cgws_role": "admin"`, aucun compte déposant ne le porte
+3. **Ensuite seulement**, appliquer la migration `008_admin_role_rls.sql`
+4. Demander à Camille/Nathan de se **déconnecter/reconnecter** au backoffice
+5. Recette rapide : dashboard admin (stats visibles), création/édition d'un
+   produit, liste des consignations
+
+Tout nouveau compte créé via l'espace déposant est un compte **déposant** par
+défaut (aucun claim) : il n'a jamais rien à faire de plus. N'attribuer
+`cgws_role: 'admin'` qu'aux comptes réellement gérants.
+
+### Script de non-régression rejouable
+
+`supabase/tests/rls_admin.sql` simule les 4 profils (déposant sans claim,
+déposant avec `user_metadata` forgé, admin `app_metadata`, visiteur anonyme)
+via `SET LOCAL ROLE` + `SET LOCAL request.jwt.claims`, et vérifie chaque table.
+
+```bash
+# psql (les secrets CI étant absents — cf. issue #11 — l'exécution est manuelle)
+psql "$DATABASE_URL" -f supabase/tests/rls_admin.sql
+# ou : copier-coller intégral dans le SQL Editor du Dashboard
+```
+
+Transactionnel (ROLLBACK final, aucune donnée persistée). Résultat = la table
+finale : **toutes les lignes doivent avoir `ok = true`**. À rejouer à chaque
+évolution de schéma ou de policy, et consigner le résultat dans
+`docs/PROGRESS.md`.
+
+**Anti-pattern à ne plus jamais réintroduire** : une policy
+`auth.role() = 'authenticated'` comme critère « admin ». Toute nouvelle table
+contenant des PII ou des données de gestion doit soit utiliser
+`public.is_admin()`, soit activer RLS sans policy (accès service role
+uniquement, pattern `stock_notifications` de la migration 007).
+
+---
+
+## Mesure d'audience — PostHog cookieless (US-102)
+
+> 📊 **Guide de lecture produit** : taxonomie complète, dashboard « CGWS —
+> Produit », questions produit par vue, limites du dispositif, gouvernance des
+> événements et recette de bout en bout → **`docs/ANALYTICS.md`** (US-105).
+
+### Cadrage (NON négociable)
+
+Pas de bandeau de consentement → la configuration doit rester dans le cadre de
+l'**exemption CNIL de mesure d'audience** :
+
+| Contrainte | Implémentation |
+|------------|----------------|
+| Aucun cookie ni localStorage/sessionStorage | `persistence: 'memory'` (identité anonyme éphémère par session de navigation) |
+| Aucun profil personne / aucune identification | `person_profiles: 'never'` + **JAMAIS d'appel `identify()`** dans le codebase |
+| Pas de session recording ni heatmaps | `disable_session_recording: true`, `capture_heatmaps: false`, `disable_surveys: true`, `disable_external_dependency_loading: true` |
+| Pas d'autocapture DOM (PII accidentelle) | `autocapture: false` — taxonomie exclusivement explicite (US-103) |
+| Données dans l'UE | `NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` (PostHog Cloud EU) |
+
+### Architecture
+
+- `app/plugins/posthog.client.ts` — plugin **client only**, init différée via
+  `onNuxtReady` + import dynamique de `posthog-js` (hors bundle d'entrée, zéro
+  impact LCP/TBT). Sans `NUXT_PUBLIC_POSTHOG_KEY` : no-op silencieux. Les
+  `$pageview` sont capturés **manuellement** (initial + `router.afterEach`),
+  la capture automatique ne couvrant pas les navigations SPA.
+- `app/composables/useAnalytics.ts` — **point d'entrée unique** des événements
+  côté client : `useAnalytics().capture(event, properties)`. Inerte sans clé,
+  buffer borné avant l'init différée. **Aucun composant ne doit importer
+  `posthog-js` directement.**
+- `app/utils/analytics.ts` — `sanitizeAnalyticsEvent()`, branché sur le hook
+  d'init `before_send` : voir ci-dessous.
+
+### ⚠️ Anti-fuite d'URL — `before_send` obligatoire (correctif QA US-102)
+
+PostHog attache `$current_url` = `window.location.href` **complet** (query
+string + fragment) à **chaque** événement — pageviews ET événements custom.
+Certaines routes CGWS portent des jetons sensibles en query/fragment :
+`/espace-deposant/callback?code=…` / `?token_hash=…` (auth Supabase) et
+`/checkout/success?session_id=cs_…` (session Stripe → commande/identité).
+Les envoyer au tiers contredirait l'anonymat revendiqué (mentions légales /
+exemption CNIL).
+
+Le plugin passe donc `before_send: sanitizeAnalyticsEvent`
+(`app/utils/analytics.ts`) : query string et fragment sont supprimés de toute
+propriété porteuse d'URL (`$current_url`, `$referrer`, `$initial_current_url`,
+`…_url`, `…_pathname`) dans `properties`, `$set` et `$set_once`, sur **tous**
+les événements. Pourquoi `before_send` et pas une autre option (vérifié dans
+`@posthog/types`) : `get_current_url` ne réécrit **pas** `$current_url` (URL
+targeting uniquement, sa JSDoc renvoie vers `before_send`) et
+`sanitize_properties` est **dépréciée** au profit de `before_send`.
+
+**Règle pour US-103/104** : ne JAMAIS mettre d'URL complète (avec query) dans
+une propriété métier custom. Si une propriété doit porter une URL, la nettoyer
+avec `stripQueryAndHash()` — ou nommer la clé en `…_url` pour bénéficier du
+nettoyage automatique du hook. Aucune query string n'est nécessaire à
+l'analytics (pas d'allowlist).
+
+### Événement serveur `order_paid` (US-104)
+
+La taxonomie CLIENT (`app/utils/analytics-events.ts`) reste exhaustive à 6
+événements. Un unique événement SERVEUR existe en plus : `order_paid`, capturé
+par `server/services/analytics.ts` (`posthog-node`, seul point serveur autorisé
+à parler à PostHog) à la FIN de `fulfillCheckoutSession` — exactement une fois
+par commande payée grâce à la barrière d'idempotence `pending → paid`, que le
+fulfillment soit déclenché par le webhook Stripe ou par la landing page.
+Propriétés : `amount_total` (euros), `currency`, `items_count` (somme des
+quantités, US-096), `payment_method_type` — zéro PII (jamais
+`customer_details`), `$process_person_profile: false`, `disableGeoip: true`.
+Jonction funnel : le navigateur transmet son distinct_id anonyme éphémère
+(`useAnalytics().getDistinctId()`) à la création de session → metadata Stripe
+`analytics_id` → repris comme distinct_id du `order_paid` (id aléatoire en
+fallback : comptage exhaustif même avec PostHog bloqué côté client).
+Serverless : `flushAt: 1` + `flushInterval: 0` + `await _shutdown()` avant le
+retour de la lambda (dans posthog-node v5.x, le shutdown gracieux public est
+`_shutdown()` — l'ancien `shutdown()` n'existe plus).
+
+### Variables d'environnement
+
+| Variable | Rôle |
+|----------|------|
+| `NUXT_PUBLIC_POSTHOG_KEY` | Clé PROJET publique (`phc_...`). Absente = analytics désactivé (dev local, preview). |
+| `NUXT_PUBLIC_POSTHOG_HOST` | Hôte d'ingestion. Défaut : `https://eu.i.posthog.com` (UE obligatoire). |
+| `POSTHOG_PERSONAL_API_KEY` | Clé personnelle **SECRÈTE** (`phx_...`) — API privée serveur/CLI uniquement (US-105). Ne JAMAIS la préfixer `NUXT_PUBLIC_*`. |
+
+### Config projet PostHog (action Nathan, hors code)
+
+1. Projet sur **PostHog Cloud EU** (eu.posthog.com).
+2. Activer **« Discard client IP data »** (Project Settings) — l'IP n'est
+   jamais conservée, condition de l'anonymat revendiqué dans les mentions
+   légales.
+3. Saisir `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` dans Vercel
+   (production uniquement — laisser vide en preview pour ne pas polluer les
+   stats).
 
 ---
 

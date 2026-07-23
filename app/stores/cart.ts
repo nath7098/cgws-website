@@ -4,6 +4,7 @@ import { useLocalStorage } from '@vueuse/core'
 import type { CartItem, Product } from '~/types'
 import { addCartLine, removeCartLine, computeSubtotal } from '#shared/utils/checkout'
 import { useSupabase } from '~/composables/useSupabase'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 const CART_STORAGE_KEY = 'cgws-cart'
 const PENDING_ORDER_KEY = 'cgws-pending-order'
@@ -97,6 +98,15 @@ export const useCartStore = defineStore('cart', () => {
     const next = addCartLine(items.value, toCartItem(product, quantity))
     if (next === items.value) return false
     items.value = next
+    // US-103 — uniquement dans la branche succès (jamais sur un no-op ni un
+    // produit non achetable). Instrumenté ici, au niveau du store, pour couvrir
+    // tout caller présent/futur du CTA d'ajout. `capture` est inerte sans
+    // PostHog et n'échoue jamais (résilience) : le parcours panier est intact.
+    useAnalytics().capture('cart_item_added', {
+      product_id: product.id,
+      quantity,
+      price: product.price,
+    })
     return true
   }
 

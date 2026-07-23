@@ -23,6 +23,26 @@ const hasPublishableKey = computed(() => Boolean(config.public.stripePublishable
 type MountState = 'idle' | 'loading' | 'mounted' | 'error'
 const mountState = ref<MountState>('idle')
 
+// ── Analytics (US-103) ──────────────────────────────────────────────────────
+// checkout_opened : capturé UNE fois par visite de la page, au montage EFFECTIF
+// du checkout embarqué Stripe (jamais sur panier vide, clé absente ou erreur
+// de session). One-shot : un retry réussi après erreur ne recompte pas une
+// « ouverture » dans le funnel.
+const { capture, getDistinctId } = useAnalytics()
+let checkoutOpenedCaptured = false
+
+function captureCheckoutOpened(): void {
+  if (checkoutOpenedCaptured) return
+  checkoutOpenedCaptured = true
+  capture('checkout_opened', {
+    // Sous-total payable (articles disponibles) — les frais de port, choisis
+    // dans le formulaire Stripe, ne sont pas connus à l'ouverture.
+    cart_value: cart.subtotal,
+    // Total d'unités (somme des quantités, sémantique US-096 du badge panier).
+    items_count: cart.count,
+  })
+}
+
 const checkoutContainer = ref<HTMLDivElement | null>(null)
 let embeddedCheckout: StripeEmbeddedCheckout | null = null
 
@@ -75,6 +95,11 @@ async function mountEmbeddedCheckout(): Promise<void> {
           // bloqué) sans cette garde.
           items: cart.availableItems.map(item => ({ productId: item.productId, quantity: item.quantity ?? 1 })),
           previousOrderId: cart.pendingOrderId ?? undefined,
+          // US-104 — raccorde le funnel client (checkout_opened) au
+          // `order_paid` serveur : distinct_id anonyme éphémère, absent si
+          // PostHog est bloqué/désactivé (le comptage serveur reste exhaustif
+          // via un id aléatoire côté webhook).
+          analyticsId: getDistinctId() ?? undefined,
         })
         if (!clientSecret) throw new Error('checkout-session-failed')
         return clientSecret
@@ -86,6 +111,7 @@ async function mountEmbeddedCheckout(): Promise<void> {
     if (checkoutContainer.value) {
       checkout.mount(checkoutContainer.value)
       mountState.value = 'mounted'
+      captureCheckoutOpened()
     }
     else {
       // Le conteneur a disparu (navigation) entre-temps — on nettoie.

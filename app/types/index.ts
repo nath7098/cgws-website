@@ -305,6 +305,10 @@ export interface OrderRecap {
 export interface CheckoutPayload {
   items: Array<{ productId: string, quantity: number }>
   previousOrderId?: string
+  /** distinct_id PostHog anonyme éphémère (US-104) — raccorde le funnel
+   *  client à l'événement serveur `order_paid` via les metadata Stripe.
+   *  Absent si PostHog est bloqué/désactivé. */
+  analyticsId?: string
 }
 
 /** Statut renvoyé par GET /api/checkout/session-status (page de retour).

@@ -633,3 +633,88 @@ Table `stock_notifications` (UNIQUE `(product_id, email)`, index partiel `notifi
 5. **Edge case US-082 (inchangé, désormais VISIBLE)** : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel. L'atomicité SQL sous-jacente reste hors périmètre (acté non-bloquant US-091), mais l'anomalie est désormais tracée par le log `[stock-anomaly]` (US-096) pour réactivation admin rapide.
 6. **Issue #30 (dette design system, ouverte fin Sprint 9)** : contraste des anneaux de focus (`ring-offset-color` par défaut blanc) sous le seuil WCAG en peaux Nuit/Rugueux, transverse à ~8 composants existants. Les nouveaux composants de ce sprint ne l'aggravent pas. Candidat US pour un prochain sprint.
 7. **Contenus réels Camille, `SHIPPING_FLAT_RATE`, activation PayPal, logs Vercel #26** (inchangés) — voir bilans Sprints 8-9.
+
+---
+
+# Épic E12 — Sécurité & Analytics produit · Sprint 11
+
+**Branche `feature/sprint-11` · 18 pts planifiés · en cours · démarré 2026-07-23**
+
+Ordre strict acté en interview : US-101 (faille RLS #34) en premier, puis US-102→105 (PostHog #31, cookieless sans consentement, pas de replay/heatmaps).
+
+## US-101 — RLS admin réel — rôle admin vérifié dans les policies · 5 pts — PASS (1re passe)
+
+Fermeture de #34 : `auth.role() = 'authenticated'` servait de critère « admin » sur 7 tables (002/004) — depuis l'espace déposant US-066, tout déposant magic-link pouvait lire les PII de tous les déposants/clients via PostgREST ou écrire dans le catalogue.
+
+**Migration `008_admin_role_rls.sql`** : fonction `public.is_admin()` (SQL, STABLE, `SET search_path = ''`) lisant `auth.jwt() -> 'app_metadata' ->> 'cgws_role' = 'admin'` — jamais `user_metadata` (modifiable par l'utilisateur via `updateUser()`, ce serait recréer la faille). Les 12 policies fautives droppées/recréées sous le même nom avec `is_admin()` : `products_{insert,update,delete}_admin`, `categories_{insert,update,delete}_admin`, `consignments_{select,update}_admin`, `sales_all_admin`, `clients_all_admin`, `orders_select_admin`, `order_items_select_admin`. `consignments_insert_public` conservée (formulaire public de dépôt). **Bonus assumé et validé QA** : `product_status_history` n'avait JAMAIS eu de RLS depuis 003 (anon pouvait lire ET écrire) → RLS activée + `psh_select_admin` ; zéro impact applicatif (toutes les écritures passent par le service role).
+
+**Script de non-régression rejouable `supabase/tests/rls_admin.sql`** (transactionnel, ROLLBACK final) : 4 scénarios via `SET LOCAL ROLE` + `request.jwt.claims` — déposant sans claim, déposant avec `user_metadata` forgé (`role: admin` écrit via updateUser → toujours refusé), admin `app_metadata`, anonyme. **Exécuté sur la base de dev : 58/58 assertions PASS** (2026-07-23). Ordre de déploiement respecté sur dev : claim attribué AVANT la migration aux 2 comptes admin (`nathcouton@gmail.com`, `camille.guignon37@gmail.com`).
+
+**QA : PASS 1re passe** (analyse statique exhaustive — le MCP supabase n'était pas exposé dans sa session ; contre-vérification live faite par l'orchestrateur : `pg_policies` post-migration ne contient plus AUCUNE policy `auth.role()='authenticated'`, tout passe par `is_admin()`). Barrières US-066 (`server/api/depositor/*` en service role) vérifiées intouchées ; aucun code public `app/` ne lit les tables durcies avec le JWT. `nuxi typecheck` EXIT 0 (diff SQL/doc uniquement).
+
+`docs/DEV_GUIDE.md` § « Sécurité — Rôle admin & RLS » : SQL/Dashboard d'attribution du claim + **checklist de déploiement prod ordonnée** — le claim doit être attribué aux comptes de Camille et Nathan sur la base de PRODUCTION avant d'y déployer 008, sinon le backoffice se verrouille ; reconnexion requise pour que le claim entre dans le JWT.
+
+**⚠️ Action prod en attente (Nathan)** : seule la base de dev est traitée. En prod : (1) attribuer le claim aux 2 comptes, (2) déployer la migration 008, (3) reconnexion admin, (4) rejouer `rls_admin.sql`.
+
+**Remarque QA non bloquante** : `server/utils/adminAuth.ts` compare `user.email` à un unique `process.env.ADMIN_EMAIL` — si un seul email y figure, l'un des deux comptes admin serait bloqué sur les routes `server/api/admin/*`, indépendamment du claim. À vérifier/faire évoluer (candidat future US).
+
+## US-102 — Socle PostHog cookieless — plugin client SSR-safe et différé · 3 pts — PASS (2e passe)
+
+Cadrage CNIL respecté à la lettre : `persistence: 'memory'` (zéro cookie/storage), `person_profiles: 'never'`, aucun `identify()`, `autocapture: false`, recording/heatmaps/surveys désactivés, `disable_external_dependency_loading: true`, host UE par défaut. Config 100 % explicite (pas de snapshot `defaults`, plus auditable). `posthog-js@1.407.1` en **import dynamique** dans `app/plugins/posthog.client.ts`, init différée `onNuxtReady` — chunk isolé (~228 kB) jamais dans le bundle d'entrée, prefetch idle uniquement. `$pageview` manuels (initial + `router.afterEach`), pas de double comptage. Sans clé : `return` précoce avant tout import — no-op strictement silencieux. `app/composables/useAnalytics.ts` = point d'entrée unique pour US-103/104 (typage structurel sans import posthog-js, guard SSR, buffer borné 20 événements pré-init rejoués au branchement).
+
+**QA : FAIL 1re passe — excellente prise** : PostHog attache par défaut `$current_url = window.location.href` COMPLET à chaque événement → les query params sensibles auraient fui vers le tiers : `?code=`/`?token_hash=` (jeton magic link, `espace-deposant/callback`) et `?session_id=cs_…` (session Stripe, `checkout/success`). Contredisait frontalement le « aucune donnée identifiante » des mentions légales.
+
+**Fix** : hook `before_send: sanitizeAnalyticsEvent` (`app/utils/analytics.ts`) — les alternatives ont été écartées preuves à l'appui dans les types installés (`get_current_url` ne touche pas `$current_url` per JSDoc ; `sanitize_properties` dépréciée). `stripQueryAndHash()` tronque query ET fragment (couvre le flow implicite Supabase `#access_token=`) sur toute clé finissant par `url`/`pathname`/`referrer` dans `properties`/`$set`/`$set_once`. La QA a vérifié dans le code compilé de la lib que `before_send` intercepte TOUT le pipeline capture (pageviews, buffer rejoué, futurs événements US-103/104). 11 tests dédiés (`tests/unit/analytics-url.spec.ts`) incluant les deux cas exacts du FAIL. Règle anti-fuite documentée dans DEV_GUIDE pour US-103/104. Try/catch global du callback différé (échec adblocker/réseau → silencieux en prod). **PASS 2e passe.**
+
+Mentions légales : paragraphe mesure d'audience anonyme ajouté (section Cookies), **formulation placeholder à valider par Nathan** (TODO marqué). Actions Nathan restantes : projet PostHog Cloud **EU** + « Discard client IP data » + clés `NUXT_PUBLIC_POSTHOG_KEY`/`NUXT_PUBLIC_POSTHOG_HOST` dans Vercel. Gates : typecheck 0 · eslint 0 · **126 tests PASS** · build 0.
+
+## US-103 — Taxonomie d'événements produit — funnels achat, consignation, contact · 5 pts — PASS (1re passe)
+
+Les 6 événements de la taxonomie actée (et RIEN d'autre — audit grep exhaustif QA) : `product_viewed` (`catalogue/[slug].vue`, onMounted post-résolution), `cart_item_added` (`stores/cart.ts`, après mutation réussie — jamais sur les no-op), `checkout_opened` (`checkout/index.vue`, après `checkout.mount()` effectif, flag one-shot par instance, recompte à chaque visite), `consignment_form_viewed` / `consignment_submitted` (`ConsignmentForm.vue`, submitted UNIQUEMENT dans la branche succès du try), `contact_submitted` (`contact.vue`, idem).
+
+**Taxonomie verrouillée au COMPILATEUR** : `app/utils/analytics-events.ts` (union type des 6 noms + `AnalyticsEventPayloadMap` event→payload) + surcharges de `capture()` — un nom hors taxonomie ou une propriété hors payload ne compile pas. La QA l'a prouvé par reproduction isolée (`tsc --strict` + `@ts-expect-error` sur 3 cas pirates : tous rejetés), et vérifié zéro échappatoire `as` dans `app/`. Résilience durcie : `safeForward()` try/catch sur tout appel client (adblocker → parcours intacts, testé sur le résultat métier réel). Zéro PII vérifié champ par champ ; `photos_count` = compte seul ; même distinct_id anonyme sur tout le funnel (memory persistence, aucun reset/identify).
+
+**Déviations statuées par la QA (les 3 validées)** : `consignment_submitted.category` omise (le formulaire ne collecte pas de catégorie — typée optionnelle pour plus tard) ; `cart_item_added` aussi sur remplacement de quantité US-096 (sémantique remplacement confirmée, quantité résultante capturée) ; `items_count` = total d'unités et `cart_value` = sous-total hors port (aligné badge US-096 ; à reconfirmer si le funnel montre des écarts vs total payé).
+
+**QA : PASS 1re passe.** Gates : typecheck 0 · eslint 0 · **135 tests PASS** (dont 7 cart-analytics + use-analytics réécrit taxonomie-valide) · build 0. Suggestion QA future : matérialiser le verrouillage compilateur par des `@ts-expect-error` dans les tests du repo (garantie continue en CI).
+
+## US-104 — Capture serveur fiable « commande payée » via webhook Stripe · 2 pts — PASS (1re passe)
+
+`order_paid` capturé côté serveur via `posthog-node@5.46` — compteur de conversion insensible aux adblockers/fermetures d'onglet. **Déviation architecturale validée QA** : capture dans `fulfillCheckoutSession` (`server/utils/fulfillment.ts`), PAS dans `webhook.post.ts` — le fulfillment a 2 déclencheurs (webhook + landing `session-status`) derrière la barrière d'idempotence `pending → paid` ; la capture en dernière instruction de la branche gagnante garantit exactement UNE capture par commande payée, après fulfillment complet, jamais sur rejeu, quel que soit le déclencheur vainqueur de la course.
+
+`server/services/analytics.ts` (nouveau, seul module serveur parlant à PostHog) : `captureOrderPaid()` no-op sans clé, ne lève jamais (try/catch interne + ceinture dans fulfillment). Pattern serverless vérifié sur le package installé : `flushAt: 1` + `flushInterval: 0` + `await client._shutdown(3000)` — la QA a contre-vérifié dans les `.d.ts` que `_shutdown()` est bien l'API v5.46 (`shutdown()` public n'existe plus). Propriétés : `amount_total` en euros, `currency`, `items_count` (somme des quantités order_items, sémantique US-096), `payment_method_type`, `$process_person_profile: false`, `disableGeoip: true` (l'IP vue est celle de Stripe) — `customer_details` JAMAIS lu (vérifié ligne à ligne QA).
+
+**Jonction funnel anonyme** : `getDistinctId()` exposé par `useAnalytics` (inerte SSR/bloqué) → `analyticsId` optionnel (Zod, borne 100) → `metadata.analytics_id` Stripe → capture avec CE distinct_id ; fallback `randomUUID()` si absent (comptage exhaustif même adblocké). Taxonomie client `analytics-events.ts` intacte (exhaustive à 6) : `SERVER_ANALYTICS_EVENTS` séparée — `order_paid` jamais capturable côté client par construction.
+
+**QA : PASS 1re passe.** 11 tests via le vrai fulfillment (posthog-node mocké au module, `toHaveBeenCalledWith` sur l'objet complet = preuve zéro PII résiduelle) : idempotence rejeu, no-op sans clé, échecs constructeur/capture avalés avec fulfillment/email intacts, ordre capture-après-email. Gates : typecheck 0 · eslint 0 · **146 tests PASS** · build 0.
+
+## US-105 — Funnels & dashboards PostHog + guide de lecture pour Nathan · 3 pts — PASS (1re passe)
+
+**Configuration PostHog faite par l'orchestrateur via le MCP** (connecté en début de session au projet « Default project » 230708, org cgws, PostHog Cloud EU) : dashboard épinglé **« CGWS — Produit »** (https://eu.posthog.com/project/230708/dashboard/843332) avec 5 tuiles — Funnel Achat `product_viewed → cart_item_added → checkout_opened → order_paid` (fenêtre de conversion **1 jour**, choix délibéré aligné sur le mode anonyme intra-session, insight `Z0jGFQrs`) ; Funnel Consignation `consignment_form_viewed → consignment_submitted` (`zbibrb5M`) ; tendance Contact (`3rYfMZY1`) ; Commandes payées volume + CA en somme d'`amount_total` sur 2 axes (`PUMmNYpi`) ; Top produits vus par `product_slug` (`6PRFaGES`). Vérifié côté projet : **`anonymize_ips: true`** (« Discard client IP data » actif — l'affirmation « IP non conservée » des mentions légales US-102 est effective) et `session_recording_opt_in: false`.
+
+**`docs/ANALYTICS.md`** (nouveau, référencé depuis DEV_GUIDE) : table de taxonomie des 7 événements (6 client + `order_paid` serveur) croisée mot pour mot avec le code par la QA (zéro divergence) ; lien + question produit par vue ; **limites explicitées** (funnels valides intra-session uniquement — memory persistence, d'où la fenêtre 1j ; sous-comptage adblockers client vs `order_paid` serveur exhaustif, avec méthode de mesure de l'écart ; pas de replay/heatmaps et pourquoi ; anti-fuite `before_send`) ; règle de gouvernance (nouvel événement = même PR : `analytics-events.ts` ou `SERVER_ANALYTICS_EVENTS` + table du guide) ; **recette e2e en checklist actionnable** (§5) avec LA subtilité qui ferait croire à un funnel cassé : rester dans le même onglet sans rechargement complet (l'identité anonyme meurt au reload).
+
+**QA : PASS 1re passe** (une retouche mineure appliquée par l'orchestrateur avant commit : la case « Discard client IP data » de la recette reflète désormais l'état vérifié actif). Typecheck 0 · eslint 0 (docs only).
+
+**⚠️ Recette e2e NON exécutée — blocage externe (action Nathan)** : les clés `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` ne sont pas dans Vercel — le projet PostHog n'ingère rien (`ingested_event: false` vérifié). Le parcours d'achat test Stripe prouvant la jonction client→serveur reste à dérouler via la checklist ANALYTICS.md §5 une fois les clés posées.
+
+---
+
+## Bilan Sprint 11 — 18 pts planifiés · 18 pts livrés (vélocité 100 %) · 2026-07-23
+
+**Objectif de sprint ATTEINT** (sous réserve des actions infra Nathan) : un déposant connecté ne peut plus lire les PII des autres ni écrire dans le catalogue (US-101, vérifiée live sur la base de dev, 58/58 assertions), et le comportement visiteur est mesurable sans cookie ni consentement (US-102→105 : socle → taxonomie → capture serveur → funnels/dashboard/guide). 5 US, 5 PASS (2 en 2e passe : US-102 fuite `$current_url` attrapée par la QA, US-095-style ; US-096-style pour les autres en 1re). Gates finaux : typecheck 0 · eslint 0 · **146 tests** · build 0. Ordre strict sécurité-d'abord respecté.
+
+**Les 2 FAIL QA du sprint étaient de vraies prises** : la fuite de query params sensibles vers PostHog (jetons magic link + session_id Stripe dans `$current_url`) aurait contredit frontalement les mentions légales — corrigée par `before_send` après démontage documenté des 2 alternatives (`get_current_url` inopérante per JSDoc, `sanitize_properties` dépréciée).
+
+### Actions Nathan pour activer le sprint en production (ordre important)
+1. **US-101 prod** : attribuer le claim admin (`{"cgws_role":"admin"}` dans app_metadata) aux comptes de Camille et Nathan sur la base de PRODUCTION, **PUIS** déployer la migration `008_admin_role_rls.sql`, reconnexion admin, rejouer `supabase/tests/rls_admin.sql` (checklist ordonnée : DEV_GUIDE § Sécurité). Un déploiement sans le claim préalable verrouille le backoffice.
+2. **PostHog** : saisir `NUXT_PUBLIC_POSTHOG_KEY` (clé `phc_…` du projet 230708) + `NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` dans Vercel (Production), redéployer.
+3. **Recette e2e** : dérouler la checklist `docs/ANALYTICS.md` §5 (achat test Stripe + dépôt test), consigner ici.
+4. **Valider la formulation** du paragraphe mesure d'audience des mentions légales (TODO marqué, sujet légal).
+5. À la fermeture des issues : #34 → référencer la migration 008 + `rls_admin.sql` ; #31 → mentionner explicitement l'abandon du bandeau de consentement au profit du mode anonyme exempté (décision interview 2026-07-23) pour éviter une réouverture sur ce critère obsolète.
+
+### Dettes/observations nouvelles du sprint
+- `server/utils/adminAuth.ts` compare `user.email` à un unique `ADMIN_EMAIL` — pourrait bloquer l'un des 2 comptes admin sur `server/api/admin/*` indépendamment du claim RLS (remarque QA US-101, candidat future US, à unifier avec `is_admin()`).
+- Verrouillage compilateur de la taxonomie : ajouter des `@ts-expect-error` dans les tests du repo pour matérialiser la garantie en CI (suggestion QA US-103).
+- Le chunk posthog-js (~228 kB) reste prefetché même sans clé (comportement Vite, jamais exécuté) — acté non bloquant, à réévaluer seulement si un audit perf le pointe.
+- Blocages antérieurs inchangés (Resend cgws.fr, SHIPPING_FLAT_RATE, PayPal Dashboard, contenus Camille, issue #30 focus rings, edge case stock US-082) — voir bilans Sprints 8-10.

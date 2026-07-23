@@ -62,6 +62,23 @@ const { data: relatedProducts, pending: relatedPending } = await useAsyncData(
   },
 )
 
+// ── Analytics (US-103) ───────────────────────────────────────────────────────
+// product_viewed : onMounted (client only), après résolution du produit — une
+// capture par affichage de fiche (la page est remontée à chaque slug). Aucune
+// PII : identifiants produit + prix affiché public uniquement.
+const { capture } = useAnalytics()
+onMounted(() => {
+  const viewed = product.value
+  if (!viewed) return
+  capture('product_viewed', {
+    product_id: viewed.id,
+    product_slug: viewed.slug,
+    category: viewed.category,
+    price: viewed.price,
+    is_consignment: viewed.isConsignment,
+  })
+})
+
 // ── SEO dynamique ────────────────────────────────────────────────────────────
 useSeoMeta({
   title: `${product.value!.title} — ${product.value!.brand} | CGWS`,
