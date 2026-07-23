@@ -1497,13 +1497,14 @@ Then   les quatre commandes passent en EXIT 0
 6. **Retour en stock + notification (US-097)** ferme la marche : elle dépend du modèle de stock retravaillé en US-096 ET du domaine Resend vérifié (US-094) pour être utile en production — la planifier avant ses dépendances n'aurait aucun sens.
 7. **Les 5 issues « Products »** ne sont volontairement PAS transformées en US : ce sont des saisies de contenu catalogue, pas du développement (détail § dédiée ci-dessous).
 
-### Vue d'ensemble Sprints 9-10
+### Vue d'ensemble Sprints 9-11
 
 | Sprint | Épic | Points | Objectif |
 |--------|------|--------|----------|
 | Sprint 9 | E10 — Fiabilité & confiance du site public | 18 | Stopper la perte silencieuse de prospects (email, dépôt de selle), corriger le lien mort `/a-propos` déjà en production, activer PayPal, nettoyer le hero |
 | Sprint 10 | E11 — Stock multi-unités & rupture | 16 | Achat de plusieurs exemplaires + gestion de la rupture de stock avec alerte email |
-| **Total** | | **34** | |
+| Sprint 11 | E12 — Sécurité & Analytics produit | 18 | Fermer la faille RLS « tout authentifié = admin » (#34), puis instrumenter le comportement visiteur avec PostHog cookieless : funnels achat, consignation, contact (#31) |
+| **Total** | | **52** | |
 
 **Note vélocité** : le Sprint 9 se rapproche maintenant de la vélocité observée (~20 pts) grâce à l'ajout de US-099 et US-100, sans avoir été gonflé artificiellement — les deux items s'ajoutent naturellement au même objectif de sprint (fiabilité et confiance perçue du site public) et étaient déjà, pour #18, cadrés comme triviaux avant chiffrage. Le Sprint 10 reste à 16 pts, une fois le terrain déblayé.
 
@@ -1961,6 +1962,384 @@ Pour qu'aucune issue de l'inventaire ne reste sans statut explicite :
 | #7 | Produit — Horshair | Hors périmètre sprint | Saisie catalogue, voir § « Issues Products » |
 
 **15/15 issues couvertes** : 8 planifiées en US (Sprint 9 : US-094, US-095, US-098, US-099, US-100 · Sprint 10 : US-096, US-097), 2 recommandées à la fermeture (#11, #16), 5 hors périmètre sprint (saisie catalogue).
+
+---
+
+## Planification Sprint 11 (interview Nathan, 2026-07-23) — Sécurité & Analytics produit
+
+**Périmètre acté en interview** : deux issues, dans cet ordre strict de priorité — **#34** (faille RLS admin, sécurité haute, à traiter EN PREMIER) puis **#31** (intégration PostHog). Les décisions de cadrage ci-dessous prévalent sur le texte de l'issue #31 : **pas de bandeau de consentement** — PostHog est configuré en mode **cookieless/anonyme** (persistence mémoire, aucun cookie, aucune identification utilisateur, IP écartée, hébergement UE) pour s'inscrire dans l'exemption CNIL de mesure d'audience. Conséquence directe et assumée : **pas de session replay ni de heatmaps dans ce sprint** (incompatibles avec l'anonyme sans consentement) — le critère « bandeau bloquant » de l'issue est explicitement abandonné. Consommateur unique des données : **Nathan**, pour objectiver la priorisation du backlog (où perd-on les acheteurs ? le funnel consignation convertit-il ?). Pas de dashboard vulgarisé pour Camille dans ce sprint.
+
+**Découpage PostHog** : 4 US livrables indépendamment (socle SDK → taxonomie client → capture serveur Stripe → funnels/doc), pour que le sprint puisse s'arrêter proprement à n'importe quelle frontière si la sécurité (US-101) consomme plus que prévu.
+
+**Vélocité** : 18 pts, dans la fourchette observée (Sprint 9 = 18, Sprint 10 = 16).
+
+---
+
+## Épic E12 — Sécurité & Analytics produit
+
+**Sprint 11 · ~1-2 semaines · 18 points**
+**Objectif** : un déposant connecté ne peut plus lire les PII des autres ni écrire dans le catalogue (rôle admin réel vérifié en RLS), et le comportement réel des visiteurs (parcours catalogue, tunnel de dépôt, tunnel de paiement) devient mesurable dans PostHog sans cookie ni consentement, avec des funnels lisibles et documentés pour Nathan.
+
+**Prérequis externes (actions Nathan, hors code)** : création d'un compte/projet PostHog **Cloud EU** + saisie des clés `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` dans Vercel (US-102) ; attribution du claim admin aux comptes de Camille et Nathan AVANT le déploiement de la migration RLS en production (US-101 — procédure détaillée dans la US, l'ordre est critique sous peine de verrouiller le backoffice).
+
+| US | Titre | Priorité | Points | Issue(s) |
+|----|-------|----------|--------|----------|
+| US-101 | RLS admin réel — rôle admin vérifié dans les policies | Must Have | 5 | #34 |
+| US-102 | Socle PostHog cookieless — plugin client SSR-safe et différé | Should Have | 3 | #31 |
+| US-103 | Taxonomie d'événements produit — funnels achat, consignation, contact | Should Have | 5 | #31 |
+| US-104 | Capture serveur fiable « commande payée » via webhook Stripe | Should Have | 2 | #31 |
+| US-105 | Funnels & dashboards PostHog + guide de lecture pour Nathan | Could Have | 3 | #31 |
+| **Total** | | | **18** | |
+
+---
+
+### US-101 · RLS admin réel — rôle admin vérifié dans les policies · 5 pts
+
+**Issue** : #34 (« RLS admin reposant sur auth.role()='authenticated' : lecture PII + écriture catalogue accessibles à tout déposant connecté »)
+
+**En tant que** gérante (P1),
+**Je veux** que seuls les comptes explicitement admin puissent lire les données personnelles (consignations, clients, ventes, commandes) et écrire dans le catalogue,
+**Afin de** protéger les PII de mes clients et déposants — un particulier qui a déposé sa selle ne doit jamais pouvoir lire les coordonnées des autres déposants ni modifier mes produits.
+
+**Contexte / diagnostic (confirmé dans le code)** : `supabase/migrations/002_rls_policies.sql` (lignes 10-29) et `004_orders.sql` (lignes 55-56) utilisent `auth.role() = 'authenticated'` comme critère « admin » sur `products` (INSERT/UPDATE/DELETE), `categories`, `consignments` (SELECT/UPDATE), `sales`, `clients`, `orders`, `order_items`. Or depuis l'espace déposant (US-066, Sprint 7), **tout déposant obtient une session `authenticated` via magic link** : avec la clé anon publique + son propre JWT, il peut donc interroger PostgREST directement et lire les PII de TOUS les déposants/clients, ou écrire dans le catalogue. La faille est même **déjà documentée en commentaire dans la migration `007_stock_notifications.sql`** (lignes 20-39), qui a explicitement évité de reproduire le pattern — cette US généralise cette prise de conscience à toutes les tables. Point d'attention majeur : le backoffice interroge Supabase **directement avec le JWT de l'admin** (`app/pages/admin/dashboard.vue`, `app/components/admin/ProductForm.vue`) — le durcissement RLS DOIT donc s'accompagner de l'attribution effective du rôle admin au compte de Camille, sinon le backoffice se verrouille lui-même.
+
+**Critères d'acceptation :**
+
+```gherkin
+# Rôle admin réel
+Given  la migration RLS dédiée est appliquée
+When   les policies « admin » de products, categories, consignments, sales, clients, orders, order_items sont inspectées
+Then   AUCUNE ne repose sur auth.role() = 'authenticated' seul — toutes vérifient un rôle admin réel
+       via une fonction helper is_admin() lisant le claim app_metadata (jamais user_metadata, modifiable par l'utilisateur)
+
+# Non-régression sécurité : le déposant authentifié est confiné
+Given  un déposant connecté via magic link (session authenticated valide, compte SANS claim admin)
+When   il interroge PostgREST directement avec la clé anon + son JWT
+Then   SELECT sur consignments retourne zéro ligne (aucune PII d'autres déposants)
+And    SELECT sur clients, sales, orders, order_items est refusé ou retourne zéro ligne
+And    INSERT/UPDATE/DELETE sur products et categories est rejeté (violation RLS)
+
+# Tentative d'élévation par user_metadata
+Given  ce même déposant modifie son propre user_metadata via l'API auth publique (updateUser)
+       pour y écrire role: 'admin'
+When   il rejoue les requêtes ci-dessus
+Then   tous les accès restent refusés à l'identique — la vérification ne lit QUE app_metadata,
+       que seul le service role peut modifier
+
+# Non-régression backoffice
+Given  le compte de Camille porte le claim admin (attribué via la procédure documentée)
+When   elle utilise le backoffice de bout en bout (dashboard + stats, CRUD produit, workflow
+       consignation, ventes, clients)
+Then   tout fonctionne strictement comme avant la migration
+
+# Non-régression site public
+Given  un visiteur anonyme (clé anon, pas de session)
+When   il consulte le catalogue et une fiche produit
+Then   la lecture des produits actifs fonctionne comme avant, et rien de plus n'est lisible qu'avant
+
+# Non-régression espace déposant
+Given  un déposant connecté via magic link
+When   il consulte son espace déposant
+Then   il voit ses propres consignations comme avant (les routes server/api/depositor/* passent par
+       le service role avec filtre dérivé du JWT — barrières US-066 intouchées)
+
+# Ordre de déploiement sûr
+Given  la procédure d'attribution du claim admin (SQL ou dashboard Supabase) documentée dans DEV_GUIDE
+When   la migration est déployée en production
+Then   le claim a été attribué AVANT aux comptes de Camille et Nathan (étape explicite et ordonnée
+       de la checklist de déploiement — un déploiement sans cette étape verrouillerait le backoffice)
+```
+
+**Notes techniques** :
+- Migration dédiée `supabase/migrations/008_admin_role_rls.sql` : fonction `is_admin()` (STABLE, lisant `auth.jwt() -> 'app_metadata' ->> 'cgws_role'` — ou clé équivalente — comparé à `'admin'`), puis `DROP POLICY` / `CREATE POLICY` de remplacement pour chaque policy fautive de 002 et 004. Alternative acceptable si le dev la juge plus robuste : table `admin_users` + fonction SECURITY DEFINER — mais le claim `app_metadata` est privilégié (zéro table, zéro jointure par requête, non modifiable côté client).
+- **JAMAIS `user_metadata`** : modifiable par l'utilisateur lui-même via `supabase.auth.updateUser()` — ce serait recréer la faille sous une autre forme. Seul `app_metadata` (service role only) est acceptable.
+- Attribution du claim : `UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"cgws_role":"admin"}'::jsonb WHERE email = ...` (ou Supabase Dashboard → Auth → user → app_metadata). À documenter dans `docs/DEV_GUIDE.md` § sécurité, avec l'avertissement d'ordre de déploiement. Note : le claim n'entre dans le JWT qu'à la prochaine émission de token — Camille devra se reconnecter (ou attendre le refresh) après attribution.
+- Tests de non-régression : script SQL rejouable (`psql` / SQL editor) simulant les claims via `SET LOCAL ROLE authenticated; SET LOCAL request.jwt.claims = '{"role":"authenticated","app_metadata":{}}'` (déposant) puis avec `"app_metadata":{"cgws_role":"admin"}` (admin), vérifiant chaque table ; livré dans le repo (ex. `supabase/tests/rls_admin.sql`) pour être rejoué à chaque évolution de schéma. Les secrets CI étant toujours absents (cf. #11), l'exécution est locale/manuelle et son résultat consigné dans `docs/PROGRESS.md`.
+- Vérifier au passage qu'aucune route `server/api/depositor/*` ni aucun composable public ne dépendait accidentellement de la permissivité actuelle (grep `from('consignments'|'clients'|'sales')` côté `app/` — seuls les fichiers admin listés en contexte le font aujourd'hui).
+
+**Fichiers impactés (estimés)** :
+- `supabase/migrations/008_admin_role_rls.sql`
+- `supabase/tests/rls_admin.sql` (nouveau, script de non-régression rejouable)
+- `docs/DEV_GUIDE.md` (procédure claim admin + ordre de déploiement)
+
+**Commit** : `fix(security): real admin role in RLS policies, depositors locked out of PII and catalog writes [US-101]`
+
+---
+
+### US-102 · Socle PostHog cookieless — plugin client SSR-safe et différé · 3 pts
+
+**Issue** : #31 (intégration PostHog — périmètre recadré en interview : cookieless, sans consentement, sans replay/heatmaps)
+
+**En tant que** product owner (Nathan),
+**Je veux** un socle PostHog chargé côté client de façon différée, anonyme et sans cookie,
+**Afin de** pouvoir mesurer l'audience et les parcours sans bandeau de consentement (exemption CNIL mesure d'audience) et sans dégrader les Core Web Vitals du site.
+
+**Contexte / cadrage** : décision d'interview NON négociable — pas de bandeau de consentement, donc une configuration strictement anonyme : `persistence: 'memory'` (aucun cookie ni localStorage, identité éphémère par session de navigation), aucun appel `identify()` jamais, session recording et heatmaps désactivés, hébergement UE (`https://eu.i.posthog.com`), IP écartée côté projet PostHog. Le plugin suit le pattern client-only déjà en place (`app/plugins/gsap.client.ts`, `chart.client.ts`).
+
+**Critères d'acceptation :**
+
+```gherkin
+# Chargement différé, hors chemin critique
+Given  la homepage se charge avec les clés PostHog configurées
+When   le plugin s'initialise
+Then   l'init PostHog est différée après l'hydratation (onNuxtReady + idle), jamais bloquante
+And    un audit Lighthouse avant/après ne montre AUCUNE dégradation du LCP ni du TBT
+
+# Mode strictement anonyme
+Given  PostHog est initialisé
+When   j'inspecte le stockage du navigateur (cookies, localStorage, sessionStorage)
+Then   AUCUN cookie ni entrée de stockage persistant n'est créé par PostHog (persistence memory)
+And    aucun appel identify() n'existe dans le codebase (l'identité reste l'id anonyme éphémère)
+And    session recording et heatmaps sont explicitement désactivés dans la config du plugin
+
+# Pageviews SPA
+Given  je navigue de la homepage vers /catalogue puis une fiche produit (navigation client Nuxt)
+When   chaque route change
+Then   un événement $pageview est capturé pour chaque page vue (capture manuelle sur le router,
+       la capture automatique ne couvrant pas les navigations SPA)
+
+# Absence de clés = no-op silencieux
+Given  NUXT_PUBLIC_POSTHOG_KEY est absente (dev local, preview sans secret)
+When   le site tourne
+Then   aucun script PostHog n'est chargé, useAnalytics() expose des fonctions inertes,
+       et AUCUNE erreur console n'apparaît
+
+# SSR-safe
+Given  le rendu serveur d'une page quelconque
+When   le HTML est généré
+Then   aucune référence à posthog-js n'est évaluée côté serveur (plugin .client.ts strict,
+       aucun warning SSR ni hydration mismatch)
+
+# Transparence RGPD
+Given  la page des mentions légales
+When   je la consulte
+Then   un court paragraphe informe de la mesure d'audience anonyme sans cookie (obligation de
+       transparence de l'exemption CNIL), marqué pour validation de formulation par Nathan
+```
+
+**Notes techniques** :
+- `app/plugins/posthog.client.ts` : `posthog.init(key, { api_host, persistence: 'memory', autocapture: false, capture_pageview: false, disable_session_recording: true })` — capture des `$pageview` manuelle via `router.afterEach` (SSR-safe car plugin client). Consulter la doc via MCP (`mcp__nuxt-remote__*`) pour le pattern plugin + router officiel Nuxt 4 avant implémentation (règle CLAUDE.md).
+- `autocapture: false` volontaire : la taxonomie est exclusivement explicite (US-103) pour rester propre et sans PII accidentelle (l'autocapture peut aspirer des contenus de champs/labels).
+- Composable `app/composables/useAnalytics.ts` : expose `capture(event, properties)` inerte si PostHog absent/non initialisé — c'est LE point d'entrée unique pour US-103/US-104 (côté client).
+- Clés : `runtimeConfig.public.posthogKey` / `posthogHost` ← `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` (défaut `https://eu.i.posthog.com`). Jamais commitées ; ajoutées à `.env.example` et documentées dans `docs/DEV_GUIDE.md`.
+- Config projet PostHog (action Nathan, à documenter) : projet sur PostHog Cloud **EU**, option « Discard client IP data » activée.
+- Mentions légales : formulation courte type « mesure d'audience anonyme exemptée de consentement (CNIL) » — **la formulation exacte est à valider par Nathan** (sujet légal, on ne l'invente pas définitivement), marquage placeholder cohérent avec la convention du projet.
+
+**Fichiers impactés (estimés)** :
+- `app/plugins/posthog.client.ts`
+- `app/composables/useAnalytics.ts`
+- `nuxt.config.ts` (runtimeConfig public)
+- `.env.example`, `docs/DEV_GUIDE.md`
+- `app/pages/mentions-legales.vue` (paragraphe mesure d'audience)
+- `package.json` (dépendance `posthog-js`)
+
+**Commit** : `feat(analytics): cookieless PostHog client plugin, SSR-safe and deferred [US-102]`
+
+---
+
+### US-103 · Taxonomie d'événements produit — funnels achat, consignation, contact · 5 pts
+
+**Issue** : #31
+
+**Dépendances** : US-102 (composable `useAnalytics` et plugin initialisé).
+
+**En tant que** product owner (Nathan),
+**Je veux** une taxonomie d'événements minimale, nommée proprement et sans PII, couvrant le funnel achat, le funnel consignation et le contact,
+**Afin de** répondre à des questions produit précises — où perd-on les acheteurs entre la fiche produit et le paiement ? le tunnel de dépôt de selle convertit-il ? — plutôt que d'accumuler des données inutilisables.
+
+**Taxonomie retenue (exhaustive pour ce sprint — tout événement hors de cette liste est refusé en review)** :
+
+| Événement | Déclencheur | Propriétés (JAMAIS de PII) |
+|-----------|-------------|----------------------------|
+| `product_viewed` | Affichage d'une fiche produit | `product_id`, `product_slug`, `category`, `price`, `is_consignment` |
+| `cart_item_added` | Ajout au panier réussi | `product_id`, `quantity`, `price` |
+| `checkout_opened` | Affichage du checkout embarqué Stripe | `cart_value`, `items_count` |
+| `consignment_form_viewed` | Affichage du formulaire de dépôt sur /consignation | — |
+| `consignment_submitted` | Soumission de dépôt RÉUSSIE (réponse serveur OK) | `photos_count`, `category` si disponible |
+| `contact_submitted` | Soumission de contact RÉUSSIE | — |
+
+(L'événement « commande payée » est volontairement côté serveur — US-104 — car seul le webhook Stripe fait foi.)
+
+**Critères d'acceptation :**
+
+```gherkin
+# Funnel achat côté client
+Given  PostHog initialisé, je consulte une fiche produit, j'ajoute au panier puis j'ouvre le checkout
+When   chaque étape se produit
+Then   product_viewed, cart_item_added et checkout_opened sont capturés dans cet ordre,
+       avec exactement les propriétés de la taxonomie
+And    les trois événements partagent le même distinct_id anonyme (même session de navigation),
+       rendant le funnel constructible dans PostHog
+
+# Funnel consignation
+Given  j'ouvre /consignation puis je soumets une demande de dépôt valide
+When   le serveur confirme la création
+Then   consignment_form_viewed puis consignment_submitted sont capturés
+And    une soumission en ÉCHEC (erreur serveur, validation) ne capture PAS consignment_submitted
+
+# Contact
+Given  je soumets le formulaire de contact avec succès
+When   la confirmation s'affiche
+Then   contact_submitted est capturé (échec serveur → rien)
+
+# Zéro PII, zéro sur-instrumentation
+Given  l'ensemble des captures du codebase
+When   les propriétés envoyées sont auditées (grep sur les appels capture)
+Then   AUCUNE propriété ne contient email, nom, téléphone, adresse, contenu de message ou prix
+       demandé du déposant — uniquement les propriétés de la taxonomie ci-dessus
+And    aucun événement hors taxonomie n'est capturé
+
+# Résilience
+Given  PostHog est bloqué par un adblocker ou les clés sont absentes
+When   je déroule les mêmes parcours
+Then   les parcours fonctionnent à l'identique, aucune erreur visible ni console — la mesure
+       échoue en silence, jamais l'expérience utilisateur
+```
+
+**Notes techniques** :
+- Tous les appels passent par `useAnalytics().capture()` (US-102) — aucun import direct de `posthog-js` dans les composants.
+- Points d'accroche : `product_viewed` dans `app/pages/catalogue/[slug].vue` (onMounted, après résolution du produit) ; `cart_item_added` dans le store `app/stores/cart.ts` ou le composant CTA (au succès de l'ajout, avec la quantité US-096) ; `checkout_opened` au montage effectif du checkout embarqué ; `consignment_form_viewed`/`consignment_submitted` dans `ConsignmentForm.vue` (submitted UNIQUEMENT dans la branche succès) ; `contact_submitted` dans le formulaire de contact (idem).
+- Centraliser les noms d'événements dans une constante typée (ex. `app/utils/analytics-events.ts`, union type des 6 noms) pour empêcher les fautes de frappe et rendre l'audit « zéro événement hors taxonomie » mécanique.
+- `consignment_submitted.photos_count` : un COMPTE, jamais les fichiers ni leurs noms.
+
+**Fichiers impactés (estimés)** :
+- `app/utils/analytics-events.ts` (nouveau)
+- `app/pages/catalogue/[slug].vue`
+- `app/stores/cart.ts` (ou composant CTA d'ajout panier)
+- `app/pages/checkout.vue` (ou composant du checkout embarqué)
+- `app/components/consignation/ConsignmentForm.vue`
+- `app/pages/contact.vue`
+
+**Commit** : `feat(analytics): product event taxonomy for purchase, consignment and contact funnels [US-103]`
+
+---
+
+### US-104 · Capture serveur fiable « commande payée » via webhook Stripe · 2 pts
+
+**Issue** : #31
+
+**Dépendances** : US-102 (clés/env et convention de nommage) ; US-103 souhaitable pour que le funnel complet ait un sens dès la livraison.
+
+**En tant que** product owner (Nathan),
+**Je veux** que l'événement « commande payée » soit capturé côté serveur dans le webhook Stripe,
+**Afin de** disposer d'un compteur de conversion FIABLE (non soumis aux adblockers, aux fermetures d'onglet ni au retour raté depuis le paiement) — seul le webhook `checkout.session.completed` fait foi qu'une commande est réellement payée.
+
+**Critères d'acceptation :**
+
+```gherkin
+# Capture fiable au paiement
+Given  un paiement aboutit (webhook checkout.session.completed reçu et vérifié)
+When   fulfillOrder s'exécute avec succès
+Then   un événement order_paid est capturé via posthog-node avec : montant total, nombre d'articles,
+       devise, et le type de moyen de paiement si disponible — AUCUNE PII (ni email ni nom
+       de l'acheteur, pourtant présents dans la session Stripe)
+
+# Jonction anonyme avec le funnel client
+Given  la session Stripe a été créée depuis un navigateur où PostHog était actif
+When   le client a transmis son distinct_id anonyme éphémère à la création de session
+       (metadata Stripe), et que le webhook le retrouve
+Then   order_paid est capturé avec CE distinct_id — le funnel checkout_opened → order_paid
+       se raccorde pour cette session de navigation
+And    si le metadata est absent (PostHog bloqué/désactivé côté client), order_paid est capturé
+       quand même avec un id aléatoire — le comptage global reste exhaustif
+
+# L'analytics ne casse JAMAIS le fulfillment
+Given  PostHog est indisponible (réseau, clé invalide, quota)
+When   le webhook traite un paiement
+Then   fulfillOrder, la confirmation de commande et l'email acheteur aboutissent normalement —
+       l'échec de capture est loggé et avalé (try/catch), jamais propagé
+And    la capture intervient APRÈS le fulfillment, jamais avant
+
+# Environnement serverless
+Given  l'exécution en fonction serverless Vercel
+When   order_paid est capturé
+Then   l'envoi est flushé avant la fin de la fonction (pas d'événement perdu dans un buffer
+       tué avec la lambda)
+```
+
+**Notes techniques** :
+- Dépendance `posthog-node`, utilisée uniquement dans `server/api/checkout/webhook.post.ts` (et/ou un petit service `server/services/analytics.ts` si la lisibilité le justifie). Réutilise la même clé projet (`NUXT_PUBLIC_POSTHOG_KEY`) et le host EU — la clé de capture PostHog est publique par nature, pas de secret supplémentaire.
+- Serverless : instancier avec `flushAt: 1` et/ou `await posthog.shutdown()` après capture — vérifier le pattern recommandé dans la doc posthog-node (via context7) au moment de l'implémentation.
+- Jonction funnel : côté client, à la création de la session checkout (`server/api/checkout/session.post.ts` reçoit le body du front), ajouter un champ optionnel `analyticsId` = distinct_id anonyme PostHog courant, propagé dans `metadata` de la session Stripe. C'est un identifiant ALÉATOIRE ÉPHÉMÈRE (persistence memory — il meurt avec l'onglet), pas un identifiant utilisateur : aucune donnée personnelle, cohérent avec le cadrage RGPD. Validation Zod : chaîne optionnelle, longueur bornée.
+- Propriétés depuis l'objet session Stripe : `amount_total` (converti en euros), `currency`, nombre de `line_items` (ou somme des quantités, cohérent avec US-096), `payment_method_types[0]` ou le type effectif si exposé. Ne JAMAIS lire `customer_details` pour l'analytics.
+
+**Fichiers impactés (estimés)** :
+- `server/api/checkout/webhook.post.ts`
+- `server/api/checkout/session.post.ts` (champ metadata `analyticsId` optionnel)
+- `app/pages/checkout.vue` (ou l'appelant de la création de session — transmission du distinct_id)
+- `package.json` (dépendance `posthog-node`)
+
+**Commit** : `feat(analytics): reliable server-side order_paid capture in Stripe webhook [US-104]`
+
+---
+
+### US-105 · Funnels & dashboards PostHog + guide de lecture pour Nathan · 3 pts
+
+**Issue** : #31
+
+**Dépendances** : US-102, US-103, US-104 (les funnels ne se construisent que sur des événements existants et alimentés).
+
+**En tant que** product owner (Nathan),
+**Je veux** des funnels et un dashboard configurés dans PostHog, accompagnés d'un guide de lecture versionné dans le repo,
+**Afin de** que l'outil ne reste pas une coquille vide : je dois pouvoir répondre en quelques clics à « où perd-on les acheteurs ? » et « le funnel consignation convertit-il ? », et savoir interpréter les chiffres (et leurs limites) sans redécouvrir la taxonomie à chaque fois.
+
+**Critères d'acceptation :**
+
+```gherkin
+# Funnel achat
+Given  le projet PostHog EU alimenté par les événements des US-102/103/104
+When   le funnel « Achat » est consulté
+Then   il enchaîne product_viewed → cart_item_added → checkout_opened → order_paid
+And    un parcours de test complet (achat en mode test Stripe sur preview/prod) apparaît
+       dans le funnel de bout en bout, prouvant la jonction client → serveur (US-104)
+
+# Funnel consignation
+Given  le même projet
+When   le funnel « Consignation » est consulté
+Then   il enchaîne consignment_form_viewed → consignment_submitted
+And    un dépôt de test soumis apparaît dans le funnel
+
+# Dashboard unique
+Given  un dashboard « CGWS — Produit » créé dans PostHog
+When   Nathan l'ouvre
+Then   il regroupe au minimum : les 2 funnels, la tendance contact_submitted,
+       la tendance order_paid (volume + montant), et le top des produits vus (product_viewed
+       par product_slug) — le tout SANS configuration supplémentaire à faire
+
+# Guide de lecture versionné
+Given  le fichier docs/ANALYTICS.md
+When   un nouveau venu (ou Nathan dans 6 mois) le lit
+Then   il contient : la table de taxonomie complète (événement, déclencheur, propriétés, US d'origine),
+       le lien de chaque funnel/dashboard, la question produit à laquelle chaque vue répond,
+       et les LIMITES du dispositif explicitées (mode anonyme : funnels valides uniquement
+       intra-session de navigation, pas de suivi cross-session/cross-device ; sous-comptage
+       adblockers côté client vs order_paid serveur exhaustif ; pas de replay ni heatmaps, et pourquoi)
+And    la règle de gouvernance est écrite : tout NOUVEL événement exige une mise à jour de ce fichier
+       et de app/utils/analytics-events.ts dans la même PR
+```
+
+**Notes techniques** :
+- La configuration des funnels/dashboards se fait dans l'UI PostHog (pas de code) — prérequis : accès au projet PostHog EU (action Nathan si le compte n'est pas partagé). Si l'API PostHog le permet simplement, un export JSON des définitions d'insights peut être joint à `docs/ANALYTICS.md` pour reproductibilité — nice-to-have, pas exigé pour le Done.
+- Le parcours de recette (achat test Stripe + dépôt test) est un **livrable de cette US** : il valide en une passe toute la chaîne 102 → 103 → 104. Résultat consigné dans `docs/PROGRESS.md` par l'orchestrateur.
+- `docs/ANALYTICS.md` : nouveau fichier, référencé depuis `docs/DEV_GUIDE.md`.
+
+**Fichiers impactés (estimés)** :
+- `docs/ANALYTICS.md` (nouveau)
+- `docs/DEV_GUIDE.md` (renvoi)
+- Configuration PostHog (hors repo)
+
+**Commit** : `docs(analytics): PostHog funnels, dashboard and reading guide with taxonomy governance [US-105]`
+
+---
+
+## Mapping issues GitHub — Sprint 11
+
+| Issue | Titre | Statut | Détail |
+|-------|-------|--------|--------|
+| #34 | RLS admin reposant sur auth.role()='authenticated' — PII lisibles et catalogue inscriptible par tout déposant connecté | Planifiée | US-101 (Sprint 11, Must Have, en premier dans le sprint) |
+| #31 | Intégration PostHog (analytics produit + funnels) | Planifiée | US-102, US-103, US-104, US-105 (Sprint 11) — périmètre recadré en interview : cookieless sans consentement, PAS de session replay ni heatmaps, le critère « bandeau bloquant » de l'issue est abandonné |
+
+**Arbitrages de cadrage actés (rappel pour la clôture des issues)** : la fermeture de #31 en fin de sprint doit mentionner explicitement l'abandon du bandeau de consentement au profit du mode anonyme exempté (décision d'interview du 2026-07-23), pour que l'issue ne soit pas rouverte sur ce critère obsolète. La fermeture de #34 doit référencer la migration `008_admin_role_rls.sql` et le script de non-régression `supabase/tests/rls_admin.sql`.
 
 ---
 
