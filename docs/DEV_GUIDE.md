@@ -853,6 +853,10 @@ uniquement, pattern `stock_notifications` de la migration 007).
 
 ## Mesure d'audience — PostHog cookieless (US-102)
 
+> 📊 **Guide de lecture produit** : taxonomie complète, dashboard « CGWS —
+> Produit », questions produit par vue, limites du dispositif, gouvernance des
+> événements et recette de bout en bout → **`docs/ANALYTICS.md`** (US-105).
+
 ### Cadrage (NON négociable)
 
 Pas de bandeau de consentement → la configuration doit rester dans le cadre de

@@ -687,3 +687,34 @@ Les 6 événements de la taxonomie actée (et RIEN d'autre — audit grep exhaus
 **Jonction funnel anonyme** : `getDistinctId()` exposé par `useAnalytics` (inerte SSR/bloqué) → `analyticsId` optionnel (Zod, borne 100) → `metadata.analytics_id` Stripe → capture avec CE distinct_id ; fallback `randomUUID()` si absent (comptage exhaustif même adblocké). Taxonomie client `analytics-events.ts` intacte (exhaustive à 6) : `SERVER_ANALYTICS_EVENTS` séparée — `order_paid` jamais capturable côté client par construction.
 
 **QA : PASS 1re passe.** 11 tests via le vrai fulfillment (posthog-node mocké au module, `toHaveBeenCalledWith` sur l'objet complet = preuve zéro PII résiduelle) : idempotence rejeu, no-op sans clé, échecs constructeur/capture avalés avec fulfillment/email intacts, ordre capture-après-email. Gates : typecheck 0 · eslint 0 · **146 tests PASS** · build 0.
+
+## US-105 — Funnels & dashboards PostHog + guide de lecture pour Nathan · 3 pts — PASS (1re passe)
+
+**Configuration PostHog faite par l'orchestrateur via le MCP** (connecté en début de session au projet « Default project » 230708, org cgws, PostHog Cloud EU) : dashboard épinglé **« CGWS — Produit »** (https://eu.posthog.com/project/230708/dashboard/843332) avec 5 tuiles — Funnel Achat `product_viewed → cart_item_added → checkout_opened → order_paid` (fenêtre de conversion **1 jour**, choix délibéré aligné sur le mode anonyme intra-session, insight `Z0jGFQrs`) ; Funnel Consignation `consignment_form_viewed → consignment_submitted` (`zbibrb5M`) ; tendance Contact (`3rYfMZY1`) ; Commandes payées volume + CA en somme d'`amount_total` sur 2 axes (`PUMmNYpi`) ; Top produits vus par `product_slug` (`6PRFaGES`). Vérifié côté projet : **`anonymize_ips: true`** (« Discard client IP data » actif — l'affirmation « IP non conservée » des mentions légales US-102 est effective) et `session_recording_opt_in: false`.
+
+**`docs/ANALYTICS.md`** (nouveau, référencé depuis DEV_GUIDE) : table de taxonomie des 7 événements (6 client + `order_paid` serveur) croisée mot pour mot avec le code par la QA (zéro divergence) ; lien + question produit par vue ; **limites explicitées** (funnels valides intra-session uniquement — memory persistence, d'où la fenêtre 1j ; sous-comptage adblockers client vs `order_paid` serveur exhaustif, avec méthode de mesure de l'écart ; pas de replay/heatmaps et pourquoi ; anti-fuite `before_send`) ; règle de gouvernance (nouvel événement = même PR : `analytics-events.ts` ou `SERVER_ANALYTICS_EVENTS` + table du guide) ; **recette e2e en checklist actionnable** (§5) avec LA subtilité qui ferait croire à un funnel cassé : rester dans le même onglet sans rechargement complet (l'identité anonyme meurt au reload).
+
+**QA : PASS 1re passe** (une retouche mineure appliquée par l'orchestrateur avant commit : la case « Discard client IP data » de la recette reflète désormais l'état vérifié actif). Typecheck 0 · eslint 0 (docs only).
+
+**⚠️ Recette e2e NON exécutée — blocage externe (action Nathan)** : les clés `NUXT_PUBLIC_POSTHOG_KEY` / `NUXT_PUBLIC_POSTHOG_HOST` ne sont pas dans Vercel — le projet PostHog n'ingère rien (`ingested_event: false` vérifié). Le parcours d'achat test Stripe prouvant la jonction client→serveur reste à dérouler via la checklist ANALYTICS.md §5 une fois les clés posées.
+
+---
+
+## Bilan Sprint 11 — 18 pts planifiés · 18 pts livrés (vélocité 100 %) · 2026-07-23
+
+**Objectif de sprint ATTEINT** (sous réserve des actions infra Nathan) : un déposant connecté ne peut plus lire les PII des autres ni écrire dans le catalogue (US-101, vérifiée live sur la base de dev, 58/58 assertions), et le comportement visiteur est mesurable sans cookie ni consentement (US-102→105 : socle → taxonomie → capture serveur → funnels/dashboard/guide). 5 US, 5 PASS (2 en 2e passe : US-102 fuite `$current_url` attrapée par la QA, US-095-style ; US-096-style pour les autres en 1re). Gates finaux : typecheck 0 · eslint 0 · **146 tests** · build 0. Ordre strict sécurité-d'abord respecté.
+
+**Les 2 FAIL QA du sprint étaient de vraies prises** : la fuite de query params sensibles vers PostHog (jetons magic link + session_id Stripe dans `$current_url`) aurait contredit frontalement les mentions légales — corrigée par `before_send` après démontage documenté des 2 alternatives (`get_current_url` inopérante per JSDoc, `sanitize_properties` dépréciée).
+
+### Actions Nathan pour activer le sprint en production (ordre important)
+1. **US-101 prod** : attribuer le claim admin (`{"cgws_role":"admin"}` dans app_metadata) aux comptes de Camille et Nathan sur la base de PRODUCTION, **PUIS** déployer la migration `008_admin_role_rls.sql`, reconnexion admin, rejouer `supabase/tests/rls_admin.sql` (checklist ordonnée : DEV_GUIDE § Sécurité). Un déploiement sans le claim préalable verrouille le backoffice.
+2. **PostHog** : saisir `NUXT_PUBLIC_POSTHOG_KEY` (clé `phc_…` du projet 230708) + `NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` dans Vercel (Production), redéployer.
+3. **Recette e2e** : dérouler la checklist `docs/ANALYTICS.md` §5 (achat test Stripe + dépôt test), consigner ici.
+4. **Valider la formulation** du paragraphe mesure d'audience des mentions légales (TODO marqué, sujet légal).
+5. À la fermeture des issues : #34 → référencer la migration 008 + `rls_admin.sql` ; #31 → mentionner explicitement l'abandon du bandeau de consentement au profit du mode anonyme exempté (décision interview 2026-07-23) pour éviter une réouverture sur ce critère obsolète.
+
+### Dettes/observations nouvelles du sprint
+- `server/utils/adminAuth.ts` compare `user.email` à un unique `ADMIN_EMAIL` — pourrait bloquer l'un des 2 comptes admin sur `server/api/admin/*` indépendamment du claim RLS (remarque QA US-101, candidat future US, à unifier avec `is_admin()`).
+- Verrouillage compilateur de la taxonomie : ajouter des `@ts-expect-error` dans les tests du repo pour matérialiser la garantie en CI (suggestion QA US-103).
+- Le chunk posthog-js (~228 kB) reste prefetché même sans clé (comportement Vite, jamais exécuté) — acté non bloquant, à réévaluer seulement si un audit perf le pointe.
+- Blocages antérieurs inchangés (Resend cgws.fr, SHIPPING_FLAT_RATE, PayPal Dashboard, contenus Camille, issue #30 focus rings, edge case stock US-082) — voir bilans Sprints 8-10.
