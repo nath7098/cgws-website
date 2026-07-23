@@ -1,11 +1,19 @@
 <script setup lang="ts">
+import {
+  BRAND_SHORT,
+  BRAND_ENDORSEMENT,
+  BRAND_NAME,
+  BRAND_BASELINE,
+  BRAND_LEGAL_NAME,
+} from '~/utils/brand'
+
 const currentYear = new Date().getFullYear()
 </script>
 
 <template>
   <footer
     class="bg-cgws-surface border-t-2 border-cgws-accent-deco"
-    aria-label="Pied de page CGWS"
+    :aria-label="`Pied de page ${BRAND_NAME}`"
   >
     <div
       class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]
@@ -27,25 +35,28 @@ const currentYear = new Date().getFullYear()
         <!-- ── Colonne 1 : Marque ─────────────────────────────────── -->
         <div class="col-span-2 sm:col-span-1 order-1 flex flex-col gap-3">
           <div>
+            <!-- Lockup de façade « Spin & Slide » + endossement CGWS
+                 (wordmark PROVISOIRE Bebas Neue). -->
             <span
-              class="font-display text-[28px] text-cgws-heading tracking-widest
+              class="font-display text-[28px] text-cgws-heading tracking-[0.06em]
                      uppercase leading-none block"
             >
-              CGWS
+              {{ BRAND_SHORT }}
             </span>
-            <span class="font-serif italic text-sm text-cgws-ink-soft leading-snug block mt-1">
-              Sellerie de Brèches
+            <span class="font-sans text-[11px] uppercase tracking-[0.2em] text-cgws-ink-soft leading-none block mt-1">
+              {{ BRAND_ENDORSEMENT }}
             </span>
           </div>
-          <p class="font-sans text-sm text-cgws-ink-soft/80 leading-relaxed max-w-[220px]">
-            Équipements western authentiques —
-            neuf, occasion &amp; consignation.
+          <!-- Baseline descriptive : signal métier « western & reining »
+               conservé au footer (exigence SEO US-106). -->
+          <p class="font-sans text-sm text-cgws-ink-soft/80 leading-relaxed max-w-[240px]">
+            {{ BRAND_BASELINE }}
           </p>
           <!-- Réseaux sociaux — TODO: remplacer # par les URLs Instagram/Facebook de Camille -->
           <div class="flex items-center gap-4 mt-2">
             <a
               href="#"
-              aria-label="CGWS sur Instagram"
+              :aria-label="`${BRAND_NAME} sur Instagram`"
               class="text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
                      focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-surface rounded-sm"
@@ -54,7 +65,7 @@ const currentYear = new Date().getFullYear()
             </a>
             <a
               href="#"
-              aria-label="CGWS sur Facebook"
+              :aria-label="`${BRAND_NAME} sur Facebook`"
               class="text-cgws-ink-soft hover:text-cgws-accent transition-colors duration-150
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent
                      focus-visible:ring-offset-2 focus-visible:ring-offset-cgws-surface rounded-sm"
@@ -278,8 +289,11 @@ const currentYear = new Date().getFullYear()
 
       <!-- Barre de bas -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+        <!-- Bloc légal/entreprise : marque commerciale + RAISON SOCIALE complète.
+             « Camille Guignon Western Shop » subsiste ICI comme raison sociale
+             documentée (jamais comme label de façade) — cf. BRAND_LEGAL_NAME. -->
         <p class="font-sans text-xs text-cgws-ink-soft/60 text-center sm:text-left">
-          © {{ currentYear }} CGWS — Camille Guignon Western Shop
+          © {{ currentYear }} {{ BRAND_NAME }} · {{ BRAND_LEGAL_NAME }}
         </p>
         <p class="font-sans text-xs text-cgws-ink-soft/60 text-center sm:text-right">
           Fait avec ♥ en Indre-et-Loire

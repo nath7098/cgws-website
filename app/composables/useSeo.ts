@@ -1,14 +1,18 @@
-export const SITE_NAME = 'CGWS — Camille Guignon Western Shop'
+import { BRAND_NAME } from '~/utils/brand'
+
+// Nom de site = marque commerciale « Spin & Slide Shop » (source unique :
+// app/utils/brand.ts). Utilisé comme fallback du og:site_name.
+export const SITE_NAME = BRAND_NAME
 export const SITE_URL = 'https://cgws.fr'
 
 /**
- * Temporary OG image fallback using the hero Unsplash photo.
- * Replace with a local `/og-default.jpg` (1200×630 px, branded) once
- * Camille provides the asset: `cp <branded.jpg> public/og-default.jpg`
- * and update this constant to `'/og-default.jpg'`.
+ * Image OG par défaut — wordmark PROVISOIRE « Spin & Slide » (US-106),
+ * rasterisé depuis `public/og-default.svg` vers `public/og-default.png`
+ * (1200×630 px, palette design system v2). À remplacer par l'asset OG
+ * définitif fourni par le design/Camille — remplacer le fichier
+ * `public/og-default.png` suffit, cette constante reste inchangée.
  */
-export const DEFAULT_OG_IMAGE =
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80&auto=format&fit=crop'
+export const DEFAULT_OG_IMAGE = '/og-default.png'
 
 interface PageSeoOptions {
   /** Page title without the " | CGWS" suffix */

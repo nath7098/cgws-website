@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { compassStarPoints, compassStarCenterRadius } from '~/utils/compassStar'
 import { getLocalBusinessSchema } from '~/utils/localBusinessSchema'
+import { BRAND_NAME } from '~/utils/brand'
 
 // ---------------------------------------------------------------------------
 // Contenu — constantes isolées (garantie « swap » — voir §7 de la spec design
@@ -50,7 +51,7 @@ const STAR_CENTER_R = compassStarCenterRadius()
 usePageSeo({
   title: "À propos — Camille, l'atelier de Brèches et la consignation",
   description:
-    "Camille Guignon Western Shop : découvrez Camille, l'atelier de Brèches (37) et notre service de consignation de selles western.",
+    `${BRAND_NAME} : découvrez Camille, l'atelier de Brèches (37) et notre service de consignation de selles western.`,
   image: CAMILLE_PHOTO,
   type: 'website',
 })
@@ -68,7 +69,7 @@ useHead({
         image: CAMILLE_PHOTO,
         worksFor: {
           '@type': 'LocalBusiness',
-          name: 'CGWS — Camille Guignon Western Shop',
+          name: BRAND_NAME,
           url: 'https://cgws.fr',
         },
       }),

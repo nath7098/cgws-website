@@ -25,6 +25,22 @@ useHead({
     },
   ],
 })
+
+// Identité de marque « Spin & Slide » (US-106) — source unique app/utils/brand.ts.
+// • titleTemplate : « %s · Spin & Slide Shop » par page ; sur une page sans titre
+//   propre, le titre par défaut porte à la fois la marque ET le signal SEO
+//   « Sellerie western & reining » (baseline conservée malgré le retrait de
+//   « western » du nom).
+// • Favicon SVG PROVISOIRE (public/favicon.svg — traces de sliding stop) ; le
+//   favicon .ico historique reste en fallback pour les vieux clients.
+useHead({
+  titleTemplate: (titleChunk?: string | null) =>
+    titleChunk ? `${titleChunk} · ${BRAND_TITLE_SUFFIX}` : BRAND_DEFAULT_TITLE,
+  link: [
+    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+  ],
+})
+useSeoMeta({ ogSiteName: BRAND_NAME })
 </script>
 
 <template>

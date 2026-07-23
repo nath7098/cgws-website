@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { getLocalBusinessSchema } from '~/utils/localBusinessSchema'
+import { BRAND_NAME } from '~/utils/brand'
 
 useSeoMeta({
-  title: 'CGWS — Sellerie Équestre Western à Brèches (37)',
+  title: 'Sellerie western & reining à Brèches (37)',
   description:
-    'Camille Guignon Western Shop — équipements équestres western neufs et occasion : selles, brides, bottes, vêtements et service de consignation à Brèches, Indre-et-Loire.',
-  ogTitle: 'CGWS — Sellerie Équestre Western à Brèches (37)',
+    `${BRAND_NAME} — équipements équestres western neufs et occasion : selles, brides, bottes, vêtements et service de consignation à Brèches, Indre-et-Loire.`,
+  ogTitle: `${BRAND_NAME} — Sellerie western & reining à Brèches (37)`,
   ogDescription:
     'Découvrez notre sélection d\'équipements western authentiques. Vente neuf, occasion et service de consignation de selles.',
   ogType: 'website',

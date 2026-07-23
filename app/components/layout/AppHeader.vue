@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useScrollHeader } from '~/composables/useScrollHeader'
 import { useCartStore } from '~/stores/cart'
+import { BRAND_SHORT, BRAND_ENDORSEMENT, BRAND_LOCKUP } from '~/utils/brand'
 import MobileMenu from './MobileMenu.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
 
@@ -52,20 +53,24 @@ watch(route, () => {
       to="/"
       class="group flex flex-col items-start gap-0
              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
-      aria-label="CGWS — Retour à l'accueil"
+      :aria-label="`${BRAND_LOCKUP} — Retour à l'accueil`"
     >
+      <!-- Lockup de façade : « Spin & Slide » dominant, endossement CGWS discret.
+           WORDMARK TYPOGRAPHIQUE PROVISOIRE (Bebas Neue) — sera remplacé par le
+           logo/lockup vectoriel définitif (livrable design) sans refonte. -->
       <span
-        class="font-display text-[24px] lg:text-[28px] leading-none uppercase tracking-[0.2em]
+        class="font-display text-[20px] sm:text-[24px] lg:text-[28px] leading-none uppercase
+               tracking-[0.06em] whitespace-nowrap
                text-cgws-accent group-hover:text-cgws-ink-soft transition-colors duration-150"
       >
-        CGWS
+        {{ BRAND_SHORT }}
       </span>
       <span
-        class="font-sans text-[9px] leading-none uppercase tracking-[0.25em] mt-0.5
+        class="font-sans text-[9px] leading-none uppercase tracking-[0.2em] mt-0.5 whitespace-nowrap
                text-cgws-ink-soft group-hover:text-cgws-accent/70 transition-colors duration-150"
         aria-hidden="true"
       >
-        Sellerie · Brèches
+        {{ BRAND_ENDORSEMENT }}
       </span>
     </NuxtLink>
 

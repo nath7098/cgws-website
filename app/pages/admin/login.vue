@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { BRAND_NAME } from '~/utils/brand'
+
 definePageMeta({ layout: false })
 
 useSeoMeta({
@@ -61,11 +63,11 @@ async function handleSubmit() {
         cardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
       ]"
     >
-      <!-- Wordmark -->
+      <!-- Wordmark — monogramme d'entreprise CGWS + marque commerciale. -->
       <div>
         <span class="font-display text-3xl text-cgws-accent tracking-wider">CGWS</span>
         <span class="block font-sans text-[11px] text-cgws-ink-soft uppercase tracking-widest mt-0.5">
-          Camille Guignon Western Shop
+          {{ BRAND_NAME }}
         </span>
       </div>
 
