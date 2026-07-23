@@ -154,6 +154,7 @@ export function mapProductRow(row: {
   status: string | null
   images: string[] | null
   stock: number | null
+  camille_approved?: boolean | null
   created_at: string | null
   updated_at: string | null
 }) {
@@ -172,6 +173,7 @@ export function mapProductRow(row: {
     status: row.status ?? 'active',
     images: row.images ?? [],
     stock: row.stock ?? 1,
+    camilleApproved: row.camille_approved ?? false,
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
   }

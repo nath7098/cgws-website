@@ -23,13 +23,19 @@ export const MAX_IMPORT_LINES = 500
 
 // ─── Canonical value sets ──────────────────────────────────────────────────────
 
+// Taxonomie reining/western (US-109). Ordre = ordre d'affichage des filtres et
+// du sélecteur admin. `bottes-chaussures` et `vetements` conservés (arbitré
+// 2026-07-23). Toute évolution de cet enum DOIT s'accompagner d'une migration
+// Supabase (contrainte CHECK products.category) — cf. 009_reining_taxonomy.sql.
 export const PRODUCT_CATEGORIES = [
   'selles',
-  'brides-licols',
+  'bridonnerie',
+  'etriers',
+  'bandes-protections',
+  'licols-accessoires',
+  'soins',
   'bottes-chaussures',
   'vetements',
-  'accessoires',
-  'protections',
 ] as const
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
 
@@ -40,11 +46,25 @@ export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number]
 
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   'selles': 'Selles',
-  'brides-licols': 'Brides & Licols',
+  'bridonnerie': 'Bridonnerie',
+  'etriers': 'Étriers',
+  'bandes-protections': 'Bandes & Protections',
+  'licols-accessoires': 'Licols & Accessoires',
+  'soins': 'Soins',
   'bottes-chaussures': 'Bottes & Chaussures',
   'vetements': 'Vêtements',
-  'accessoires': 'Accessoires',
-  'protections': 'Protections',
+}
+
+/**
+ * Redirection des anciens slugs de catégorie (pré-US-109) vers la taxonomie
+ * cible. Utilisé pour la rétrocompat des liens indexés (?categorie=protections)
+ * et pour normaliser un import CSV encore rédigé avec l'ancien vocabulaire.
+ * Un ancien slug sans équivalent y est simplement absent → dégradation propre.
+ */
+export const LEGACY_CATEGORY_REDIRECTS: Record<string, ProductCategory> = {
+  'brides-licols': 'bridonnerie',
+  'protections': 'bandes-protections',
+  'accessoires': 'licols-accessoires',
 }
 
 export const CONDITION_LABELS: Record<ProductCondition, string> = {
@@ -172,9 +192,12 @@ export type RawCsvRow = Partial<Record<string, string>>
 
 export function normalizeCategory(raw: string): ProductCategory | null {
   const key = raw.trim().toLowerCase()
-  return (PRODUCT_CATEGORIES as readonly string[]).includes(key)
-    ? (key as ProductCategory)
-    : null
+  if ((PRODUCT_CATEGORIES as readonly string[]).includes(key)) {
+    return key as ProductCategory
+  }
+  // Rétrocompat US-109 : un CSV encore rédigé avec un ancien slug est remappé
+  // silencieusement vers la taxonomie cible plutôt que rejeté.
+  return LEGACY_CATEGORY_REDIRECTS[key] ?? null
 }
 
 export function normalizeCondition(raw: string): ProductCondition | null {

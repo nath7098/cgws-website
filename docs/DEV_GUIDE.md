@@ -594,6 +594,60 @@ npx supabase gen types typescript --local > types/supabase.ts
 
 ---
 
+## Taxonomie catégories (US-109)
+
+Périmètre reining/western défini dans `docs/BRAND_DIRECTION.md` § Impacts chantier
+n°2. La taxonomie produit vit à **un seul endroit** :
+`shared/utils/csvImport.ts` → `PRODUCT_CATEGORIES` + `CATEGORY_LABELS`. Tout le
+reste en dérive (enum `ProductCategory`, filtres catalogue, sélecteur admin,
+validation Zod des routes produits, labels fiche/vente, taxonomie analytics).
+
+**Taxonomie cible (8 slugs)** :
+
+| slug | libellé | note |
+|------|---------|------|
+| `selles` | Selles | inchangé |
+| `bridonnerie` | Bridonnerie | filets, mors |
+| `etriers` | Étriers | nouveau |
+| `bandes-protections` | Bandes & Protections | |
+| `licols-accessoires` | Licols & Accessoires | |
+| `soins` | Soins | crins, sabots — nouveau |
+| `bottes-chaussures` | Bottes & Chaussures | conservé (arbitré 2026-07-23) |
+| `vetements` | Vêtements | conservé (arbitré 2026-07-23) |
+
+**Table de correspondance ancien → nouveau** (appliquée par la migration
+`supabase/migrations/009_reining_taxonomy.sql`, pour audit / rollback) :
+
+| ancien slug | nouveau slug | règle |
+|-------------|--------------|-------|
+| `selles` | `selles` | inchangé |
+| `bottes-chaussures` | `bottes-chaussures` | inchangé |
+| `vetements` | `vetements` | inchangé |
+| `brides-licols` | `bridonnerie` | défaut (bride = têtière + mors) ; licols/attaches → `licols-accessoires` au tri fin |
+| `protections` | `bandes-protections` | |
+| `accessoires` | `licols-accessoires` | défaut documenté ; tri fin manuel Camille |
+
+> ⚠️ **Tri fin à faire par Camille** (non bloquant — rattachement par défaut
+> appliqué) : les ex-`brides-licols` et ex-`accessoires` peuvent nécessiter une
+> reclassification produit par produit dans l'admin (ex. un chapeau ex-accessoire
+> relève plutôt de `vetements` ; un licol ex-`brides-licols` de
+> `licols-accessoires`).
+
+**Rétrocompat des liens indexés** : `useCatalogue.initFromUrl` et
+`normalizeCategory` (CSV) remappent silencieusement un ancien slug via
+`LEGACY_CATEGORY_REDIRECTS`. Un ancien slug sans équivalent (aucun aujourd'hui)
+serait ignoré → dégradation propre vers le catalogue complet, sans erreur.
+
+**Migration** : le fichier `009_reining_taxonomy.sql` est **rejouable** (DROP
+CONSTRAINT IF EXISTS + UPDATE ciblé + upsert `ON CONFLICT` + garde-fou zéro
+orphelin qui `RAISE EXCEPTION` sinon). Les anciennes lignes de la table
+`categories` sont **désactivées** (`is_active=false`), jamais supprimées.
+La colonne `products.category` restant `text` (contrainte `CHECK`), la
+régénération de `database.types.ts` ne produit **aucun diff** (le générateur
+Supabase ne reflète pas les `CHECK`) — rien à recommiter côté types.
+
+---
+
 ## CI (US-091)
 
 Le workflow `.github/workflows/e2e.yml` se déclenche sur chaque `push` (branches

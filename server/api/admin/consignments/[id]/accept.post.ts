@@ -60,7 +60,11 @@ export default defineEventHandler(async (event: H3Event) => {
       slug,
       description: '',
       price: body.agreedPrice,
-      category: 'accessoires',
+      // Le service de consignation CGWS porte quasi exclusivement sur des selles
+      // (dépôt-vente de selles). Catégorie par défaut à la création du produit ;
+      // l'admin l'ajuste au besoin via ProductForm. (US-109 : 'accessoires' n'existe
+      // plus dans la taxonomie ; défaut réaligné sur le cœur de métier consignation.)
+      category: 'selles',
       brand: cons.brand ?? '',
       condition: cons.condition,
       is_consignment: true,

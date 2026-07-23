@@ -29,7 +29,7 @@ const MOCK_PRODUCTS = [
     title: 'Bride Western Neuve',
     description: 'Bride western neuve, cuir naturel.',
     price: 95.00,
-    category: 'brides-licols',
+    category: 'bridonnerie',
     brand: 'Martin Saddlery',
     size: null,
     condition: 'new',

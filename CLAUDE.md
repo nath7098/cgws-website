@@ -20,17 +20,23 @@
 
 ## Contexte métier
 
-**CGWS** est une boutique d'équipements équestres western à Brèches (37, Indre-et-Loire).
+> Positionnement détaillé et source de vérité produit : `docs/BRAND_DIRECTION.md` (v2, 2026-07-23).
+
+**Spin & Slide** (marque commerciale, actée 2026-07-23 — CGWS reste le nom de l'entreprise, en endossement : « CGWS — Spin & Slide Shop ») est la boutique de la spécialiste **reining** : sellerie western en ligne + magasin à Brèches (37, Indre-et-Loire), spécialisée reining et plus largement équitation western et randonnée (micro-entreprise de Camille Guignon). Domaine canonique cible : `spinandslide.fr` (achat en attente).
 
 **Activités** :
-- Vente neuf & occasion : selles, brides, bottes, vêtements, accessoires western
-- **Service de consignation de selles** (différenciateur clé) : dépôt-vente avec accord sur prix
+- Vente neuf & occasion : selles, filets, mors, étriers, bandes & protections, licols western, produits de soin (crins, sabots)
+- **Curation stricte** : hors selles, uniquement des articles testés et approuvés par Camille — signature « Testé et approuvé par Camille »
+- **Dépôt-vente de selles** (différenciateur affiché) : commission, pas d'achat-revente
+- Modèle hybride : tout est achetable en ligne (expédition ou click & collect) et en magasin
 
-**Personas** :
-- `Visiteur` : passionné d'équitation western, cherche équipement de qualité
-- `Acheteur` : visiteur prêt à acheter, compare les produits
-- `Déposant` : particulier souhaitant vendre sa selle via consignation
+**Personas** (cible n°1 : le cavalier reining) :
+- `Compétiteur` : cavalier reining/western, exigeant, cherche du matériel technique précis
+- `Randonneur` : cavalier loisir/extérieur, cherche confort, robustesse et conseil de confiance
+- `Déposant` : particulier souhaitant vendre sa selle via le dépôt-vente
 - `Admin` : Camille (propriétaire), gère catalogue et ventes depuis le backoffice
+
+**Ton de marque** : spécialiste passionnée — western authentique, expert et chaleureux. Le registre « maroquinerie de luxe » du positionnement initial est abandonné ; le design system v2 (cuir, cuivre, denim) est conservé.
 
 ---
 
@@ -248,8 +254,8 @@ Western authentique et premium, jamais kitsch cowboy. Cuir, cuivre, denim — pa
 export type ProductStatus    = 'active' | 'sold' | 'reserved' | 'inactive'
 export type ProductCondition = 'new' | 'excellent' | 'good' | 'fair'
 export type ProductCategory  =
-  | 'selles' | 'brides-licols' | 'bottes-chaussures'
-  | 'vetements' | 'accessoires' | 'protections'
+  | 'selles' | 'bridonnerie' | 'etriers' | 'bandes-protections'
+  | 'licols-accessoires' | 'soins' | 'bottes-chaussures' | 'vetements'
 export type ConsignmentStatus = 'pending' | 'accepted' | 'rejected' | 'sold' | 'returned'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'check'
 

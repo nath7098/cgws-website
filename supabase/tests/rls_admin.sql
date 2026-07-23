@@ -182,7 +182,7 @@ BEGIN
   -- CRUD catalogue complet
   BEGIN
     INSERT INTO products (slug, title, price, category, condition)
-    VALUES ('produit-admin-rls-us101', 'Produit créé par admin', 50, 'accessoires', 'new')
+    VALUES ('produit-admin-rls-us101', 'Produit créé par admin', 50, 'selles', 'new')
     RETURNING id INTO new_product;
     PERFORM pg_temp.record(p_scenario, 'INSERT products → accepté', true, 'id ' || new_product);
   EXCEPTION WHEN insufficient_privilege THEN

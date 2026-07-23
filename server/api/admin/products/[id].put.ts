@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import type { H3Event } from 'h3'
+import { PRODUCT_CATEGORIES } from '#shared/utils/csvImport'
 
 const productUpdateSchema = z.object({
   title: z.string().min(1, 'Le nom du produit est requis'),
-  category: z.enum(['selles', 'brides-licols', 'bottes-chaussures', 'vetements', 'accessoires', 'protections'], {
+  category: z.enum(PRODUCT_CATEGORIES, {
     error: 'Catégorie invalide',
   }),
   brand: z.string().optional(),
@@ -17,6 +18,9 @@ const productUpdateSchema = z.object({
   isConsignment: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
   consignmentId: z.preprocess(v => (v === '' ? null : v), z.string().uuid().optional().nullable()),
   status: z.enum(['active', 'sold', 'reserved', 'inactive']).optional(),
+  // US-110 — curation manuelle « Testé et approuvé par Camille » (envoyé en
+  // string par le FormData, même pattern que isConsignment).
+  camilleApproved: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
 })
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -148,6 +152,7 @@ export default defineEventHandler(async (event: H3Event) => {
       consignment_id: input.consignmentId ?? null,
       status: input.status ?? existing.status ?? 'active',
       images: finalImages,
+      camille_approved: input.camilleApproved,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
