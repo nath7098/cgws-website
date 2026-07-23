@@ -134,6 +134,7 @@ onMounted(async () => {
       '.product-info-description',
       '.product-info-consignment',
       '.product-info-cta',
+      '.product-info-delivery',
     ], {
       opacity: 0,
       x: 16,
@@ -329,5 +330,11 @@ onUnmounted(() => {
         Article vendu
       </CgwsButton>
     </div>
+
+    <!-- Livraison & retrait + Essai & retour (US-111) — modèle de vente hybride
+         rendu explicite en fiche produit + politique de retour des selles
+         expédiées. Réutilise le contrat fulfillment partagé, traitement
+         différencié selle/non-selle géré dans le composant. -->
+    <ProductDeliveryReturn class="product-info-delivery" :product="product" />
   </div>
 </template>

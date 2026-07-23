@@ -250,6 +250,19 @@ const currentYear = new Date().getFullYear()
           <ul class="flex flex-col gap-3" role="list" aria-label="Informations légales">
             <li>
               <NuxtLink
+                to="/livraison-retour"
+                active-class="text-cgws-accent"
+                class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
+                       transition-colors duration-150
+                       focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-cgws-accent focus-visible:ring-offset-2
+                       focus-visible:ring-offset-cgws-surface rounded-sm"
+              >
+                Livraison, essai &amp; retour
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink
                 to="/mentions-legales"
                 active-class="text-cgws-accent"
                 class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
