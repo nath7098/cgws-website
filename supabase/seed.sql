@@ -1,8 +1,14 @@
--- Seed categories (3 root categories)
+-- Seed categories — taxonomie reining/western (US-109), alignée sur l'enum
+-- ProductCategory et la contrainte CHECK products.category.
 INSERT INTO categories (name, slug, sort_order, is_active) VALUES
-  ('Selles', 'selles', 1, true),
-  ('Harnachements', 'harnachements', 2, true),
-  ('Vêtements & Accessoires', 'vetements-accessoires', 3, true)
+  ('Selles',               'selles',             1, true),
+  ('Bridonnerie',          'bridonnerie',        2, true),
+  ('Étriers',              'etriers',            3, true),
+  ('Bandes & Protections', 'bandes-protections', 4, true),
+  ('Licols & Accessoires', 'licols-accessoires', 5, true),
+  ('Soins',                'soins',              6, true),
+  ('Bottes & Chaussures',  'bottes-chaussures',  7, true),
+  ('Vêtements',            'vetements',          8, true)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed products (5 demo products)
@@ -17,7 +23,7 @@ INSERT INTO products (slug, title, description, price, category, brand, conditio
     'bride-western-show-aluminium',
     'Bride Western Show en aluminium',
     'Bride de show western avec mors à port moyen. Cuir marron chocolat, ornements en aluminium gravé.',
-    145.00, 'brides-licols', 'Classic Equine', 'new', false, 'active', 2
+    145.00, 'bridonnerie', 'Classic Equine', 'new', false, 'active', 2
   ),
   (
     'bottes-ariat-heritage-roper',
@@ -35,6 +41,6 @@ INSERT INTO products (slug, title, description, price, category, brand, conditio
     'chapeau-resistol-4x',
     'Chapeau Resistol 4X Beaver Natural',
     'Chapeau western Resistol 4X Beaver en feutre naturel. Bord 4". État excellent, très peu porté.',
-    120.00, 'accessoires', 'Resistol', 'excellent', false, 'active', 1
+    120.00, 'vetements', 'Resistol', 'excellent', false, 'active', 1
   )
 ON CONFLICT (slug) DO NOTHING;

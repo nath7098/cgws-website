@@ -8,6 +8,11 @@ import type {
   SortOption,
 } from '~/types'
 import type { Database } from '~/types/database.types'
+import {
+  CATEGORY_LABELS as SHARED_CATEGORY_LABELS,
+  LEGACY_CATEGORY_REDIRECTS,
+  PRODUCT_CATEGORIES,
+} from '#shared/utils/csvImport'
 
 export interface CatalogueContext {
   filters: Reactive<CatalogueFilters>
@@ -25,23 +30,12 @@ type ProductRow = Database['public']['Tables']['products']['Row']
 
 const PAGE_SIZE = 12
 
-export const CATEGORY_LABELS: Record<ProductCategory, string> = {
-  selles: 'Selles',
-  'brides-licols': 'Brides & Licols',
-  'bottes-chaussures': 'Bottes & Chaussures',
-  vetements: 'Vêtements',
-  accessoires: 'Accessoires',
-  protections: 'Protections',
-}
+// Ré-export de la source de vérité partagée (#shared/utils/csvImport) — les
+// composants de filtres (FilterPanel/FilterDrawer) importent CATEGORY_LABELS
+// d'ici. La taxonomie (US-109) ne vit donc qu'à un seul endroit.
+export const CATEGORY_LABELS: Record<ProductCategory, string> = SHARED_CATEGORY_LABELS
 
-const ALL_CATEGORIES: ProductCategory[] = [
-  'selles',
-  'brides-licols',
-  'bottes-chaussures',
-  'vetements',
-  'accessoires',
-  'protections',
-]
+const ALL_CATEGORIES: ProductCategory[] = [...PRODUCT_CATEGORIES]
 
 function mapProductRow(row: ProductRow): Product {
   return {
@@ -240,9 +234,15 @@ export function useCatalogue() {
 
     if (q.categorie) {
       const cats = Array.isArray(q.categorie) ? q.categorie : [q.categorie]
-      filters.categories = cats.filter((c): c is ProductCategory =>
-        c !== null && (ALL_CATEGORIES as string[]).includes(c as string),
-      )
+      // Rétrocompat US-109 : un ancien slug indexé (?categorie=protections) est
+      // redirigé vers son équivalent cible ; un slug inconnu est ignoré
+      // (dégradation propre vers le catalogue complet). Dé-duplication au cas où
+      // deux anciens slugs pointeraient vers la même cible.
+      const resolved = cats
+        .filter((c): c is string => c !== null)
+        .map(c => (ALL_CATEGORIES as string[]).includes(c) ? c : LEGACY_CATEGORY_REDIRECTS[c])
+        .filter((c): c is ProductCategory => Boolean(c))
+      filters.categories = [...new Set(resolved)]
     }
 
     if (q.etat) {

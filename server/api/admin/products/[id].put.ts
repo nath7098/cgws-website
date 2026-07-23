@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import type { H3Event } from 'h3'
+import { PRODUCT_CATEGORIES } from '#shared/utils/csvImport'
 
 const productUpdateSchema = z.object({
   title: z.string().min(1, 'Le nom du produit est requis'),
-  category: z.enum(['selles', 'brides-licols', 'bottes-chaussures', 'vetements', 'accessoires', 'protections'], {
+  category: z.enum(PRODUCT_CATEGORIES, {
     error: 'Catégorie invalide',
   }),
   brand: z.string().optional(),

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectOption } from '~/components/ui/CgwsSelect.vue'
 import type { Product, ProductCategory, ProductCondition, ProductFormPayload } from '~/types'
+import { CATEGORY_LABELS, PRODUCT_CATEGORIES } from '#shared/utils/csvImport'
 
 interface Props {
   mode: 'create' | 'edit'
@@ -20,14 +21,12 @@ const emit = defineEmits<{
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORY_OPTIONS: SelectOption[] = [
-  { value: 'selles', label: 'Selles' },
-  { value: 'brides-licols', label: 'Brides & Licols' },
-  { value: 'bottes-chaussures', label: 'Bottes & Chaussures' },
-  { value: 'vetements', label: 'Vêtements' },
-  { value: 'accessoires', label: 'Accessoires' },
-  { value: 'protections', label: 'Protections' },
-]
+// Dérivé de la taxonomie cible partagée (US-109) — seule la nouvelle taxonomie
+// est sélectionnable, aucune ancienne valeur ne subsiste.
+const CATEGORY_OPTIONS: SelectOption[] = PRODUCT_CATEGORIES.map(value => ({
+  value,
+  label: CATEGORY_LABELS[value],
+}))
 
 const CONDITION_OPTIONS: SelectOption[] = [
   { value: 'new', label: 'Neuf' },

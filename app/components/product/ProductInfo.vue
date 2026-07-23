@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Product, ProductCategory, ProductCondition } from '~/types'
+import type { Product, ProductCondition } from '~/types'
+import { CATEGORY_LABELS } from '#shared/utils/csvImport'
 import { useCartStore } from '~/stores/cart'
 
 interface Props {
@@ -111,15 +112,6 @@ const conditionLabel: Record<ProductCondition, string> = {
   fair: "État correct — marques d'usure visibles",
 }
 
-const categoryLabel: Record<ProductCategory, string> = {
-  selles: 'Selles',
-  'brides-licols': 'Brides & Licols',
-  'bottes-chaussures': 'Bottes & Chaussures',
-  vetements: 'Vêtements',
-  accessoires: 'Accessoires',
-  protections: 'Protections',
-}
-
 const priceColorClass = computed(() =>
   isSold.value ? 'text-cgws-ink-soft' : 'text-cgws-accent',
 )
@@ -177,7 +169,7 @@ onUnmounted(() => {
     <p class="product-info-meta font-sans text-sm text-cgws-ink-soft flex items-center gap-2">
       <span>{{ product.brand }}</span>
       <span aria-hidden="true">·</span>
-      <span>{{ categoryLabel[product.category] }}</span>
+      <span>{{ CATEGORY_LABELS[product.category] }}</span>
     </p>
 
     <!-- Séparateur -->
