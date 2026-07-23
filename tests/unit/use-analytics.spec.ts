@@ -8,6 +8,10 @@ import type {
   AnalyticsProperties,
 } from '~/composables/useAnalytics'
 
+// NB (US-103) : `capture()` est désormais verrouillé au compilateur sur la
+// taxonomie de app/utils/analytics-events.ts — les tests utilisent donc
+// exclusivement des événements de la taxonomie.
+
 // ─── Fixtures ──────────────────────────────────────────────────────────────────
 
 interface RecordedCall {
@@ -44,8 +48,10 @@ beforeEach(() => {
 describe('useAnalytics — no-op sans client analytics', () => {
   it('capture() ne lève aucune erreur quand aucun client n\'est branché', () => {
     const { capture } = useAnalytics()
-    expect(() => capture('cta_clicked', { placement: 'hero' })).not.toThrow()
-    expect(() => capture('page_scrolled')).not.toThrow()
+    expect(() =>
+      capture('cart_item_added', { product_id: 'p-1', quantity: 1, price: 120 }),
+    ).not.toThrow()
+    expect(() => capture('contact_submitted')).not.toThrow()
   })
 
   it('aucun événement n\'atteint un client débranché', () => {
@@ -54,7 +60,7 @@ describe('useAnalytics — no-op sans client analytics', () => {
     setAnalyticsClient(null)
 
     const { capture } = useAnalytics()
-    capture('cta_clicked')
+    capture('contact_submitted')
 
     expect(mock.calls).toHaveLength(0)
   })
@@ -68,10 +74,25 @@ describe('useAnalytics — client branché', () => {
     setAnalyticsClient(mock)
 
     const { capture } = useAnalytics()
-    capture('product_viewed', { category: 'selles', price: 1850 })
+    capture('product_viewed', {
+      product_id: 'p-1',
+      product_slug: 'selle-western-billy-cook',
+      category: 'selles',
+      price: 1850,
+      is_consignment: true,
+    })
 
     expect(mock.calls).toEqual([
-      { event: 'product_viewed', properties: { category: 'selles', price: 1850 } },
+      {
+        event: 'product_viewed',
+        properties: {
+          product_id: 'p-1',
+          product_slug: 'selle-western-billy-cook',
+          category: 'selles',
+          price: 1850,
+          is_consignment: true,
+        },
+      },
     ])
   })
 
@@ -80,9 +101,9 @@ describe('useAnalytics — client branché', () => {
     setAnalyticsClient(mock)
 
     const { capture } = useAnalytics()
-    capture('catalogue_opened')
+    capture('consignment_form_viewed')
 
-    expect(mock.calls).toEqual([{ event: 'catalogue_opened' }])
+    expect(mock.calls).toEqual([{ event: 'consignment_form_viewed' }])
   })
 })
 
@@ -91,35 +112,35 @@ describe('useAnalytics — client branché', () => {
 describe('useAnalytics — buffer avant init différée', () => {
   it('rejoue les événements bufferisés, dans l\'ordre, au branchement du client', () => {
     const { capture } = useAnalytics()
-    capture('first', { rank: 1 })
-    capture('second', { rank: 2 })
+    capture('cart_item_added', { product_id: 'p-1', quantity: 2, price: 45 })
+    capture('checkout_opened', { cart_value: 90, items_count: 2 })
 
     const mock = makeMockClient()
     setAnalyticsClient(mock)
 
     expect(mock.calls).toEqual([
-      { event: 'first', properties: { rank: 1 } },
-      { event: 'second', properties: { rank: 2 } },
+      { event: 'cart_item_added', properties: { product_id: 'p-1', quantity: 2, price: 45 } },
+      { event: 'checkout_opened', properties: { cart_value: 90, items_count: 2 } },
     ])
   })
 
   it('borne le buffer : au-delà de 20 événements pré-init, les suivants sont ignorés', () => {
     const { capture } = useAnalytics()
     for (let i = 0; i < 25; i++) {
-      capture(`event_${i}`)
+      capture('cart_item_added', { product_id: `p-${i}`, quantity: 1, price: i })
     }
 
     const mock = makeMockClient()
     setAnalyticsClient(mock)
 
     expect(mock.calls).toHaveLength(20)
-    expect(mock.calls[0]).toEqual({ event: 'event_0' })
-    expect(mock.calls[19]).toEqual({ event: 'event_19' })
+    expect(mock.calls[0]?.properties?.product_id).toBe('p-0')
+    expect(mock.calls[19]?.properties?.product_id).toBe('p-19')
   })
 
   it('ne rejoue pas deux fois le buffer si un second client est branché', () => {
     const { capture } = useAnalytics()
-    capture('buffered_once')
+    capture('contact_submitted')
 
     const first = makeMockClient()
     setAnalyticsClient(first)
@@ -127,7 +148,37 @@ describe('useAnalytics — buffer avant init différée', () => {
     const second = makeMockClient()
     setAnalyticsClient(second)
 
-    expect(first.calls).toEqual([{ event: 'buffered_once' }])
+    expect(first.calls).toEqual([{ event: 'contact_submitted' }])
     expect(second.calls).toHaveLength(0)
+  })
+})
+
+// ─── Résilience (US-103) — un client qui lève ne casse jamais le parcours ──────
+
+describe('useAnalytics — résilience client défaillant', () => {
+  function makeThrowingClient(): AnalyticsClient {
+    return {
+      capture(): never {
+        throw new Error('blocked by adblocker')
+      },
+    }
+  }
+
+  it('capture() n\'échoue pas si le client lève', () => {
+    setAnalyticsClient(makeThrowingClient())
+
+    const { capture } = useAnalytics()
+    expect(() =>
+      capture('cart_item_added', { product_id: 'p-1', quantity: 1, price: 10 }),
+    ).not.toThrow()
+    expect(() => capture('contact_submitted')).not.toThrow()
+  })
+
+  it('le flush du buffer n\'échoue pas si le client lève', () => {
+    const { capture } = useAnalytics()
+    capture('contact_submitted')
+    capture('consignment_form_viewed')
+
+    expect(() => setAnalyticsClient(makeThrowingClient())).not.toThrow()
   })
 })

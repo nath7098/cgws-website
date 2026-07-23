@@ -34,6 +34,9 @@ const isSuccess = ref(false)
 const submittedName = ref('')
 const serverError = ref('')
 
+// Analytics (US-103) — capture inerte sans PostHog, n'échoue jamais.
+const { capture } = useAnalytics()
+
 const subjectOptions: SelectOption[] = [
   { value: 'question-produit', label: 'Question sur un produit' },
   { value: 'consignation', label: 'Service de consignation' },
@@ -122,6 +125,10 @@ async function handleSubmit() {
       },
     })
     isSuccess.value = true
+    // US-103 — UNIQUEMENT après confirmation serveur (un échec passe par le
+    // catch et ne capture rien). Aucune propriété : ni nom, ni email, ni
+    // sujet, ni contenu de message (zéro PII).
+    capture('contact_submitted')
   } catch (err: unknown) {
     isSubmitting.value = false
     if (

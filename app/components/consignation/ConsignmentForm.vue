@@ -72,6 +72,9 @@ const isDragOver = ref(false)
 const uploadError = ref('')
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
+// Analytics (US-103) — capture inerte sans PostHog, n'échoue jamais.
+const { capture } = useAnalytics()
+
 // UI state
 const errors = ref<Record<string, string>>({})
 const isSubmitting = ref(false)
@@ -324,6 +327,12 @@ async function handleSubmit(): Promise<void> {
       body: formData,
     })
 
+    // US-103 — UNIQUEMENT dans la branche succès (le serveur a confirmé la
+    // création ; un échec de validation ou serveur passe par le catch et ne
+    // capture rien). `photos_count` est un COMPTE — jamais les fichiers ni
+    // leurs noms. Pas de `category` : le formulaire n'en collecte pas.
+    capture('consignment_submitted', { photos_count: filesToUpload.length })
+
     submittedPrenom.value = prenom.value.trim()
     isSuccess.value = true
     await nextTick()
@@ -373,6 +382,12 @@ function resetForm(): void {
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
+
+// US-103 — consignment_form_viewed : affichage du formulaire de dépôt
+// (onMounted = client only, une capture par visite de /consignation).
+onMounted(() => {
+  capture('consignment_form_viewed')
+})
 
 onUnmounted(() => {
   for (const url of previewUrls.value) URL.revokeObjectURL(url)

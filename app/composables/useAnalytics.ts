@@ -1,8 +1,12 @@
 /**
  * useAnalytics — point d'entrée UNIQUE des événements analytics côté client (US-102).
  *
- * Les US-103/104 ne doivent JAMAIS importer posthog-js directement : tout passe
+ * Les composants ne doivent JAMAIS importer posthog-js directement : tout passe
  * par `useAnalytics().capture(event, properties)`.
+ *
+ * Depuis l'US-103, `capture()` est verrouillé au niveau du compilateur sur la
+ * taxonomie exhaustive de `app/utils/analytics-events.ts` : nom d'événement
+ * hors liste ou propriétés hors taxonomie = erreur TypeScript.
  *
  * Comportement :
  * - Sans clé PostHog (dev local, preview sans secret) : fonctions inertes,
@@ -10,9 +14,17 @@
  * - Avec clé : le plugin `app/plugins/posthog.client.ts` initialise PostHog de
  *   façon différée (onNuxtReady + idle) puis branche le client via
  *   `setAnalyticsClient()`. Les événements capturés avant l'init sont
- *   bufferisés (borné) et rejoués au branchement.
+ *   bufferisés (borné) et rejoués au branchement, dans l'ordre.
  * - Côté serveur : no-op strict (aucune référence à posthog-js n'est évaluée).
+ * - Résilience (US-103) : un client analytics qui lève (adblocker, réseau…)
+ *   n'interrompt JAMAIS le parcours utilisateur — échec silencieux.
  */
+import type {
+  AnalyticsEventName,
+  AnalyticsEventPayloadMap,
+  AnalyticsEventWithProperties,
+  AnalyticsEventWithoutProperties,
+} from '~/utils/analytics-events'
 
 export type AnalyticsPropertyValue = string | number | boolean | null | undefined
 
@@ -41,6 +53,16 @@ const MAX_QUEUED_EVENTS = 20
 let client: AnalyticsClient | null = null
 let queue: QueuedEvent[] = []
 
+/** Transmet au client sans jamais laisser une erreur remonter au parcours. */
+function safeForward(target: AnalyticsClient, item: QueuedEvent): void {
+  try {
+    target.capture(item.event, item.properties)
+  }
+  catch {
+    // La mesure échoue en silence, jamais l'expérience utilisateur.
+  }
+}
+
 /**
  * Branche le client analytics une fois PostHog initialisé (appelé uniquement
  * par `app/plugins/posthog.client.ts`), et rejoue les événements bufferisés.
@@ -52,18 +74,23 @@ export function setAnalyticsClient(instance: AnalyticsClient | null): void {
     const pending = queue
     queue = []
     for (const item of pending) {
-      instance.capture(item.event, item.properties)
+      safeForward(instance, item)
     }
   }
 }
 
 export function useAnalytics() {
-  function capture(event: string, properties?: AnalyticsProperties): void {
+  function capture(event: AnalyticsEventWithoutProperties): void
+  function capture<E extends AnalyticsEventWithProperties>(
+    event: E,
+    properties: AnalyticsEventPayloadMap[E],
+  ): void
+  function capture(event: AnalyticsEventName, properties?: AnalyticsProperties): void {
     // SSR : no-op strict.
     if (import.meta.server) return
 
     if (client) {
-      client.capture(event, properties)
+      safeForward(client, properties === undefined ? { event } : { event, properties })
       return
     }
 
