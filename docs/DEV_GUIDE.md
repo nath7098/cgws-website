@@ -752,6 +752,98 @@ l'email de confirmation reçu.
 
 ---
 
+## Sécurité — Rôle admin & RLS (US-101)
+
+### Principe
+
+Depuis la migration `supabase/migrations/008_admin_role_rls.sql`, les policies
+RLS « admin » (products/categories en écriture, consignments, sales, clients,
+orders, order_items, product_status_history en lecture) ne reposent **plus** sur
+`auth.role() = 'authenticated'` : ce critère était une faille, car tout déposant
+connecté via magic link (espace déposant, US-066) porte lui aussi une session
+`authenticated` et pouvait donc lire les PII de tous les déposants/clients ou
+écrire dans le catalogue via PostgREST (clé anon + son JWT).
+
+Elles vérifient désormais un **rôle admin réel** via la fonction SQL
+`public.is_admin()`, qui lit le claim `app_metadata.cgws_role` du JWT :
+
+```sql
+-- supabase/migrations/008_admin_role_rls.sql
+SELECT coalesce(auth.jwt() -> 'app_metadata' ->> 'cgws_role', '') = 'admin'
+```
+
+**Pourquoi `app_metadata` et jamais `user_metadata`** : `user_metadata` est
+modifiable par l'utilisateur lui-même via `supabase.auth.updateUser()` — s'y
+fier permettrait à n'importe quel déposant de s'auto-promouvoir admin.
+`app_metadata` n'est modifiable que par le service role (ou le Dashboard) :
+c'est la seule source acceptable pour un contrôle d'accès.
+
+### Attribuer le claim admin à un compte
+
+Via SQL (SQL Editor du Dashboard, ou psql avec les droits postgres) :
+
+```sql
+UPDATE auth.users
+SET raw_app_meta_data = raw_app_meta_data || '{"cgws_role":"admin"}'::jsonb
+WHERE email = 'camille.guignon37@gmail.com';
+```
+
+Ou via le Dashboard Supabase : *Authentication → Users → \[utilisateur\] →
+User Metadata / App Metadata* → ajouter `"cgws_role": "admin"` dans
+**App Metadata** (pas User Metadata).
+
+⏳ **Le claim n'entre dans le JWT qu'à la prochaine émission de token** :
+l'utilisateur doit se **reconnecter** (ou attendre le refresh automatique du
+token, ~1 h max) après l'attribution. Un « ça ne marche pas » juste après
+l'UPDATE est normal tant que la session n'a pas été renouvelée.
+
+### ⚠️ Ordre de déploiement en production — CRITIQUE
+
+Le backoffice interroge Supabase **directement avec le JWT admin**
+(`app/pages/admin/dashboard.vue`, `app/components/admin/ProductForm.vue`).
+Déployer la migration 008 **avant** d'avoir attribué le claim verrouillerait
+donc le backoffice (dashboard vide, sélecteur de consignation vide).
+
+Checklist ordonnée, à suivre strictement :
+
+1. **Attribuer le claim** `cgws_role: 'admin'` aux comptes de **Camille et
+   Nathan** en production (SQL ci-dessus, pour chaque email admin)
+2. Vérifier : `SELECT email, raw_app_meta_data FROM auth.users;` → les deux
+   comptes portent `"cgws_role": "admin"`, aucun compte déposant ne le porte
+3. **Ensuite seulement**, appliquer la migration `008_admin_role_rls.sql`
+4. Demander à Camille/Nathan de se **déconnecter/reconnecter** au backoffice
+5. Recette rapide : dashboard admin (stats visibles), création/édition d'un
+   produit, liste des consignations
+
+Tout nouveau compte créé via l'espace déposant est un compte **déposant** par
+défaut (aucun claim) : il n'a jamais rien à faire de plus. N'attribuer
+`cgws_role: 'admin'` qu'aux comptes réellement gérants.
+
+### Script de non-régression rejouable
+
+`supabase/tests/rls_admin.sql` simule les 4 profils (déposant sans claim,
+déposant avec `user_metadata` forgé, admin `app_metadata`, visiteur anonyme)
+via `SET LOCAL ROLE` + `SET LOCAL request.jwt.claims`, et vérifie chaque table.
+
+```bash
+# psql (les secrets CI étant absents — cf. issue #11 — l'exécution est manuelle)
+psql "$DATABASE_URL" -f supabase/tests/rls_admin.sql
+# ou : copier-coller intégral dans le SQL Editor du Dashboard
+```
+
+Transactionnel (ROLLBACK final, aucune donnée persistée). Résultat = la table
+finale : **toutes les lignes doivent avoir `ok = true`**. À rejouer à chaque
+évolution de schéma ou de policy, et consigner le résultat dans
+`docs/PROGRESS.md`.
+
+**Anti-pattern à ne plus jamais réintroduire** : une policy
+`auth.role() = 'authenticated'` comme critère « admin ». Toute nouvelle table
+contenant des PII ou des données de gestion doit soit utiliser
+`public.is_admin()`, soit activer RLS sans policy (accès service role
+uniquement, pattern `stock_notifications` de la migration 007).
+
+---
+
 ## Anti-Patterns à Éviter Absolument
 
 ```typescript

@@ -633,3 +633,27 @@ Table `stock_notifications` (UNIQUE `(product_id, email)`, index partiel `notifi
 5. **Edge case US-082 (inchangé, désormais VISIBLE)** : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel. L'atomicité SQL sous-jacente reste hors périmètre (acté non-bloquant US-091), mais l'anomalie est désormais tracée par le log `[stock-anomaly]` (US-096) pour réactivation admin rapide.
 6. **Issue #30 (dette design system, ouverte fin Sprint 9)** : contraste des anneaux de focus (`ring-offset-color` par défaut blanc) sous le seuil WCAG en peaux Nuit/Rugueux, transverse à ~8 composants existants. Les nouveaux composants de ce sprint ne l'aggravent pas. Candidat US pour un prochain sprint.
 7. **Contenus réels Camille, `SHIPPING_FLAT_RATE`, activation PayPal, logs Vercel #26** (inchangés) — voir bilans Sprints 8-9.
+
+---
+
+# Épic E12 — Sécurité & Analytics produit · Sprint 11
+
+**Branche `feature/sprint-11` · 18 pts planifiés · en cours · démarré 2026-07-23**
+
+Ordre strict acté en interview : US-101 (faille RLS #34) en premier, puis US-102→105 (PostHog #31, cookieless sans consentement, pas de replay/heatmaps).
+
+## US-101 — RLS admin réel — rôle admin vérifié dans les policies · 5 pts — PASS (1re passe)
+
+Fermeture de #34 : `auth.role() = 'authenticated'` servait de critère « admin » sur 7 tables (002/004) — depuis l'espace déposant US-066, tout déposant magic-link pouvait lire les PII de tous les déposants/clients via PostgREST ou écrire dans le catalogue.
+
+**Migration `008_admin_role_rls.sql`** : fonction `public.is_admin()` (SQL, STABLE, `SET search_path = ''`) lisant `auth.jwt() -> 'app_metadata' ->> 'cgws_role' = 'admin'` — jamais `user_metadata` (modifiable par l'utilisateur via `updateUser()`, ce serait recréer la faille). Les 12 policies fautives droppées/recréées sous le même nom avec `is_admin()` : `products_{insert,update,delete}_admin`, `categories_{insert,update,delete}_admin`, `consignments_{select,update}_admin`, `sales_all_admin`, `clients_all_admin`, `orders_select_admin`, `order_items_select_admin`. `consignments_insert_public` conservée (formulaire public de dépôt). **Bonus assumé et validé QA** : `product_status_history` n'avait JAMAIS eu de RLS depuis 003 (anon pouvait lire ET écrire) → RLS activée + `psh_select_admin` ; zéro impact applicatif (toutes les écritures passent par le service role).
+
+**Script de non-régression rejouable `supabase/tests/rls_admin.sql`** (transactionnel, ROLLBACK final) : 4 scénarios via `SET LOCAL ROLE` + `request.jwt.claims` — déposant sans claim, déposant avec `user_metadata` forgé (`role: admin` écrit via updateUser → toujours refusé), admin `app_metadata`, anonyme. **Exécuté sur la base de dev : 58/58 assertions PASS** (2026-07-23). Ordre de déploiement respecté sur dev : claim attribué AVANT la migration aux 2 comptes admin (`nathcouton@gmail.com`, `camille.guignon37@gmail.com`).
+
+**QA : PASS 1re passe** (analyse statique exhaustive — le MCP supabase n'était pas exposé dans sa session ; contre-vérification live faite par l'orchestrateur : `pg_policies` post-migration ne contient plus AUCUNE policy `auth.role()='authenticated'`, tout passe par `is_admin()`). Barrières US-066 (`server/api/depositor/*` en service role) vérifiées intouchées ; aucun code public `app/` ne lit les tables durcies avec le JWT. `nuxi typecheck` EXIT 0 (diff SQL/doc uniquement).
+
+`docs/DEV_GUIDE.md` § « Sécurité — Rôle admin & RLS » : SQL/Dashboard d'attribution du claim + **checklist de déploiement prod ordonnée** — le claim doit être attribué aux comptes de Camille et Nathan sur la base de PRODUCTION avant d'y déployer 008, sinon le backoffice se verrouille ; reconnexion requise pour que le claim entre dans le JWT.
+
+**⚠️ Action prod en attente (Nathan)** : seule la base de dev est traitée. En prod : (1) attribuer le claim aux 2 comptes, (2) déployer la migration 008, (3) reconnexion admin, (4) rejouer `rls_admin.sql`.
+
+**Remarque QA non bloquante** : `server/utils/adminAuth.ts` compare `user.email` à un unique `process.env.ADMIN_EMAIL` — si un seul email y figure, l'un des deux comptes admin serait bloqué sur les routes `server/api/admin/*`, indépendamment du claim. À vérifier/faire évoluer (candidat future US).
