@@ -52,24 +52,44 @@ export function toStripeAmount(amount: number): number {
 export interface CartLineLike {
   productId: string
   price: number
+  quantity?: number
 }
 
 /**
- * Ajoute une ligne au panier en dé-dupliquant par `productId`.
+ * Ajoute (ou met à jour) une ligne au panier, dé-dupliquée par `productId` —
+ * toujours 1 ligne par produit, jamais de doublon (US-070, étendu US-096).
  *
- * Les articles CGWS sont majoritairement des pièces uniques (stock = 1,
- * occasion/consignation) : une ligne de panier = un exemplaire, jamais de
- * quantité. Si le produit est déjà présent, le panier est retourné inchangé
- * (même référence de tableau — permet au caller de détecter le no-op).
+ * - Produit absent du panier → ligne ajoutée en fin de liste.
+ * - Produit déjà présent avec la MÊME quantité (`quantity ?? 1`, pièces
+ *   uniques comprises — leur quantité vaut toujours 1) → panier retourné
+ *   inchangé, MÊME référence de tableau (permet au caller de détecter le
+ *   no-op, ex. pièce de consignation déjà dans le panier → toast "déjà dans
+ *   votre panier").
+ * - Produit déjà présent avec une quantité DIFFÉRENTE (achat multiple,
+ *   US-096) → la ligne existante est REMPLACÉE par la nouvelle (nouveau
+ *   snapshot produit + nouvelle quantité), à sa position d'origine dans la
+ *   liste (jamais déplacée en fin de panier). Décision produit actée
+ *   (US-096, spec design §7.3) : on remplace la quantité totale, on ne
+ *   cumule jamais avec l'existante.
  */
-export function addCartLine<T extends { productId: string }>(
+export function addCartLine<T extends { productId: string, quantity?: number }>(
   items: readonly T[],
   line: T,
 ): T[] {
-  if (items.some(item => item.productId === line.productId)) {
+  const existingIndex = items.findIndex(item => item.productId === line.productId)
+  if (existingIndex === -1) {
+    return [...items, line]
+  }
+
+  const existingQuantity = items[existingIndex]?.quantity ?? 1
+  const nextQuantity = line.quantity ?? 1
+  if (existingQuantity === nextQuantity) {
     return items as T[]
   }
-  return [...items, line]
+
+  const next = [...items]
+  next[existingIndex] = line
+  return next
 }
 
 /** Retire une ligne du panier par `productId`. */
@@ -80,9 +100,10 @@ export function removeCartLine<T extends { productId: string }>(
   return items.filter(item => item.productId !== productId)
 }
 
-/** Sous-total (€) d'une liste de lignes — 1 exemplaire par ligne. */
-export function computeSubtotal(items: ReadonlyArray<{ price: number }>): number {
-  return roundMoney(items.reduce((sum, item) => sum + item.price, 0))
+/** Sous-total (€) d'une liste de lignes — prix unitaire × quantité (`quantity
+ *  ?? 1`, rétrocompatible avec les lignes sans quantité explicite). */
+export function computeSubtotal(items: ReadonlyArray<{ price: number, quantity?: number }>): number {
+  return roundMoney(items.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0))
 }
 
 /** Frais de port (€) selon le mode de réception choisi. */

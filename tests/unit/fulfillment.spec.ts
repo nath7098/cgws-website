@@ -188,6 +188,56 @@ describe('fulfillCheckoutSession', () => {
     expect(sendOrderConfirmationEmail).toHaveBeenCalledTimes(1)
   })
 
+  // ─── Régression QA — CA admin sous-évalué sur achat multiple (Bug A) ───────
+
+  it('achat multiple (US-096) : sale_price enregistré = prix UNITAIRE × quantity, pas le prix unitaire seul', async () => {
+    supabase.tables.orders.rows.push(makeOrderRow())
+    // Ligne de commande à 3 exemplaires, 18 € pièce (ex. huile de sabot) — un
+    // fixture à quantity=1 (comme tous les autres tests de ce fichier) ne
+    // peut PAS détecter un sous-comptage du CA : c'est exactement le trou que
+    // la QA a relevé.
+    supabase.tables.order_items.rows.push(makeOrderItemRow({ price: 18, quantity: 3 }))
+    supabase.tables.products.rows.push(makeProductRow({ is_consignment: false, consignment_id: null, stock: 0 }))
+
+    await fulfillCheckoutSession(makeSession())
+
+    expect(supabase.tables.sales.rows).toHaveLength(1)
+    // Un correctif qui oublierait de multiplier par `quantity` laisserait
+    // `sale_price` à 18 au lieu de 54 — c'est précisément le bug rapporté.
+    expect(supabase.tables.sales.rows[0]?.sale_price).toBe(54)
+    // Une ligne `sales` unique par ligne de commande (pas 3 lignes à 18 €) —
+    // décision produit actée (voir commentaire fulfillment.ts) : `sales`
+    // n'a pas de colonne `quantity`, 1 ligne = 1 événement de vente.
+    expect(supabase.tables.sales.rows[0]?.commission_amount).toBeNull()
+
+    // Régression QA (suite) : l'email de confirmation acheteur doit recevoir
+    // la quantité RÉELLE de la ligne, pas le `1` figé d'avant ce correctif —
+    // sinon un acheteur de 3 exemplaires reçoit un email disant "quantité 1"
+    // (le rendu HTML de cette quantité est couvert séparément dans
+    // tests/unit/order-confirmation-email.spec.ts).
+    expect(sendOrderConfirmationEmail).toHaveBeenCalledTimes(1)
+    const emailPayload = (sendOrderConfirmationEmail as Mock).mock.calls[0]?.[1] as {
+      items: Array<{ title: string, price: number, quantity: number }>
+    }
+    expect(emailPayload.items).toEqual([{ title: 'Selle western Billy Cook 16"', price: 18, quantity: 3 }])
+  })
+
+  it('achat multiple sur une pièce de consignation (cas structurel — quantity reste 1) : sale_price et commissionAmount inchangés', async () => {
+    const consignmentId = '00000000-0000-4000-8000-000000000004'
+    supabase.tables.orders.rows.push(makeOrderRow())
+    supabase.tables.order_items.rows.push(makeOrderItemRow({ price: 1850, quantity: 1 }))
+    supabase.tables.products.rows.push(makeProductRow({ is_consignment: true, consignment_id: consignmentId }))
+    supabase.tables.consignments.rows.push(makeConsignmentRow({ id: consignmentId, agreed_price: 1500 }))
+
+    await fulfillCheckoutSession(makeSession())
+
+    // Non-régression explicite (Bug A) : ni le sale_price ni la commission
+    // d'une pièce de consignation (toujours quantity=1 par construction) ne
+    // doivent bouger suite au correctif multi-unités.
+    expect(supabase.tables.sales.rows[0]?.sale_price).toBe(1850)
+    expect(supabase.tables.sales.rows[0]?.commission_amount).toBe(350)
+  })
+
   it('idempotence : un second appel (rejeu webhook + landing page) ne réécrit rien et n\'envoie aucun email', async () => {
     supabase.tables.orders.rows.push(makeOrderRow())
     supabase.tables.order_items.rows.push(makeOrderItemRow())
@@ -282,6 +332,43 @@ describe('fulfillCheckoutSession', () => {
     expect(supabase.tables.orders.rows[0]?.status).toBe('paid')
     expect(sendOrderConfirmationEmail).not.toHaveBeenCalled()
   })
+
+  // ─── US-096 Gherkin 6 — edge case "sold" avec stock résiduel (dette US-091) ─
+
+  it('[stock-anomaly] log distinctif quand un produit passe "sold" avec un stock résiduel > 0', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    supabase.tables.orders.rows.push(makeOrderRow())
+    supabase.tables.order_items.rows.push(makeOrderItemRow())
+    // Anomalie simulée : le produit détient le verrou "reserved" de CETTE
+    // commande (donc passera "sold") mais porte un `stock` résiduel — cas
+    // réel documenté (release concurrent pendant le verrou dernière-unité).
+    supabase.tables.products.rows.push(makeProductRow({ stock: 1 }))
+
+    await fulfillCheckoutSession(makeSession())
+
+    expect(supabase.tables.products.rows[0]?.status).toBe('sold')
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+    const [message] = consoleErrorSpy.mock.calls[0] as [string]
+    expect(message).toContain('[stock-anomaly]')
+    expect(message).toContain(PRODUCT_ID)
+    expect(message).toContain('résiduel de 1')
+
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('ne logue aucune anomalie quand le produit passe "sold" avec un stock résiduel de 0 (cas normal)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    supabase.tables.orders.rows.push(makeOrderRow())
+    supabase.tables.order_items.rows.push(makeOrderItemRow())
+    supabase.tables.products.rows.push(makeProductRow({ stock: 0 }))
+
+    await fulfillCheckoutSession(makeSession())
+
+    expect(supabase.tables.products.rows[0]?.status).toBe('sold')
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
+
+    consoleErrorSpy.mockRestore()
+  })
 })
 
 // ─── releaseOrderReservation ───────────────────────────────────────────────
@@ -311,6 +398,23 @@ describe('releaseOrderReservation', () => {
     expect(supabase.tables.orders.rows[0]?.status).toBe('cancelled')
     const product = supabase.tables.products.rows[0]
     expect(product?.stock).toBe(1)
+    expect(product?.status).toBe('active')
+    expect(product?.reserved_order_id).toBeNull()
+  })
+
+  it('achat multiple (US-096) : restitue TOUTES les unités de la ligne (quantity > 1), pas une seule', async () => {
+    supabase.tables.orders.rows.push(makeOrderRow({ status: 'pending' }))
+    // Ligne de commande à 3 exemplaires — dernière unité verrouillée (produit
+    // "reserved" par CETTE commande, stock à 0).
+    supabase.tables.order_items.rows.push(makeOrderItemRow({ quantity: 3 }))
+    supabase.tables.products.rows.push(makeProductRow({ status: 'reserved', reserved_order_id: ORDER_ID, stock: 0 }))
+
+    await releaseOrderReservation(ORDER_ID)
+
+    const product = supabase.tables.products.rows[0]
+    // Un test complaisant qui ne relit `release_product_unit` qu'UNE fois par
+    // ligne (comme avant l'US-096) laisserait le stock à 1 au lieu de 3.
+    expect(product?.stock).toBe(3)
     expect(product?.status).toBe('active')
     expect(product?.reserved_order_id).toBeNull()
   })

@@ -12,32 +12,90 @@ const cart = useCartStore()
 const toast = useToast()
 
 const isSold = computed(() => props.product.status === 'sold')
-const isPurchasable = computed(() => props.product.status === 'active')
 
-// US-070 — feedback d'ajout : toast succès, ou toast neutre si la pièce
-// (unique, stock 1) est déjà dans le panier — la quantité reste à 1.
+// Contrat de composant US-096 (spec design §0.1) : booléen dérivé, jamais un
+// statut figé en dur — que le modèle DB évolue un jour vers une vraie colonne
+// ou reste une dérivation pure, seul ce calcul change, aucun composant
+// consommateur n'a besoin d'être réécrit. Toujours `false` pour une pièce en
+// consignation (pièce unique, pas de notion de stock — axe orthogonal).
+const isOutOfStock = computed(
+  () => !props.product.isConsignment && props.product.stock === 0 && props.product.status !== 'sold',
+)
+
+// isPurchasable étendu (US-096) : un produit non-consigné en rupture n'est
+// plus achetable même si son status reste "active" en base.
+const isPurchasable = computed(() => props.product.status === 'active' && !isOutOfStock.value)
+
+const isLowStock = computed(
+  () => !props.product.isConsignment && props.product.stock > 0 && props.product.stock <= 3,
+)
+
+const stockUrgencyLabel = computed(() => {
+  const stock = props.product.stock
+  // Évite l'élision maladroite "Plus qu'1 en stock" (spec design §1.2).
+  return stock === 1 ? 'Dernier exemplaire en stock' : `Plus que ${stock} en stock`
+})
+
+// Sélecteur de quantité affiché uniquement pour un produit non-consigné
+// réellement achetable — masqué en rupture (CTA remplacé, préparation
+// US-097) et masqué pour toute pièce de consignation (§1.3, non-régression
+// explicite : comportement pièce unique strictement inchangé).
+const showQuantitySelector = computed(() => !props.product.isConsignment && isPurchasable.value)
+const quantityMax = computed(() => Math.min(props.product.stock, 10))
+const quantity = ref(1)
+
+// Un produit dont le stock/la disponibilité change entre deux navigations
+// (le composant n'est pas garanti d'être démonté par Nuxt entre deux slugs)
+// réinitialise la quantité choisie à 1.
+watch(
+  () => props.product.id,
+  () => {
+    quantity.value = 1
+  },
+)
+
+// US-070 — feedback d'ajout, étendu US-096 (achat multiple, remplacement de
+// quantité). Décision produit actée (spec design §7.3) : revenir sur la fiche
+// et choisir une nouvelle quantité REMPLACE le total de la ligne panier, ne
+// s'additionne jamais à l'existante.
 function addToCart(): void {
-  const added = cart.add(props.product)
-  if (added) {
-    toast.add({
-      title: 'Ajouté au panier',
-      description: props.product.title,
-      icon: 'i-lucide-shopping-basket',
-      color: 'success',
-    })
-  }
-  else {
+  const wasInCart = cart.isInCart(props.product.id)
+  const added = cart.add(props.product, quantity.value)
+
+  if (!added) {
     toast.add({
       title: 'Déjà dans votre panier',
-      description: 'Cet article est une pièce unique — un seul exemplaire par commande.',
+      description: props.product.isConsignment
+        ? 'Cet article est une pièce unique — un seul exemplaire par commande.'
+        : 'Vous avez déjà cette quantité dans votre panier.',
       icon: 'i-lucide-info',
       color: 'neutral',
     })
+    return
   }
+
+  if (wasInCart) {
+    toast.add({
+      title: 'Quantité mise à jour',
+      description: `${quantity.value} exemplaire${quantity.value > 1 ? 's' : ''} — ${props.product.title}`,
+      icon: 'i-lucide-shopping-basket',
+      color: 'success',
+    })
+    return
+  }
+
+  toast.add({
+    title: 'Ajouté au panier',
+    description: props.product.title,
+    icon: 'i-lucide-shopping-basket',
+    color: 'success',
+  })
 }
 
-const conditionBadgeVariant = computed((): 'sold' | 'reserved' | 'new' | 'occasion' => {
+const conditionBadgeVariant = computed((): 'sold' | 'out-of-stock' | 'reserved' | 'new' | 'occasion' => {
+  // Priorité explicite (spec design §1.8) : sold > out-of-stock > reserved > new/occasion.
   if (isSold.value) return 'sold'
+  if (isOutOfStock.value) return 'out-of-stock'
   if (props.product.status === 'reserved') return 'reserved'
   return props.product.condition === 'new' ? 'new' : 'occasion'
 })
@@ -149,6 +207,23 @@ onUnmounted(() => {
         <UIcon name="i-lucide-ruler" class="w-3.5 h-3.5 text-cgws-ink-soft/50 flex-shrink-0" aria-hidden="true" />
         <span class="sr-only">Taille : </span>Taille : {{ product.size }}
       </p>
+
+      <!-- Quantité restante (US-096) — masquée en consignation (pièce unique)
+           et en rupture (remplacée par le badge "Épuisé" ci-dessus). -->
+      <p
+        v-if="!product.isConsignment && !isOutOfStock && !isLowStock"
+        class="font-sans text-sm text-cgws-ink-soft flex items-center gap-1.5"
+      >
+        <UIcon name="i-lucide-package" class="w-3.5 h-3.5 text-cgws-ink-soft/60 flex-shrink-0" aria-hidden="true" />
+        {{ product.stock }} en stock
+      </p>
+      <p
+        v-else-if="isLowStock"
+        class="font-sans font-medium text-sm text-cgws-accent flex items-center gap-2"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-cgws-accent flex-shrink-0" aria-hidden="true" />
+        {{ stockUrgencyLabel }}
+      </p>
     </div>
 
     <!-- Séparateur -->
@@ -188,16 +263,36 @@ onUnmounted(() => {
     <div class="product-info-cta flex flex-col gap-3 mt-2">
       <!-- État actif : achat en ligne (US-070) + téléphone + message -->
       <template v-if="!isSold">
+        <!-- Sélecteur de quantité (US-096) — non-consignation uniquement, masqué en rupture -->
+        <div v-if="showQuantitySelector" class="product-info-quantity flex items-center gap-3">
+          <span class="font-sans font-medium text-sm text-cgws-ink">Quantité</span>
+          <QuantitySelector v-model="quantity" :max="quantityMax" />
+        </div>
+
         <CgwsButton
           v-if="isPurchasable"
           variant="primary"
           size="md"
           class="w-full justify-center"
-          :aria-label="`Ajouter ${product.title} au panier`"
+          :aria-label="`Ajouter ${quantity > 1 ? `${quantity} exemplaires de ` : ''}${product.title} au panier`"
           @click="addToCart"
         >
           <UIcon name="i-lucide-shopping-basket" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
           Ajouter au panier
+        </CgwsButton>
+
+        <!-- Rupture de stock (US-096) : ajout désactivé, préparation du terrain
+             pour le formulaire d'alerte retour en stock (US-097, non implémenté ici). -->
+        <CgwsButton
+          v-else-if="isOutOfStock"
+          variant="primary"
+          size="md"
+          disabled
+          class="w-full cursor-not-allowed"
+          aria-disabled="true"
+        >
+          <UIcon name="i-lucide-package-x" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
+          Épuisé — indisponible
         </CgwsButton>
 
         <div class="flex flex-col sm:flex-row gap-3">

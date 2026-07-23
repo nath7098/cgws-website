@@ -715,13 +715,20 @@ function buildOrderConfirmationHtml(data: OrderConfirmationEmailData): string {
   const formatEur = (amount: number): string =>
     new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
 
+  // US-096 (achat multiple) : `item.price` est le prix UNITAIRE — la ligne
+  // affiche `× quantité` à côté du titre (uniquement si > 1, pour ne rien
+  // changer visuellement au cas majoritaire quantité=1) et le montant affiché
+  // est le TOTAL de la ligne (prix unitaire × quantité), pour rester cohérent
+  // avec le sous-total additionné juste en dessous.
   const itemRows = data.items
-    .map(
-      item => `<tr>
-              <td>${escapeHtml(item.title)}</td>
-              <td style="text-align:right;white-space:nowrap;">${formatEur(item.price)}</td>
-            </tr>`,
-    )
+    .map((item) => {
+      const quantity = item.quantity ?? 1
+      const label = quantity > 1 ? `${escapeHtml(item.title)} × ${quantity}` : escapeHtml(item.title)
+      return `<tr>
+              <td>${label}</td>
+              <td style="text-align:right;white-space:nowrap;">${formatEur(item.price * quantity)}</td>
+            </tr>`
+    })
     .join('\n            ')
 
   const fulfillmentBlock

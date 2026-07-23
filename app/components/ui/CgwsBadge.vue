@@ -18,6 +18,7 @@ const labels: Record<BadgeVariant, string> = {
   reserved: 'Réservé',
   pending: 'En attente',
   accepted: 'Accepté',
+  'out-of-stock': 'Épuisé',
 }
 
 const displayLabel = computed<string>(() => props.label ?? labels[props.variant])
@@ -47,6 +48,12 @@ const variantClasses: Record<BadgeVariant, string> = {
   // - accepted = pilule success translucide (success/15 + text-success, §4.1 doc maître).
   pending: 'bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline',
   accepted: 'bg-cgws-success/15 text-cgws-success border border-cgws-success/40',
+  // out-of-stock (US-096/097, spec §4) = neutre — état "provisoire/en pause"
+  // (comme reserved/pending), jamais une couleur chaude : ce n'est ni un
+  // succès ni un échec ni une transaction, juste une disponibilité à zéro,
+  // réversible dès réapprovisionnement. Réutilise la paire ink-soft/surface-2
+  // déjà mesurée AA (§2.6) — aucune nouvelle mesure de contraste nécessaire.
+  'out-of-stock': 'bg-cgws-surface-2 text-cgws-ink-soft border border-cgws-hairline',
 }
 </script>
 
