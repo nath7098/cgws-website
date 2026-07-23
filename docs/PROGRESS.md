@@ -587,3 +587,49 @@ Commit `ff3144a`. Arche SVG décorative, bloc eyebrow et appel GSAP mort `tl.fro
 7. **Contenus réels Camille** (inchangé) : bio définitive et 3-4 vraies photos de l'atelier pour `/a-propos`, textes légaux, CGV/SIRET, vraies photos catalogue. La page À propos est construite pour que ce soit un **swap de constantes**, sans retouche de structure ni de SEO.
 8. **`SHIPPING_FLAT_RATE = 9,90 €`** (inchangé) : toujours un placeholder non confirmé par Camille.
 9. **Edge case US-082** (inchangé) : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel 1.
+
+---
+
+# Épic E11 — Stock multi-unités & rupture · Sprint 10
+
+**Branche `feature/sprint-10` · 16 pts planifiés · 16 pts livrés (vélocité 100 %) · 2026-07-23**
+
+Sprint entièrement séquentiel (US-097 étend le modèle de stock consolidé par US-096, aucune parallélisation possible). Une spec UX unique a couvert les deux US pour garantir un continuum d'états de stock cohérent sur la fiche produit (en stock → stock bas → épuisé → de nouveau disponible). **Objectif de sprint atteint** : un produit non-consigné peut être vendu en plusieurs exemplaires avec quantité restante visible, et un produit en rupture reste consultable avec option d'alerte email au retour en stock. Les 2 US commitées, `typecheck` / `lint` / `test:unit` (108 tests) / `build` en EXIT 0.
+
+## US-096 — Quantité restante affichée + achat multiple · 8 pts — PASS (2e passe)
+
+Commit `cd6cd7b`. Le socle SQL était déjà multi-unités depuis le rework E8 (`reserve_product_unit` décrémente 1 unité/appel, ne verrouille que sur la dernière) : le travail était purement applicatif. Champ `quantity` par ligne de panier (`addCartLine` remplace au lieu de dupliquer — décision produit « nouvelle quantité totale », pas cumul), `computeSubtotal` multiplié, `count` = total d'unités, payload checkout `items[{productId, quantity}]` borné à 30 unités totales. Boucle de réservation appelant `reserve_product_unit` × quantité avec rollback multi-unités (restitue toutes les unités déjà réservées, ce produit ET les autres, avant 409). `QuantitySelector.vue` custom (pas `UInputNumber` — palette Nuxt UI non câblée aux tokens CGWS, même raison que le rejet d'`UAlert` en US-094), masqué pour les consignations. État « Épuisé » dérivé (`active` + stock 0) distinct de « Vendu », préparant US-097.
+
+**QA : FAIL 1re passe** — les 7 scénarios Gherkin passaient, mais la QA a trouvé **deux bugs réels non testés** en creusant le module :
+1. **CA admin sous-évalué (chemin de l'argent)** : `fulfillment.ts` ne sélectionnait pas `quantity` et insérait une ligne `sales` au prix unitaire pour une ligne multi-unités → le dashboard sous-comptait le CA. Corrigé : `sale_price = prix × quantity` (une ligne au total, préservant la sémantique « 1 ligne sales = 1 vente » du modèle existant), commission inchangée (consignations toujours quantité 1).
+2. **Panier legacy → NaN + checkout bloqué** : un `CartItem` en localStorage sans champ `quantity` (antérieur au déploiement) donnait `NaN` au badge et envoyait `quantity: undefined` → rejet Zod 422, checkout bloqué. Corrigé par gardes `?? 1` sur `count` et le payload.
+
+Corrigé aussi dans la foulée (défaut introduit de fait par la feature multi-unités, pas « préexistant ») : le template email de confirmation affichait toujours « quantité 1 » (le champ était ignoré) → « Titre × N » + total ligne, rendu inchangé pour N=1. `releaseOrderReservation` corrigé pour restituer `quantity` unités par ligne (sous-restituait le stock des commandes multi-unités). Log `[stock-anomaly]` distinctif quand un produit passe `sold` avec stock résiduel (Gherkin 6, edge case Sprint 8 rendu visible sans corriger l'atomicité SQL sous-jacente). **PASS 2e passe.**
+
+## US-097 — Rupture de stock : parcage catalogue + alerte email retour en stock · 8 pts — PASS
+
+Commit `3d51533`. Deux décisions d'architecture tranchées en amont par l'orchestrateur pour dérisquer :
+
+1. **État de rupture DÉRIVÉ**, pas de nouvelle valeur DB `out_of_stock`. Justification vérifiée : le catalogue filtre `status IN ('active','reserved')` et 38 fichiers référencent le statut produit ; garder `status='active'` (stock 0) maintient automatiquement le produit dans le catalogue (exigence Gherkin) sans toucher à la contrainte CHECK ni auditer 38 fichiers. Le « repasse à Disponible » est automatique — le produit n'a jamais quitté `active`, l'affichage suit le stock.
+2. **Détection du réappro APPLICATIVE** dans `server/api/admin/products/[id].put.ts` (transition stock 0 → >0), pas un trigger SQL : Postgres ne peut pas envoyer d'email, un trigger-to-email exigerait pg_net + edge function, disproportionné, et les critères Gherkin n'exercent que le chemin admin. Vérifié que `status.patch.ts` ne touche jamais le stock et que l'import CSV ne fait que des INSERT.
+
+Table `stock_notifications` (UNIQUE `(product_id, email)`, index partiel `notified_at IS NULL`), RLS calquée sur `orders` : aucune lecture publique des emails, écritures en service role uniquement. Route publique `notify-restock` avec upsert idempotent et réponse **strictement neutre** dans tous les cas (déjà inscrit / nouveau / hors rupture / consignation) — aucune fuite d'information. 7e template `sendRestockNotification` réutilisant `resolveEmailFrom()`. À la réactivation : email à chaque inscrit `notified_at IS NULL` + marquage pour empêcher tout re-spam ultérieur ; envoi non bloquant (une panne Resend ne casse pas la mise à jour produit admin). `RestockNotifyForm.vue` remplace le CTA d'achat sur la fiche épuisée. Migration 007 appliquée, `database.types.ts` régénéré.
+
+**QA : PASS 1re passe.** Sécurité RLS vérifiée (calquée sur `004_orders.sql`), non-fuite de la route confirmée, détection de transition strictement `0 → >0`, non-régression consignation, 15 tests dédiés non complaisants.
+
+## Points relevés pendant le sprint
+
+- **Décision UX notable** : `QuantitySelector` custom plutôt que `UInputNumber` — la palette `ui.colors` de Nuxt UI n'est délibérément pas câblée aux tokens CGWS (`app/app.config.ts`), un composant natif brut détonnerait à côté d'un CTA `cgws-accent`. Cohérent avec le rejet d'`UAlert` en US-094.
+- **Issue #30 non aggravée** : les deux nouveaux composants (`QuantitySelector`, `RestockNotifyForm`) spécifient un `ring-offset-cgws-ground` thème-aware explicite, plutôt que le `ring-offset-2` nu (blanc) responsable du défaut transverse de contraste ouvert en fin de Sprint 9.
+- **Faux positif d'environnement (récurrent, inchangé)** : `npm run lint` échoue dans les shells de subagent (ESLint global 9.0.0 corrompu hors projet, `Cannot find module '...acorn.js'`). Dépôt sain (ESLint 9.39.4 local). Nettoyer l'ESLint global de la machine supprimerait ce bruit.
+- **Migration appliquée sur le projet Supabase live** via MCP (table `stock_notifications` + RLS) — additive et réversible.
+
+## Blocages et dettes ouverts après Sprint 10
+
+1. **Domaine Resend `cgws.fr` non vérifié** (inchangé, action Nathan) : bloque la validation end-to-end réelle de l'alerte de retour en stock US-097 (envoi testé avec mocks uniquement, conforme au pattern acté US-063/US-066). Le bandeau admin US-094 signale toujours le fallback actif.
+2. **Dette produit — affichage qté×prix dans le panier (nouveau, non bloquant)** : `CartLineItem.vue` / `CartDrawer.vue` et le récap `/checkout` affichent le prix unitaire par ligne, pas « qté × prix », pour les lignes multi-unités. Descopé explicitement par la spec design §0.2 ; sous-total et totaux Stripe corrects ; aucun scénario Gherkin US-096 ne l'exige. À traiter dans une future US de polish panier.
+3. **Limite assumée US-097 — chemin import CSV** : si un futur import CSV se met à METTRE À JOUR le stock de produits existants (aujourd'hui il ne fait que des INSERT), la détection de réappro applicative ne se déclencherait pas. Documenté en commentaire dans `[id].put.ts`. À rouvrir si/quand l'import CSV évolue vers l'update de stock.
+4. **Pas d'UI admin pour visualiser les inscriptions `stock_notifications`** : non demandé par le Sprint Plan ; amélioration opérationnelle possible (voir aussi spec design §7.5).
+5. **Edge case US-082 (inchangé, désormais VISIBLE)** : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel. L'atomicité SQL sous-jacente reste hors périmètre (acté non-bloquant US-091), mais l'anomalie est désormais tracée par le log `[stock-anomaly]` (US-096) pour réactivation admin rapide.
+6. **Issue #30 (dette design system, ouverte fin Sprint 9)** : contraste des anneaux de focus (`ring-offset-color` par défaut blanc) sous le seuil WCAG en peaux Nuit/Rugueux, transverse à ~8 composants existants. Les nouveaux composants de ce sprint ne l'aggravent pas. Candidat US pour un prochain sprint.
+7. **Contenus réels Camille, `SHIPPING_FLAT_RATE`, activation PayPal, logs Vercel #26** (inchangés) — voir bilans Sprints 8-9.
