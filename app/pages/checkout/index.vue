@@ -69,7 +69,11 @@ async function mountEmbeddedCheckout(): Promise<void> {
     const checkout = await stripe.initEmbeddedCheckout({
       fetchClientSecret: async () => {
         const clientSecret = await createSession({
-          productIds: cart.availableItems.map(item => item.productId),
+          // `item.quantity ?? 1` : garde de migration — un panier localStorage
+          // posé avant l'US-096 ne porte pas de champ `quantity` (`undefined`),
+          // ce qui violerait `z.number().int().min(1)` côté API (422, checkout
+          // bloqué) sans cette garde.
+          items: cart.availableItems.map(item => ({ productId: item.productId, quantity: item.quantity ?? 1 })),
           previousOrderId: cart.pendingOrderId ?? undefined,
         })
         if (!clientSecret) throw new Error('checkout-session-failed')

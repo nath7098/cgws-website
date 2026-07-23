@@ -14,8 +14,20 @@ const isSold = computed(() => props.product.status === 'sold')
 const isReserved = computed(() => props.product.status === 'reserved')
 const isActive = computed(() => props.product.status === 'active')
 
+// Contrat de composant US-096 (spec design §0.1 / §5.4) — identique à celui
+// de ProductInfo.vue : booléen dérivé, jamais un statut figé. Toujours
+// `false` pour une pièce de consignation (axe orthogonal, pas de notion de
+// stock pour une pièce unique).
+const isOutOfStock = computed(
+  () => !props.product.isConsignment && props.product.stock === 0 && !isSold.value,
+)
+const isLowStock = computed(
+  () => !props.product.isConsignment && props.product.stock > 0 && props.product.stock <= 3,
+)
+
 const badgeVariant = computed(() => {
   if (isSold.value) return 'sold' as const
+  if (isOutOfStock.value) return 'out-of-stock' as const
   if (props.product.isConsignment) return 'consignment' as const
   if (props.product.condition === 'new') return 'new' as const
   return 'occasion' as const
@@ -40,6 +52,8 @@ const ariaLabel = computed(() => {
   let label = `${props.product.title} — ${props.product.brand} — ${formattedPrice.value} €`
   if (isSold.value) label += ' — Produit vendu'
   if (isReserved.value) label += ' — Produit réservé'
+  if (isOutOfStock.value) label += ' — Actuellement épuisé'
+  if (isLowStock.value) label += ` — Plus que ${props.product.stock} en stock`
   return label
 })
 
@@ -144,8 +158,10 @@ const cardContent = computed(() => ({
           loading="lazy"
           format="webp"
           sizes="xs:100vw sm:50vw md:33vw lg:25vw"
-          class="w-full h-full object-cover transition-transform duration-300"
-          :class="isActive ? 'group-hover:scale-105' : ''"
+          class="w-full h-full object-cover"
+          :class="isOutOfStock
+            ? 'grayscale-[70%] opacity-90'
+            : ['transition-transform duration-300', isActive ? 'group-hover:scale-105' : '']"
         />
         <div
           v-else
@@ -169,9 +185,10 @@ const cardContent = computed(() => ({
         </div>
       </div>
 
-      <!-- Reserved diagonal banner -->
+      <!-- Reserved diagonal banner (jamais simultané avec "Épuisé" — priorité
+           au badge neutre "Épuisé", cf. spec design §1.8) -->
       <div
-        v-if="isReserved"
+        v-if="isReserved && !isOutOfStock"
         class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-20"
         aria-hidden="true"
       >
@@ -200,6 +217,13 @@ const cardContent = computed(() => ({
         <p class="font-sans text-[13px] text-cgws-ink-soft">{{ product.brand }}</p>
         <p v-if="product.size" class="font-sans text-[12px] text-cgws-ink-soft/70 italic">
           Taille : {{ product.size }}
+        </p>
+        <p
+          v-if="isLowStock"
+          class="font-sans font-medium text-[11px] text-cgws-accent flex items-center gap-1.5"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-cgws-accent flex-shrink-0" aria-hidden="true" />
+          Plus que {{ product.stock }} en stock
         </p>
         <p
           class="product-price font-display text-2xl tabular-nums text-right mt-auto"

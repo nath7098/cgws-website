@@ -108,7 +108,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
   // ─── Marquer chaque produit vendu + créer les ventes (CA admin) ────────────
   const { data: orderItems } = await supabase
     .from('order_items')
-    .select('product_id, title, price')
+    .select('product_id, title, price, quantity')
     .eq('order_id', orderId)
 
   const saleDate = new Date().toISOString().slice(0, 10)
@@ -125,7 +125,37 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
 
     if (!product) continue
 
+    // Achat multiple (US-096) : `order_items.price` est le prix UNITAIRE (celui
+    // affiché au client, celui utilisé pour la commission déposant) — le CA
+    // enregistré côté admin (`sales.sale_price`, sommé tel quel par
+    // `RevenueChart`/`revenue-monthly.get.ts`) doit lui refléter le TOTAL de la
+    // ligne. Une pièce de consignation reste toujours quantity=1 par
+    // construction (pièce unique, cf. `showQuantitySelector`/`QuantitySelector`
+    // jamais affichés pour `isConsignment=true`) : `unitPrice * quantity` y est
+    // donc strictement égal à `unitPrice`, ce correctif ne change ni son
+    // `sale_price` ni son `commissionAmount` (calculée sur le prix UNITAIRE,
+    // jamais sur le total — une commission de dépôt-vente est par nature liée
+    // à l'exemplaire unique vendu, pas à une notion de quantité qui n'existe
+    // pas pour ces pièces).
+    //
+    // Décision produit (une seule ligne `sales` par ligne de commande, au prix
+    // TOTAL, plutôt que N lignes au prix unitaire) : `sales` n'a pas de colonne
+    // `quantity` et `product_id` n'y est pas contraint UNIQUE — north-star
+    // resterait migrable, mais le modèle existant (saisie manuelle via
+    // `SaleForm.vue`, `admin/ventes/index.vue`) traite déjà "1 ligne `sales` =
+    // 1 événement de vente", jamais "1 ligne = 1 unité physique". Créer N
+    // lignes identiques (même produit, même commande, même date) pour un achat
+    // de 3 bidons d'huile ferait apparaître 3 "ventes" distinctes dans la liste
+    // admin et fausserait tout comptage du NOMBRE de transactions — alors
+    // qu'une seule ligne au prix total préserve cette sémantique sans aucun
+    // changement de schéma ni de la lecture du dashboard (`sale_price` sommé
+    // reste exact par construction).
+    const quantity = item.quantity ?? 1
+    const totalSalePrice = Number(item.price) * quantity
+
     // Commission consignation (modèle admin/sales) : salePrice − agreedPrice.
+    // Basée sur le prix UNITAIRE (toujours == au total pour une consignation,
+    // quantity=1) — inchangée par cette correction.
     let commissionAmount: number | null = null
     let consignmentData: {
       id: string
@@ -153,11 +183,13 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
     await supabase.from('sales').insert({
       product_id: item.product_id,
       client_id: null,
-      sale_price: Number(item.price),
+      sale_price: totalSalePrice,
       sale_date: saleDate,
       payment_method: 'card',
       commission_amount: commissionAmount,
-      notes: `Vente en ligne — commande ${orderId}`,
+      notes: quantity > 1
+        ? `Vente en ligne — commande ${orderId} (${quantity} exemplaires)`
+        : `Vente en ligne — commande ${orderId}`,
     })
 
     // Le stock a DÉJÀ été décrémenté à la réservation (RPC reserve_product_unit,
@@ -177,7 +209,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
       .eq('id', item.product_id)
       .eq('status', 'reserved')
       .eq('reserved_order_id', orderId)
-      .select('id')
+      .select('id, stock')
 
     if (soldProducts && soldProducts.length > 0) {
       await supabase.from('product_status_history').insert({
@@ -186,6 +218,22 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
         new_status: 'sold',
         changed_by: 'stripe-webhook',
       })
+
+      // Edge case connu et acté non-bloquant (dette US-091, Gherkin 6 US-096) :
+      // un `release_product_unit` concurrent pendant qu'une autre commande
+      // détient le verrou dernière-unité, suivi du paiement de cette dernière,
+      // peut faire passer le produit `sold` avec un `stock` résiduel > 0
+      // (l'atomicité SQL sous-jacente n'est PAS corrigée ici, hors périmètre —
+      // seule l'invisibilité opérationnelle l'est). Log distinctif pour que
+      // Camille/Nathan repèrent et réactivent le produit rapidement en admin.
+      const residualStock = soldProducts[0]?.stock ?? 0
+      if (residualStock > 0) {
+        console.error(
+          `[stock-anomaly] Produit ${item.product_id} ("${item.title}") passé "sold" avec un stock résiduel `
+          + `de ${residualStock} (commande ${orderId}). Vérifier/réactiver le produit en admin si ce stock `
+          + `résiduel est légitime — cause connue : release concurrent pendant le verrou dernière-unité (dette actée US-091).`,
+        )
+      }
     }
 
     if (consignmentData && apiKey) {
@@ -218,10 +266,13 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
         customerName: order.customer_name ?? '',
         customerEmail: order.email,
         orderId: order.id,
+        // `item.quantity` vient de la même sélection `order_items` que le
+        // correctif CA admin ci-dessus (US-096) — un `1` figé ici affichait
+        // "quantité 1" dans l'email même pour un achat multiple réel.
         items: (orderItems ?? []).map(item => ({
           title: item.title,
           price: Number(item.price),
-          quantity: 1,
+          quantity: item.quantity ?? 1,
         })),
         subtotal: Number(order.subtotal ?? 0),
         shippingCost: Number(order.shipping_cost ?? 0),
@@ -262,17 +313,23 @@ export async function releaseOrderReservation(orderId: string): Promise<void> {
 
   if (!cancelled || cancelled.length === 0) return
 
-  // ─── 2) Restitue une unité de stock par ligne de commande ──────────────────
+  // ─── 2) Restitue `quantity` unités de stock par ligne de commande (US-096) ──
+  // Chaque ligne peut représenter plusieurs unités réservées (achat multiple) :
+  // on rappelle `release_product_unit` `quantity` fois, symétrique de la
+  // boucle de réservation `quantity` fois côté session.post.ts.
   const { data: items } = await supabase
     .from('order_items')
-    .select('product_id')
+    .select('product_id, quantity')
     .eq('order_id', orderId)
 
   for (const item of items ?? []) {
     if (!item.product_id) continue
-    await supabase.rpc('release_product_unit', {
-      p_product_id: item.product_id,
-      p_order_id: orderId,
-    })
+    const quantity = item.quantity ?? 1
+    for (let i = 0; i < quantity; i++) {
+      await supabase.rpc('release_product_unit', {
+        p_product_id: item.product_id,
+        p_order_id: orderId,
+      })
+    }
   }
 }

@@ -30,6 +30,7 @@ export type BadgeVariant =
   | 'reserved'
   | 'pending'
   | 'accepted'
+  | 'out-of-stock'
 
 export interface Product {
   id: string
@@ -217,7 +218,11 @@ export type FulfillmentMethod = (typeof FULFILLMENT_METHODS)[number]
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
 /** Ligne de panier — snapshot d'affichage du produit au moment de l'ajout.
- *  1 ligne = 1 exemplaire (pièces uniques, pas de quantité). */
+ *  Toujours 1 ligne par produit (dé-duplication par `productId`, jamais de
+ *  doublon) : `quantity` porte le nombre d'exemplaires de CETTE ligne (US-096).
+ *  Pour une pièce en consignation (`isConsignment=true`), `quantity` vaut
+ *  toujours 1 — le sélecteur de quantité est masqué côté UI pour ces pièces
+ *  uniques, le comportement reste strictement celui d'avant l'US-096. */
 export interface CartItem {
   productId: string
   slug: string
@@ -226,6 +231,7 @@ export interface CartItem {
   price: number
   image: string | null
   size?: string
+  quantity: number
   addedAt: string
 }
 
@@ -292,11 +298,12 @@ export interface OrderRecap {
 
 /** Payload POST /api/checkout/session (checkout embarqué invité, aucun compte).
  *  Les coordonnées et l'adresse ne sont plus saisies côté CGWS : Stripe les
- *  collecte dans le formulaire embarqué. On envoie uniquement les produits, et
- *  éventuellement la commande précédente à libérer (retour sur le panier après
- *  un abandon, pour ne pas se bloquer soi-même sur ses propres réservations). */
+ *  collecte dans le formulaire embarqué. On envoie les produits ET leur
+ *  quantité (US-096 — achat multiple), et éventuellement la commande
+ *  précédente à libérer (retour sur le panier après un abandon, pour ne pas
+ *  se bloquer soi-même sur ses propres réservations). */
 export interface CheckoutPayload {
-  productIds: string[]
+  items: Array<{ productId: string, quantity: number }>
   previousOrderId?: string
 }
 

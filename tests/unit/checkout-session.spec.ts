@@ -49,7 +49,7 @@ interface FakeCheckoutSessionCreateResult {
 }
 
 interface SessionPostRequestBody {
-  productIds: string[]
+  items: Array<{ productId: string, quantity: number }>
   previousOrderId?: string
 }
 
@@ -94,7 +94,7 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
 
   it('réservation réussie pour tous les produits : session Stripe créée, commande référencée', async () => {
     supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 1, status: 'active' }))
-    setBody({ productIds: [PRODUCT_A_ID] })
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 1 }] })
 
     const result = await handler({})
 
@@ -109,6 +109,7 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
     const items = supabase.tables.order_items.rows.filter(i => i.order_id === result.orderId)
     expect(items).toHaveLength(1)
     expect(items[0]?.product_id).toBe(PRODUCT_A_ID)
+    expect(items[0]?.quantity).toBe(1)
 
     // Dernière unité réservée : le produit passe "reserved" + verrouillé sur
     // CETTE commande.
@@ -122,7 +123,7 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
 
   it('produit multi-stock réservé (pas la dernière unité) : reste "active", achetable par d\'autres', async () => {
     supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 3, status: 'active' }))
-    setBody({ productIds: [PRODUCT_A_ID] })
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 1 }] })
 
     const result = await handler({})
 
@@ -131,6 +132,123 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
     expect(product?.status).toBe('active')
     expect(product?.reserved_order_id).toBeNull()
     expect(result.clientSecret).toBeTruthy()
+  })
+
+  // ─── US-096 — achat multiple (quantité > 1) ───────────────────────────────
+
+  it('achat multiple : réserve N unités du même produit, quantity Stripe = N, order_items.quantity = N', async () => {
+    supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 5, status: 'active' }))
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 3 }] })
+
+    const result = await handler({})
+
+    const product = supabase.tables.products.rows.find(p => p.id === PRODUCT_A_ID)
+    // 3 unités réservées sur 5 : stock résiduel 2, encore "active" (pas la
+    // dernière unité) — achetable par d'autres visiteurs.
+    expect(product?.stock).toBe(2)
+    expect(product?.status).toBe('active')
+
+    const items = supabase.tables.order_items.rows.filter(i => i.order_id === result.orderId)
+    expect(items).toHaveLength(1)
+    expect(items[0]?.quantity).toBe(3)
+
+    const lineItemArg = stripeCreate.mock.calls[0]?.[0] as { line_items: Array<{ quantity: number }> }
+    expect(lineItemArg.line_items).toHaveLength(1)
+    expect(lineItemArg.line_items[0]?.quantity).toBe(3)
+
+    expect(globals.responseStatuses).toContain(201)
+  })
+
+  it('achat multiple exact au stock disponible : la dernière unité verrouille le produit "reserved"', async () => {
+    supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 3, status: 'active' }))
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 3 }] })
+
+    const result = await handler({})
+
+    const product = supabase.tables.products.rows.find(p => p.id === PRODUCT_A_ID)
+    expect(product?.stock).toBe(0)
+    expect(product?.status).toBe('reserved')
+    expect(product?.reserved_order_id).toBe(result.orderId)
+  })
+
+  it('quantité demandée > stock disponible : 409 avant toute réservation (revalidation initiale)', async () => {
+    supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 2, status: 'active' }))
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 3 }] })
+
+    await expect(handler({})).rejects.toMatchObject({ statusCode: 409 })
+    expect(supabase.tables.orders.rows).toHaveLength(0)
+    expect(stripeCreate).not.toHaveBeenCalled()
+  })
+
+  it('course perdue en cours d\'achat multiple : rollback restitue TOUTES les unités déjà réservées de CE produit ET des AUTRES produits du panier', async () => {
+    supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 5, status: 'active' }))
+    supabase.tables.products.rows.push(makeProductRow({
+      id: PRODUCT_B_ID,
+      slug: 'bottes-ariat',
+      title: 'Bottes Ariat',
+      price: 120,
+      stock: 5,
+      status: 'active',
+    }))
+
+    // Le produit A réussit intégralement ses 3 unités. Le produit B échoue
+    // après 2 unités réservées sur les 4 demandées (course perdue en cours de
+    // route sur CE produit, pas seulement au premier appel) — ce test échoue
+    // si le mock/l'implémentation se contente de tout restituer "en gros" au
+    // lieu de restituer EXACTEMENT les unités réellement réservées avant
+    // l'échec, pour les DEUX produits.
+    let productBCalls = 0
+    const realRpc = supabase.rpc.bind(supabase)
+    vi.spyOn(supabase, 'rpc').mockImplementation(async (fn: string, args: Record<string, string>) => {
+      if (fn === 'reserve_product_unit' && args.p_product_id === PRODUCT_B_ID) {
+        productBCalls++
+        if (productBCalls > 2) return { data: [], error: null }
+      }
+      return realRpc(fn as never, args as never)
+    })
+
+    setBody({ items: [
+      { productId: PRODUCT_A_ID, quantity: 3 },
+      { productId: PRODUCT_B_ID, quantity: 4 },
+    ] })
+
+    await expect(handler({})).rejects.toMatchObject({ statusCode: 409 })
+
+    // Rollback ciblé et COMPLET : produit A entièrement restitué (3 unités),
+    // produit B partiellement restitué (les 2 unités réellement réservées).
+    const productA = supabase.tables.products.rows.find(p => p.id === PRODUCT_A_ID)
+    expect(productA?.stock).toBe(5)
+    expect(productA?.status).toBe('active')
+    expect(productA?.reserved_order_id).toBeNull()
+
+    const productB = supabase.tables.products.rows.find(p => p.id === PRODUCT_B_ID)
+    expect(productB?.stock).toBe(5)
+    expect(productB?.status).toBe('active')
+    expect(productB?.reserved_order_id).toBeNull()
+
+    expect(supabase.tables.orders.rows).toHaveLength(0)
+    expect(supabase.tables.order_items.rows).toHaveLength(0)
+    expect(stripeCreate).not.toHaveBeenCalled()
+    expect(globals.responseStatuses).not.toContain(201)
+  })
+
+  it('quantité > 10 par ligne : rejeté par la validation zod avant tout accès Supabase', async () => {
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 11 }] })
+
+    await expect(handler({})).rejects.toMatchObject({ statusCode: 422 })
+    expect(stripeCreate).not.toHaveBeenCalled()
+  })
+
+  it('total d\'unités > 30 (plusieurs lignes) : rejeté par la validation zod, même si chaque ligne est ≤ 10', async () => {
+    setBody({ items: [
+      { productId: PRODUCT_A_ID, quantity: 10 },
+      { productId: PRODUCT_B_ID, quantity: 10 },
+      { productId: '00000000-0000-4000-8000-0000000000c3', quantity: 10 },
+      { productId: '00000000-0000-4000-8000-0000000000d4', quantity: 1 },
+    ] })
+
+    await expect(handler({})).rejects.toMatchObject({ statusCode: 422 })
+    expect(stripeCreate).not.toHaveBeenCalled()
   })
 
   it('course perdue sur un produit : rollback CIBLÉ des unités déjà réservées + 409, aucune session Stripe créée', async () => {
@@ -156,7 +274,7 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
       return realRpc(fn as never, args as never)
     })
 
-    setBody({ productIds: [PRODUCT_A_ID, PRODUCT_B_ID] })
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 1 }, { productId: PRODUCT_B_ID, quantity: 1 }] })
 
     await expect(handler({})).rejects.toMatchObject({ statusCode: 409 })
 
@@ -180,7 +298,7 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
 
   it('article revalidé indisponible (stock épuisé ou statut non actif) : 409 avant toute réservation', async () => {
     supabase.tables.products.rows.push(makeProductRow({ id: PRODUCT_A_ID, stock: 0, status: 'sold' }))
-    setBody({ productIds: [PRODUCT_A_ID] })
+    setBody({ items: [{ productId: PRODUCT_A_ID, quantity: 1 }] })
 
     await expect(handler({})).rejects.toMatchObject({ statusCode: 409 })
     expect(supabase.tables.orders.rows).toHaveLength(0)
@@ -188,7 +306,7 @@ describe('POST /api/checkout/session — réservation atomique + rollback', () =
   })
 
   it('panier vide : rejeté par la validation zod avant tout accès Supabase', async () => {
-    setBody({ productIds: [] })
+    setBody({ items: [] })
 
     await expect(handler({})).rejects.toMatchObject({ statusCode: 422 })
     expect(stripeCreate).not.toHaveBeenCalled()

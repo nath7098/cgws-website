@@ -161,5 +161,22 @@ export default defineEventHandler(async (event: H3Event) => {
     })
   }
 
+  // US-097 — Détection du réapprovisionnement (rupture 0 -> >0), décision
+  // d'architecture actée : applicative dans CETTE route, seul point d'écriture
+  // du stock d'un produit EXISTANT côté admin (`status.patch.ts` ne touche pas
+  // au stock ; l'import CSV — `import/confirm.post.ts` — ne fait que CRÉER des
+  // produits, jamais mettre à jour le stock d'un produit déjà existant : un
+  // futur import qui réapprovisionnerait des produits existants ne serait PAS
+  // couvert par cette détection — limite assumée, documentée dans
+  // docs/PROGRESS.md). Logique extraite dans `server/utils/stockNotifications.ts`
+  // (testable indépendamment, non bloquante par construction).
+  await notifyRestockedSubscribers({
+    productId: id,
+    productTitle: updated.title,
+    productSlug: updated.slug,
+    previousStock: existing.stock ?? 0,
+    newStock: updated.stock ?? 0,
+  })
+
   return { product: mapProductRow(updated) }
 })

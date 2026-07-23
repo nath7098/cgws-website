@@ -29,6 +29,7 @@ export interface ServerGlobalsState {
   headers: Record<string, string | undefined>
   rawBody: string | undefined
   responseStatuses: number[]
+  routerParams: Record<string, string | undefined>
 }
 
 /**
@@ -45,6 +46,7 @@ export function stubServerGlobals(): ServerGlobalsState & { restore: () => void 
     headers: {},
     rawBody: undefined,
     responseStatuses: [],
+    routerParams: {},
   }
 
   const passthrough = <T>(fn: T): T => fn
@@ -56,6 +58,7 @@ export function stubServerGlobals(): ServerGlobalsState & { restore: () => void 
   vi.stubGlobal('readBody', async () => state.body)
   vi.stubGlobal('readRawBody', async () => state.rawBody)
   vi.stubGlobal('getHeader', (_event: unknown, name: string) => state.headers[name])
+  vi.stubGlobal('getRouterParam', (_event: unknown, name: string) => state.routerParams[name])
   vi.stubGlobal('setResponseStatus', (_event: unknown, code: number) => {
     state.responseStatuses.push(code)
   })
