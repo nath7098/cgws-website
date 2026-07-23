@@ -524,3 +524,66 @@ Test dédié ajouté : `tests/unit/depositor-consignments.spec.ts` (constance du
 ## Blocages ouverts après Sprint 8
 
 Inchangés par rapport à la liste ci-dessus (§ « Points de blocage encore réellement ouverts »), **sauf** que l'incohérence d'expéditeur email est désormais résolue côté code : il ne reste que l'action infra de Nathan (vérifier `cgws.fr` dans Resend, puis positionner `CGWS_EMAIL_FROM`). Reste également l'**edge case acté non traité** de la recette US-082 : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité et paie ensuite → produit `sold` avec stock résiduel 1 (réactivation admin nécessaire) — rare, arbitrage produit ultérieur.
+
+---
+
+# Épic E10 — Fiabilité & confiance du site public · Sprint 9
+
+**Branche `feature/sprint-9` · 18 pts planifiés · 18 pts livrés (vélocité 100 %) · 2026-07-22**
+
+Sprint consacré à la perte silencieuse de prospects et aux défauts déjà visibles en production. **Objectif de sprint atteint** : les deux bugs qui cassaient la conversion en silence sont traités, le lien mort `/a-propos` ne renvoie plus de 404, et PayPal est débloqué sans une ligne de code. Les 5 US sont commitées, `typecheck` / `lint` / `test:unit` (68 tests) / `build` en EXIT 0.
+
+## US-094 — Garde-fou expéditeur email de test visible en admin · 3 pts — PASS
+
+Commit `cdd0474`. Diagnostic confirmé : `sendViaResend()` avale les erreurs API (par design, pour ne jamais bloquer l'UI) et le fallback `onboarding@resend.dev` ne délivre **qu'à l'adresse du titulaire du compte Resend** — ce qui explique exactement #27 (le visiteur voit un succès, l'email ne part jamais) et #24 (« mail d'achat non reçu sur d'autres adresses que la mienne » est littéralement le comportement du domaine de test).
+
+Nouveau `GET /api/admin/email-status` (`requireAdminAuth`, retourne strictement `{ isFallback }` — ni `runtimeConfig` brut ni adresse expéditrice), adossé à `isFallbackSender()` exporté depuis `server/services/email.ts` (diff strictement additif, 12 lignes, aucun changement de comportement d'envoi). Bandeau non fermable dans le dashboard admin.
+
+**Décision design notable** : `UAlert` explicitement écarté — sa prop `color` tape dans la palette Nuxt UI par défaut, délibérément non câblée aux tokens CGWS (`app/app.config.ts`) ; l'utiliser aurait rejoué le FAIL QA du Sprint 8. Bandeau custom aligné sur les patterns `RejectModal`/`KpiCard`. Contrastes recalculés indépendamment par la QA : `danger`/`surface` = 5.05 (Jour) / 5.47 (Nuit) / 4.72 (Rugueux), tous ≥ 4.5:1. Fail-safe vérifié : le `catch` du fetch force `isFallback = true`, une erreur réseau **affiche** le bandeau au lieu de le masquer.
+
+Livrable documentaire : checklist de recette manuelle des 6 templates dans `DEV_GUIDE` § emails, + procédure pour lever le bandeau.
+
+## US-095 — Fiabiliser la soumission du dépôt de selle · 5 pts — PASS (2e passe)
+
+Commit `0c74406`. Cause racine de #26 confirmée dans le code : validation de taille **par fichier uniquement** (5 Mo), aucune compression client → 5 photos smartphone = payload multipart de 15-25 Mo, au-delà de la limite serverless Vercel (~4,5 Mo). L'échec survient **avant** la validation Zod, avec une erreur réseau opaque perçue comme « une erreur survient ».
+
+Compression client (1600px / qualité 0.75) via **import dynamique** de `browser-image-compression` dans le handler (lib browser-only — jamais en import statique, sous peine de casser le SSR). Garde de payload cumulé à **3 Mo**, appliquée après compression et avant tout appel réseau : marge sous la limite Vercel pour absorber l'overhead multipart et les champs texte. Un fichier dont la compression échoue est retiré et signalé sans faire échouer la soumission des autres. Côté serveur, `readMultipartFormData` et la boucle d'upload Storage sont enveloppés en try/catch renvoyant des `createError` 400/502 actionnables.
+
+Logique extraite dans `app/utils/consignmentPhotoUpload.ts` + 13 tests unitaires — la QA a explicitement vérifié que le test d'isolement des échecs **n'est pas complaisant**.
+
+**QA : FAIL 1re passe** sur un point d'accessibilité : le message d'erreur reçoit un focus programmatique mais portait `outline-none` sans ring de remplacement — un utilisateur clavier voyant était déplacé sans repère visuel. **Fix** : ring de focus en `focus:` (et non `focus-visible:`) — choix délibéré et documenté : l'heuristique `:focus-visible` des moteurs ne garantit pas le ring sur un `.focus()` scripté franchissant une frontière asynchrone démarrée par un clic souris, ce qui aurait laissé le trou pour une partie des utilisateurs. **PASS 2e passe.**
+
+## US-099 — Page À propos · 5 pts — PASS (2e passe)
+
+Commit `1683aea`. Le lien `/a-propos` était référencé par `AppHeader`, `MobileMenu` et `AppFooter` et renvoyait une **404 depuis toutes les pages du site en production** — défaut visible, pas simple absence de feature.
+
+Page en 5 sections (hero, Camille, atelier de Brèches, activités + consignation avec CTA vers `/consignation`, CTA contact), texte repris et étendu depuis `OurStorySection.vue` plutôt que réinventé. JSON-LD `Person` + `LocalBusiness` via `innerHTML` (jamais `children`, cf. US-090). Le `LocalBusiness` de `index.vue` est factorisé dans `app/utils/localBusinessSchema.ts` et partagé — la QA a vérifié la sortie rendue **byte-identique** à l'existant, le risque de divergence SEO sur une page déjà en prod étant le vrai danger de cette factorisation.
+
+**QA : FAIL 1re passe** — la QA a lancé le build de production et `curl`é la page : le `<title>` portait le **suffixe de marque en double**. Cause racine : `usePageSeo()` (écrit en US-023, **jamais branché sur une page jusqu'ici** — bug latent révélé, pas introduit) concaténait manuellement un suffixe que `@nuxtjs/seo` applique déjà via son `titleTemplate` global. Fix d'une ligne dans le composable, revérifié par `curl` sur le build. **PASS 2e passe.**
+
+## US-098 — PayPal comme moyen de paiement · 3 pts — PASS
+
+Commit `2c69ca2`. **Zéro ligne de code**, comme l'anticipait le PO : `session.post.ts` ne fige aucun `payment_method_types` et pose déjà une `return_url` — le prérequis technique des moyens de paiement à redirection. Vérification faite en amont contre la doc Stripe : PayPal est supporté par Checkout **y compris en formulaire embarqué** (redirection pleine page vers PayPal puis retour), compte marchand FR et devise EUR bien dans les listes éligibles. Le webhook `checkout.session.completed` → `fulfillOrder` et `release_product_unit` sont agnostiques du moyen de paiement.
+
+`DEV_GUIDE` documente désormais que les moyens de paiement sont **Dashboard-driven**, pour éviter qu'un futur ticket du même genre soit sur-estimé comme du développement.
+
+## US-100 — Hero homepage épuré · 2 pts — PASS
+
+Commit `ff3144a`. Arche SVG décorative, bloc eyebrow et appel GSAP mort `tl.from('.hero-eyebrow', ...)` retirés ; espacement du bloc titre réinjecté en `pt-6 md:pt-7` pour compenser les marges perdues. H1 et animation lettre par lettre intacts, image de fond LCP non touchée. Diff : 2 insertions / 37 suppressions dans un seul fichier.
+
+## Points relevés pendant le sprint
+
+- **Faux positif d'environnement (récurrent, rien à faire sur le dépôt)** : `npm run lint` échoue dans les shells de subagent en résolvant un ESLint global 9.0.0 corrompu (`Cannot find module '...acorn.js'`) hors projet. Confirmé une nouvelle fois par la QA : le dépôt est en ESLint 9.39.4 local et passe à zéro erreur. Identique au Sprint 8. **Nettoyer l'ESLint global de la machine éviterait ce bruit à chaque sprint.**
+- **Ordonnancement** : les 4 US développables ont été menées en parallèle (fichiers disjoints), avec sérialisation volontaire des `npm install` et limitation des `build`/`typecheck` concurrents — plusieurs agents partagent le même arbre de travail et le même `.nuxt/`.
+
+## Blocages et dettes ouverts après Sprint 9
+
+1. **Domaine Resend `cgws.fr` non vérifié** (inchangé, action Nathan) — désormais **signalé visuellement** dans le backoffice par le bandeau US-094. Le 4e scénario Gherkin d'US-094 (recette réelle des 6 templates depuis une adresse hors compte Resend) reste **non exécuté** : il est bloqué par cette action infra. Checklist prête à cocher dans `DEV_GUIDE`.
+2. **Activation PayPal dans le Dashboard Stripe** (action Nathan) + recette bout en bout en mode test avant communication à Camille.
+3. **Confirmation logs Vercel pour #26** (action Nathan, recommandée par le PO) : consulter Functions → `consignments/create` pour confirmer la signature d'erreur exacte (413 / `FUNCTION_PAYLOAD_TOO_LARGE` / timeout) avant de clore définitivement l'issue. Le correctif traite l'hypothèse la plus solide, mais elle n'est pas prouvée par les logs.
+4. **⚠️ Incohérence d'adresse à arbitrer (nouveau, relevé par la QA)** : le JSON-LD `LocalBusiness` porte le code postal **`37220`** alors que tout le texte visible du site (footer, mentions légales, contact, à propos) porte **`37320`**. C'est une incohérence NAP qui pèse sur le SEO local. La bonne valeur doit être confirmée par Camille, puis propagée à la source unique (`app/utils/localBusinessSchema.ts`).
+5. **Dette design system — contraste des anneaux de focus (nouveau)** : `ring-offset-color` n'est jamais spécifié, donc `#fff` par défaut. Contraste de `cgws-accent` contre ce fond : ≈6.5:1 en Jour mais **≈2.5:1 en Nuit** et ≈3.0:1 en Rugueux (sous ou à la limite du seuil 3:1, WCAG 1.4.11). Défaut **transverse et préexistant** : `CgwsButton`, `ThemeSwitcher`, `ProductCard`, `ProductForm`, `CategoryPanel`, `CategoryTreeItem`, `StatusDropdown` — soit la quasi-totalité des éléments focusables du site, déjà en production. Seul `AppFooter` le corrige (`ring-offset-cgws-surface`). **Candidat US pour un prochain sprint** — à traiter au niveau du design system, pas composant par composant.
+6. **Dette mineure US-095** : quand une compression échoue de façon isolée sans dépasser le seuil, le message « photos retirées » peut être démonté par la transition vers l'écran de succès avant que le déposant l'ait lu. Un rappel dans l'écran de succès améliorerait la perceptibilité.
+7. **Contenus réels Camille** (inchangé) : bio définitive et 3-4 vraies photos de l'atelier pour `/a-propos`, textes légaux, CGV/SIRET, vraies photos catalogue. La page À propos est construite pour que ce soit un **swap de constantes**, sans retouche de structure ni de SEO.
+8. **`SHIPPING_FLAT_RATE = 9,90 €`** (inchangé) : toujours un placeholder non confirmé par Camille.
+9. **Edge case US-082** (inchangé) : release d'une unité pendant qu'une autre commande détient le verrou dernière-unité → produit `sold` avec stock résiduel 1.

@@ -645,6 +645,113 @@ différente des peer dependencies optionnelles selon la version majeure de npm
 
 ---
 
+## Emails transactionnels (US-092, US-094)
+
+### Expéditeur centralisé et garde-fou de fallback
+
+`server/services/email.ts` centralise le `from` des 6 templates transactionnels
+via `resolveEmailFrom()` (non exportée), qui lit `useRuntimeConfig().emailFrom`
+(mappé sur `CGWS_EMAIL_FROM`, voir §3). Tant que cette variable est vide en
+production, tous les emails partent depuis le fallback `CGWS
+<onboarding@resend.dev>` — un domaine de test Resend qui **ne délivre qu'à
+l'adresse du titulaire du compte Resend**. C'est la cause confirmée des
+issues #27 (formulaire de contact "silencieux" : succès affiché côté visiteur,
+email jamais reçu) et #24 (mail de commande non reçu sur une autre adresse que
+celle de Camille).
+
+Depuis l'US-094, ce risque n'est plus invisible : un bandeau d'alerte
+(`app/components/admin/EmailFallbackBanner.vue`, monté dans
+`app/pages/admin/dashboard.vue`) s'affiche à chaque connexion admin tant que
+`GET /api/admin/email-status` (route protégée par `requireAdminAuth`) retourne
+`{ isFallback: true }`. Ce booléen est calculé par `isFallbackSender()`
+(export minimal de `server/services/email.ts`, dédié à cette seule
+détection) — aucune information de configuration email (adresse `from`,
+`runtimeConfig` brut) n'est jamais exposée côté client, authentifié ou non.
+Le bandeau n'a **volontairement** aucun bouton "fermer définitivement" :
+masquer durablement un vrai problème de production irait à l'encontre de sa
+raison d'être.
+
+### Lever le bandeau (action Nathan, hors périmètre code)
+
+1. Vérifier le domaine `cgws.fr` dans Resend (Dashboard Resend → Domains →
+   Add Domain → suivre les enregistrements DNS à ajouter chez le registrar :
+   SPF, DKIM, et éventuellement DMARC).
+2. Attendre la validation du domaine (statut "Verified" dans Resend — peut
+   prendre de quelques minutes à quelques heures selon la propagation DNS).
+3. Positionner la variable d'environnement `CGWS_EMAIL_FROM` en production sur
+   Vercel (Project Settings → Environment Variables), par exemple :
+   `CGWS <noreply@cgws.fr>`.
+4. Redéployer (ou attendre le prochain déploiement) — aucun changement de code
+   n'est nécessaire, la bascule est purement une variable d'environnement.
+5. Se reconnecter à `/admin/dashboard` : le bandeau doit avoir disparu.
+
+### Checklist de recette manuelle des 6 templates
+
+À exécuter **une fois** le domaine `cgws.fr` vérifié dans Resend et
+`CGWS_EMAIL_FROM` positionnée en production (cf. ci-dessus), en rejouant
+chaque déclencheur manuellement avec une adresse de destination **hors
+compte Resend** (ex. une boîte perso non liée au compte). Objectif : prouver
+que le problème n'est plus circonscrit au domaine de test. Consigner le
+résultat dans `docs/PROGRESS.md`.
+
+| # | Déclencheur | Comment le déclencher | Reçu ? |
+|---|-------------|------------------------|--------|
+| 1 | Contact | Soumettre `/contact` avec une adresse de test | ☐ |
+| 2 | Consignation — confirmation dépôt | Soumettre `/consignation` avec une adresse de test | ☐ |
+| 3 | Consignation — acceptation | Accepter une consignation en attente depuis `/admin/consignations` | ☐ |
+| 4 | Consignation — refus | Refuser une consignation en attente depuis `/admin/consignations` (motif requis) | ☐ |
+| 5 | Consignation — vente au déposant | Enregistrer une vente liée à un produit de consignation depuis `/admin/ventes` | ☐ |
+| 6 | Commande — confirmation acheteur | Finaliser un checkout de test (Stripe mode test) | ☐ |
+
+Chaque ligne doit être cochée avec succès pour considérer la recette
+terminée — un seul échec silencieux suffit à indiquer une régression sur
+l'expéditeur ou la config Resend.
+
+---
+
+## Moyens de paiement — pilotés par le Dashboard Stripe (US-098)
+
+**Règle** : `server/api/checkout/session.post.ts` ne fige **volontairement aucun
+`payment_method_types`**. La liste des moyens de paiement proposés à l'acheteur
+est donc entièrement pilotée depuis le Dashboard Stripe
+(*Paramètres → Moyens de paiement*), sans aucun déploiement.
+
+**Conséquence pratique** : activer ou désactiver un moyen de paiement (PayPal,
+Apple Pay, Google Pay, Link, virement…) est une **action de configuration, pas
+une tâche de développement**. Un ticket « ajouter tel moyen de paiement » ne
+doit pas être estimé comme du dev tant que la vérification ci-dessous n'a pas
+été faite — c'est précisément le piège qu'a évité US-098.
+
+### Cas PayPal (vérifié en Sprint 9)
+
+PayPal est **supporté par Checkout**, y compris en formulaire embarqué, et CGWS
+remplit les prérequis :
+
+| Prérequis | État CGWS |
+|-----------|-----------|
+| Pays du compte marchand dans la liste éligible | ✅ FR |
+| Devise supportée | ✅ EUR |
+| `return_url` configurée (obligatoire dès qu'un moyen de paiement à redirection est actif en `ui_mode` embarqué) | ✅ `/checkout/success?session_id={CHECKOUT_SESSION_ID}` |
+
+**Comportement attendu** : PayPal impose une **redirection pleine page** vers
+PayPal pour l'autorisation, puis un retour sur la `return_url` — y compris
+depuis le formulaire embarqué. Ce n'est pas un défaut d'intégration.
+
+**Aucune branche de code spécifique n'est nécessaire** : le webhook
+`checkout.session.completed` → `fulfillOrder` et la libération de stock
+(`release_product_unit`) sont agnostiques du moyen de paiement.
+
+⚠️ **Seule contrainte à respecter** : ne jamais placer le Checkout embarqué dans
+une iframe à nous — les moyens de paiement à redirection casseraient. Ce n'est
+pas le cas aujourd'hui sur `/checkout`.
+
+**Recette obligatoire** avant de communiquer un nouveau moyen de paiement à
+Camille : un paiement complet de bout en bout en mode test Stripe (compte
+sandbox pour PayPal), en vérifiant que la commande est bien fulfillée et
+l'email de confirmation reçu.
+
+---
+
 ## Anti-Patterns à Éviter Absolument
 
 ```typescript

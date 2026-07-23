@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getLocalBusinessSchema } from '~/utils/localBusinessSchema'
 
 useSeoMeta({
   title: 'CGWS — Sellerie Équestre Western à Brèches (37)',
@@ -24,38 +25,9 @@ useHead({
   script: [
     {
       type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'LocalBusiness',
-        name: 'CGWS — Camille Guignon Western Shop',
-        description:
-          "Boutique d'équipements équestres western : selles, brides, bottes, vêtements et service de consignation.",
-        url: 'https://cgws.fr',
-        image: DEFAULT_OG_IMAGE,
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: 'Brèches',
-          postalCode: '37220',
-          addressCountry: 'FR',
-        },
-        openingHoursSpecification: [
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-            opens: '10:00',
-            closes: '18:00',
-          },
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Saturday'],
-            opens: '09:00',
-            closes: '17:00',
-          },
-        ],
-        priceRange: '€€',
-        currenciesAccepted: 'EUR',
-        paymentAccepted: 'Cash, Credit Card, Bank Transfer',
-      }),
+      // Schéma partagé avec app/pages/a-propos.vue (US-099) — voir
+      // app/utils/localBusinessSchema.ts, source unique de vérité.
+      innerHTML: JSON.stringify(getLocalBusinessSchema()),
     },
   ],
 })

@@ -35,12 +35,6 @@ onMounted(async () => {
   ctx = gsap.context(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
 
-    tl.from('.hero-eyebrow', {
-      opacity: 0,
-      y: -8,
-      duration: 0.5,
-    }, 0)
-
     tl.from('.hero-letter', {
       opacity: 0,
       y: 30,
@@ -140,37 +134,8 @@ onUnmounted(() => {
       class="relative z-[10] h-full flex flex-col justify-end pb-16 md:pb-24 lg:justify-center lg:pb-0
              px-[clamp(1rem,4vw,2rem)] max-w-[1280px] mx-auto w-full"
     >
-      <!-- Bloc titre (eyebrow + H1) encadré par l'arche fine ornementale -->
-      <div class="hero-title-block relative">
-        <!-- Arche fine décorative (accent-deco ornemental, aria-hidden) -->
-        <svg
-          class="pointer-events-none absolute -top-6 left-0 h-auto w-full
-                 max-w-[420px] sm:max-w-[520px] lg:max-w-[620px]"
-          viewBox="0 0 520 160"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M20 160 C20 60 120 8 260 8 C400 8 500 60 500 160"
-            stroke="var(--cgws-accent-deco)"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-
-        <!-- Eyebrow : barre décorative accent-deco + texte marque (mt-6 sous l'arche) -->
-        <div class="hero-eyebrow flex items-center gap-2.5 mt-6 mb-4 md:mb-5">
-          <span
-            class="block w-0.5 h-3 bg-cgws-accent-deco flex-shrink-0"
-            aria-hidden="true"
-          />
-          <p
-            class="font-eyebrow font-semibold text-[11px] md:text-xs text-cgws-brand-sand uppercase tracking-[0.3em]"
-          >
-            Sellerie Équestre Western · Brèches, 37
-          </p>
-        </div>
-
+      <!-- Bloc titre (H1) -->
+      <div class="hero-title-block relative pt-6 md:pt-7">
         <!-- H1 : mots insécables (whitespace-nowrap) → lettres animables (.hero-letter) -->
         <h1
           class="font-display font-bold uppercase leading-none text-cgws-brand-cream

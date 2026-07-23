@@ -40,7 +40,13 @@ export function usePageSeo({
   const resolvedImage = resolveOgImage(image, baseUrl)
 
   useSeoMeta({
-    title: `${title} | ${SITE_NAME}`,
+    // Pas de concaténation manuelle du suffixe ici : @nuxtjs/seo applique
+    // déjà son `titleTemplate` global (basé sur `site.name`, nuxt.config.ts)
+    // à tout titre défini via useSeoMeta/useHead. Un titre déjà suffixé en
+    // dur ici produisait un double suffixe " | CGWS — ... | CGWS — ..." sur
+    // la page qui a révélé le bug (US-099, /a-propos) — cf. contact.vue et
+    // consignation.vue, qui passent déjà un titre brut sans suffixe.
+    title,
     description,
     ogTitle: title,
     ogDescription: description,

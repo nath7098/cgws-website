@@ -39,8 +39,24 @@ const FIELD_MESSAGES: Record<keyof ConsignmentInput, string> = {
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
 
-  // Parse multipart form data
-  const formParts = await readMultipartFormData(event)
+  // Parse multipart form data — enveloppé (US-095, défense en profondeur) :
+  // la compression client (voir ConsignmentForm.vue) réduit fortement le
+  // risque de dépassement de la limite de corps des fonctions serverless,
+  // sans l'éliminer à 100% (connexion lente interrompue, payload malformé
+  // par un client non standard…). Un échec de parsing ne doit jamais
+  // remonter comme une erreur brute/stack au déposant.
+  let formParts: Awaited<ReturnType<typeof readMultipartFormData>>
+  try {
+    formParts = await readMultipartFormData(event)
+  } catch {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Bad Request',
+      message:
+        "Impossible de lire votre demande — vérifiez la taille de vos photos et réessayez, ou contactez-nous directement.",
+    })
+  }
+
   if (!formParts) {
     throw createError({ statusCode: 400, message: 'Corps de requête manquant ou invalide' })
   }
@@ -95,26 +111,38 @@ export default defineEventHandler(async (event) => {
     config.supabaseServiceRoleKey,
   )
 
-  // Upload images to Supabase Storage
+  // Upload images to Supabase Storage — enveloppé (US-095, défense en
+  // profondeur) : une exception inattendue (panne réseau/Storage ponctuelle)
+  // ne doit jamais remonter brute au déposant ; les échecs "normaux" par
+  // fichier (`uploadErr`) restent gérés en aval sans bloquer les autres photos.
   const imageUrls: string[] = []
-  for (const file of imageFiles) {
-    // Sanitise filename: keep only alphanumerics, dots, dashes, underscores
-    const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const storagePath = `consignments/${consignmentId}/${safeName}`
+  try {
+    for (const file of imageFiles) {
+      // Sanitise filename: keep only alphanumerics, dots, dashes, underscores
+      const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const storagePath = `consignments/${consignmentId}/${safeName}`
 
-    const { error: uploadErr } = await supabase.storage
-      .from('product-images')
-      .upload(storagePath, file.data, {
-        contentType: file.contentType,
-        upsert: false,
-      })
-
-    if (!uploadErr) {
-      const { data: urlData } = supabase.storage
+      const { error: uploadErr } = await supabase.storage
         .from('product-images')
-        .getPublicUrl(storagePath)
-      imageUrls.push(urlData.publicUrl)
+        .upload(storagePath, file.data, {
+          contentType: file.contentType,
+          upsert: false,
+        })
+
+      if (!uploadErr) {
+        const { data: urlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(storagePath)
+        imageUrls.push(urlData.publicUrl)
+      }
     }
+  } catch {
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Bad Gateway',
+      message:
+        "Une erreur est survenue lors de l'envoi de vos photos. Réessayez avec moins de photos, ou contactez-nous directement.",
+    })
   }
 
   // Insert consignment record
