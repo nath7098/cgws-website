@@ -65,8 +65,9 @@ function generateId(): string {
  * directement, sans appel explicite à `.then()`), comme le client Supabase réel. */
 class FakeQueryBuilder<Row extends Record<string, unknown>>
 implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
-  private op: 'select' | 'insert' | 'update' | 'delete' = 'select'
+  private op: 'select' | 'insert' | 'update' | 'delete' | 'upsert' = 'select'
   private payload: Partial<Row> | Partial<Row>[] | null = null
+  private upsertOnConflict: string[] = []
   private readonly filters: Filter<Row>[] = []
   // ⚠️ Nommé `singleMode` (et non `single`) : un champ de classe portant le
   // même nom que la méthode `single()` ci-dessous écraserait cette dernière
@@ -101,6 +102,17 @@ implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
     return this
   }
 
+  /** Reproduit `.upsert(payload, { onConflict: 'col1,col2' })` : met à jour la
+   * ligne existante correspondant aux colonnes de conflit, sinon insère —
+   * sémantique nécessaire pour l'inscription idempotente `stock_notifications`
+   * (US-097, contrainte UNIQUE (product_id, email)). */
+  upsert(payload: Partial<Row> | Partial<Row>[], options?: { onConflict?: string }): this {
+    this.op = 'upsert'
+    this.payload = payload
+    this.upsertOnConflict = options?.onConflict?.split(',').map(c => c.trim()) ?? []
+    return this
+  }
+
   eq<K extends keyof Row>(column: K, value: Row[K]): this {
     this.filters.push(row => row[column] === value)
     return this
@@ -108,6 +120,14 @@ implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
 
   neq<K extends keyof Row>(column: K, value: Row[K]): this {
     this.filters.push(row => row[column] !== value)
+    return this
+  }
+
+  /** Reproduit `.is(column, null | boolean)` — utilisé par la détection de
+   * réapprovisionnement (US-097) pour filtrer les inscriptions non encore
+   * notifiées (`notified_at IS NULL`). */
+  is<K extends keyof Row>(column: K, value: Row[K] | null): this {
+    this.filters.push(row => row[column] === value)
     return this
   }
 
@@ -149,6 +169,29 @@ implements PromiseLike<FakeQueryResult<Row[] | Row | null>> {
       const inserted = payloads.map(partial => ({ id: generateId(), created_at: new Date().toISOString(), ...partial }) as Row)
       this.table.rows.push(...inserted)
       return this.finalize(inserted)
+    }
+
+    if (this.op === 'upsert') {
+      const payloads = Array.isArray(this.payload) ? this.payload : [this.payload ?? {}]
+      const conflictCols = this.upsertOnConflict as (keyof Row)[]
+      const results: Row[] = []
+
+      for (const partial of payloads) {
+        const existingRow = conflictCols.length > 0
+          ? this.table.rows.find(row => conflictCols.every(col => row[col] === partial[col]))
+          : undefined
+
+        if (existingRow) {
+          Object.assign(existingRow, partial)
+          results.push(existingRow)
+        } else {
+          const created = { id: generateId(), created_at: new Date().toISOString(), ...partial } as Row
+          this.table.rows.push(created)
+          results.push(created)
+        }
+      }
+
+      return this.finalize(results)
     }
 
     const matching = this.table.rows.filter(row => this.filters.every(f => f(row)))
@@ -210,6 +253,7 @@ export interface FakeSupabaseTables {
   sales: FakeTable<Tables<'sales'>>
   consignments: FakeTable<Tables<'consignments'>>
   product_status_history: FakeTable<Tables<'product_status_history'>>
+  stock_notifications: FakeTable<Tables<'stock_notifications'>>
 }
 
 /**
@@ -236,6 +280,7 @@ export class FakeSupabase {
       sales: overrides.sales ?? new FakeTable(),
       consignments: overrides.consignments ?? new FakeTable(),
       product_status_history: overrides.product_status_history ?? new FakeTable(),
+      stock_notifications: overrides.stock_notifications ?? new FakeTable(),
     }
   }
 

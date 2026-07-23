@@ -281,19 +281,15 @@ onUnmounted(() => {
           Ajouter au panier
         </CgwsButton>
 
-        <!-- Rupture de stock (US-096) : ajout désactivé, préparation du terrain
-             pour le formulaire d'alerte retour en stock (US-097, non implémenté ici). -->
-        <CgwsButton
+        <!-- Rupture de stock (US-097) : le CTA d'achat est remplacé par le
+             formulaire d'alerte retour en stock — jamais affiché pour une
+             pièce de consignation (isOutOfStock est toujours false dans ce
+             cas, cf. contrat §0.1). -->
+        <RestockNotifyForm
           v-else-if="isOutOfStock"
-          variant="primary"
-          size="md"
-          disabled
-          class="w-full cursor-not-allowed"
-          aria-disabled="true"
-        >
-          <UIcon name="i-lucide-package-x" class="w-4 h-4 mr-2 flex-shrink-0" aria-hidden="true" />
-          Épuisé — indisponible
-        </CgwsButton>
+          :product-id="product.id"
+          :product-title="product.title"
+        />
 
         <div class="flex flex-col sm:flex-row gap-3">
           <CgwsButton

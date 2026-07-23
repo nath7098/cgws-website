@@ -857,3 +857,88 @@ export async function sendOrderConfirmationEmail(
     html: buildOrderConfirmationHtml(data),
   }, 'order-confirmation')
 }
+
+// ---------------------------------------------------------------------------
+// Restock notification email (US-097) — envoyé à chaque inscrit non encore
+// notifié quand un produit épuisé repasse au-dessus de 0 en stock.
+// ---------------------------------------------------------------------------
+
+export interface RestockNotificationEmailData {
+  recipientEmail: string
+  productTitle: string
+  productUrl: string
+}
+
+function buildRestockNotificationHtml(data: RestockNotificationEmailData): string {
+  const title = escapeHtml(data.productTitle)
+  const url = escapeHtml(data.productUrl)
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>De nouveau disponible — CGWS</title>
+  <style>
+    body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .header { background: #3D1A06; padding: 32px; text-align: center; }
+    .header-title { color: #B8650A; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 8px; font-family: Georgia, serif; }
+    .header-h1 { color: #FAF3E3; font-size: 28px; margin: 0; letter-spacing: 0.05em; font-family: Georgia, serif; font-weight: 700; }
+    .body { background: #F0DDB8; border: 3px solid #1A0B03; padding: 2px; margin-top: 0; }
+    .body-inner { border: 1px solid #1A0B03; padding: 32px; text-align: center; }
+    .greeting { font-size: 18px; font-weight: 700; color: #1A0B03; margin: 0 0 16px; }
+    .intro { font-size: 15px; color: #1A0B03; margin: 0 0 24px; line-height: 1.6; }
+    .product-name { font-size: 20px; font-weight: 700; color: #B8650A; margin: 0 0 24px; }
+    .cta { display: inline-block; background: #B8650A; color: #FAF3E3; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; padding: 14px 32px; border-radius: 2px; }
+    .note { font-size: 13px; color: #1A0B03; opacity: 0.7; margin: 24px 0 0; font-style: italic; line-height: 1.6; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #C8AB82; }
+    .footer p { font-size: 12px; color: #7B3B1C; margin: 4px 0; }
+    .back-badge { display: inline-block; background: #B8650A; color: #FAF3E3; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 2px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">SELLERIE WESTERN · BRÈCHES · INDRE-ET-LOIRE</p>
+      <h1 class="header-h1">CGWS</h1>
+    </div>
+
+    <div class="body">
+      <div class="body-inner">
+        <span class="back-badge">De retour en stock !</span>
+        <p class="greeting">Bonne nouvelle !</p>
+        <p class="intro">
+          L'article que vous attendiez est de nouveau disponible sur notre boutique en ligne.
+        </p>
+        <p class="product-name">${title}</p>
+        <a href="${url}" class="cta">Voir l'article</a>
+        <p class="note">
+          Les stocks étant limités, nous vous invitons à ne pas trop tarder si cet article vous intéresse toujours.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><strong>CGWS — Camille Guignon Western Shop</strong></p>
+      <p>Brèches · Indre-et-Loire (37)</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendRestockNotification(
+  apiKey: string,
+  data: RestockNotificationEmailData,
+): Promise<void> {
+  const resend = createResendClient(apiKey)
+  if (!resend) return
+
+  await sendViaResend(resend, {
+    from: resolveEmailFrom(),
+    to: [data.recipientEmail],
+    subject: `De nouveau disponible : ${data.productTitle} — CGWS`,
+    html: buildRestockNotificationHtml(data),
+  }, 'restock-notification')
+}
