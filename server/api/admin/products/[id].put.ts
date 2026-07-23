@@ -18,6 +18,9 @@ const productUpdateSchema = z.object({
   isConsignment: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
   consignmentId: z.preprocess(v => (v === '' ? null : v), z.string().uuid().optional().nullable()),
   status: z.enum(['active', 'sold', 'reserved', 'inactive']).optional(),
+  // US-110 — curation manuelle « Testé et approuvé par Camille » (envoyé en
+  // string par le FormData, même pattern que isConsignment).
+  camilleApproved: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
 })
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -149,6 +152,7 @@ export default defineEventHandler(async (event: H3Event) => {
       consignment_id: input.consignmentId ?? null,
       status: input.status ?? existing.status ?? 'active',
       images: finalImages,
+      camille_approved: input.camilleApproved,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

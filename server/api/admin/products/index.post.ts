@@ -17,6 +17,9 @@ const productSchema = z.object({
   stock: z.coerce.number().int().min(0).default(1),
   isConsignment: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
   consignmentId: z.preprocess(v => (v === '' ? null : v), z.string().uuid().optional().nullable()),
+  // US-110 — curation manuelle « Testé et approuvé par Camille » (envoyé en
+  // string par le FormData, même pattern que isConsignment).
+  camilleApproved: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
 })
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -107,6 +110,7 @@ export default defineEventHandler(async (event: H3Event) => {
       status: 'active',
       images: imageUrls,
       stock: input.stock,
+      camille_approved: input.camilleApproved,
     })
     .select('*')
     .single()

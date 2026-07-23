@@ -130,6 +130,7 @@ onMounted(async () => {
       '.product-info-meta',
       '.product-info-price',
       '.product-info-details',
+      '.product-info-approved',
       '.product-info-description',
       '.product-info-consignment',
       '.product-info-cta',
@@ -216,6 +217,13 @@ onUnmounted(() => {
         <span class="w-1.5 h-1.5 rounded-full bg-cgws-accent flex-shrink-0" aria-hidden="true" />
         {{ stockUrgencyLabel }}
       </p>
+    </div>
+
+    <!-- Badge de curation « Testé et approuvé par Camille » (US-110) — affiché
+         uniquement si le produit est marqué approuvé, avec l'argumentaire de
+         curation (placeholder « à valider par Camille » tant que non validé). -->
+    <div v-if="product.camilleApproved" class="product-info-approved">
+      <CgwsApprovedBadge size="md" with-argument />
     </div>
 
     <!-- Séparateur -->

@@ -111,6 +111,7 @@ async function handleUpdate(payload: ProductFormPayload) {
     formData.append('size', payload.fields.size)
     formData.append('stock', String(payload.fields.stock))
     formData.append('isConsignment', String(payload.fields.isConsignment))
+    formData.append('camilleApproved', String(payload.fields.camilleApproved))
     if (payload.fields.consignmentId) {
       formData.append('consignmentId', payload.fields.consignmentId)
     }
