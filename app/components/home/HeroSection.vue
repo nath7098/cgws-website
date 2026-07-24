@@ -115,9 +115,16 @@ onUnmounted(() => {
     class="hero-section relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden bg-cgws-ground"
     aria-label="Accueil — Spin & Slide Shop, sellerie western & reining"
   >
-    <!-- Background image (LCP element) — NuxtPicture for WebP + JPEG fallback -->
+    <!-- Background image (LCP element) — NuxtPicture pour WebP + fallback JPEG.
+         Image LOCALE (public/images/hero-reining.jpg, 2560×3413, ratio 3:4)
+         traitée par le provider IPX par défaut (@nuxt/image) : aucune entrée
+         `image.domains` requise (contrairement à l'ancienne source distante
+         Unsplash). `preload` demande à @nuxt/image d'injecter lui-même le
+         <link rel=preload as=image imagesrcset> pointant la VARIANTE générée
+         (source unique de vérité du LCP — remplace le preload manuel jadis dans
+         pages/index.vue qui référençait l'URL brute et devenait erroné). -->
     <NuxtPicture
-      src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80&auto=format&fit=crop"
+      src="/images/hero-reining.jpg"
       alt=""
       class="absolute inset-0 h-full w-full"
       :img-attrs="{
@@ -125,11 +132,12 @@ onUnmounted(() => {
         fetchpriority: 'high',
       }"
       :width="1920"
-      :height="1080"
+      :height="2560"
       loading="eager"
       format="webp"
       quality="85"
       sizes="xs:100vw sm:100vw md:100vw lg:100vw"
+      :preload="{ fetchPriority: 'high' }"
     />
 
     <!-- Gradient overlay -->
@@ -201,14 +209,14 @@ onUnmounted(() => {
           Découvrir le catalogue
         </CgwsButton>
 
-        <!-- CTA secondaire (contre-accent) → consignation. Sur le hero photo,
+        <!-- CTA secondaire (contre-accent) → dépôt-vente. Sur le hero photo,
              le contre-accent denim de la charte n'existe pas dans les peaux
              Élégante (--cgws-denim = Rugueux uniquement, cf. CgwsButton.vue) :
              le variant `outline-light` reste le traitement contre-accent
              théme-safe sur scrim photo (US-073 §1.3). -->
         <CgwsButton
           as="NuxtLink"
-          to="/consignation"
+          to="/depot-vente"
           variant="outline-light"
           size="md"
           class="w-full sm:w-auto"

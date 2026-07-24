@@ -407,10 +407,10 @@ function availabilityActiveCount(): number {
               type="checkbox"
               :checked="filters.isConsignment === true"
               class="w-4 h-4 rounded-[2px] border border-cgws-hairline cursor-pointer accent-cgws-accent"
-              aria-label="Articles en consignation uniquement"
+              aria-label="Articles en dépôt-vente uniquement"
               @change="filters.isConsignment = filters.isConsignment === true ? null : true"
             >
-            <span class="font-sans text-sm text-cgws-ink flex-1">Articles en consignation</span>
+            <span class="font-sans text-sm text-cgws-ink flex-1">Articles en dépôt-vente</span>
           </label>
         </div>
       </Transition>

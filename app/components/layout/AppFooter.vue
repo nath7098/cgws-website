@@ -107,7 +107,7 @@ const currentYear = new Date().getFullYear()
             </li>
             <li>
               <NuxtLink
-                to="/consignation"
+                to="/depot-vente"
                 active-class="text-cgws-accent"
                 class="font-sans text-sm text-cgws-ink-soft hover:text-cgws-accent
                        transition-colors duration-150
@@ -115,7 +115,7 @@ const currentYear = new Date().getFullYear()
                        focus-visible:ring-cgws-accent focus-visible:ring-offset-2
                        focus-visible:ring-offset-cgws-surface rounded-sm"
               >
-                Consignation
+                Dépôt-vente
               </NuxtLink>
             </li>
             <li>

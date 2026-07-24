@@ -10,15 +10,17 @@ import { BRAND_NAME } from '~/utils/brand'
 // ci-dessous, jamais la structure de la page, le SEO ou les composants.
 // ---------------------------------------------------------------------------
 
-// Placeholder Unsplash — MÊME image que OurStorySection.vue. Une seule
-// constante réutilisée aux 3 endroits qui en ont besoin (photo section 2,
-// image usePageSeo, Person.image du JSON-LD) pour qu'un unique remplacement
-// d'URL propage la mise à jour partout, sans risque de divergence.
-const CAMILLE_PHOTO =
-  'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=600&h=800&q=80&auto=format&fit=crop'
+// Vraie photo de Camille sur son cheval (arène extérieure) — asset LOCAL
+// (public/images/camille-reining.jpg), traité par IPX. Une seule constante
+// réutilisée aux 3 endroits qui en ont besoin (photo section 2, image
+// usePageSeo, Person.image du JSON-LD). Chemin public relatif : resolveOgImage
+// l'absolutise pour l'og:image ; le JSON-LD utilise `siteUrl` (URL absolue
+// requise pour une donnée structurée valide).
+const CAMILLE_PHOTO = '/images/camille-reining.jpg'
+const siteUrl = useRuntimeConfig().public.siteUrl
 
 // Placeholder Unsplash — sellerie/atelier, à remplacer par une vraie photo
-// de la boutique de Brèches.
+// de la boutique de Brèches (aucune photo d'atelier fournie à ce jour).
 const ATELIER_PHOTO =
   'https://images.unsplash.com/photo-1544966503-7ad532c5a8e8?w=600&h=800&q=80&auto=format&fit=crop'
 
@@ -65,8 +67,7 @@ useHead({
         '@type': 'Person',
         name: 'Camille Guignon',
         jobTitle: 'Fondatrice',
-        // PLACEHOLDER — remplacer par la vraie photo une fois fournie par Camille
-        image: CAMILLE_PHOTO,
+        image: `${siteUrl}${CAMILLE_PHOTO}`,
         worksFor: {
           '@type': 'LocalBusiness',
           name: BRAND_NAME,
@@ -215,11 +216,10 @@ onUnmounted(() => {
               <path d="M4 40 C4 16 24 4 40 4" stroke="var(--cgws-accent-deco)" stroke-width="1.5" stroke-linecap="round" />
             </svg>
             <div class="overflow-hidden rounded-lg shadow-[0_8px_32px_rgba(61,26,6,0.12)] bg-cgws-surface">
-              <!-- Placeholder Unsplash — MÊME image que OurStorySection.vue, à
-                   remplacer par la vraie photo de Camille -->
+              <!-- Vraie photo de Camille sur son cheval (arène extérieure). -->
               <NuxtImg
                 :src="CAMILLE_PHOTO"
-                alt="Camille, fondatrice de CGWS, avec son cheval quarter horse — photo d'illustration en attente de la vraie photo"
+                alt="Camille Guignon, fondatrice de CGWS, à cheval dans une arène extérieure ensoleillée"
                 class="w-full object-cover object-center aspect-[4/5] md:aspect-auto md:max-h-[540px] lg:max-h-[580px]"
                 :width="600"
                 :height="750"
@@ -277,7 +277,7 @@ onUnmounted(() => {
             <p class="font-sans text-[15px] md:text-base text-cgws-ink leading-relaxed mb-6 max-w-[56ch]">
               La boutique vous accueille à Brèches, au cœur du Véron. Venez essayer,
               toucher, comparer — le matériel western se choisit aussi à l'œil et au
-              toucher. Les retraits de commande et les dépôts de consignation se font
+              toucher. Les retraits de commande et les dépôts de matériel se font
               uniquement sur place, sur rendez-vous ou aux horaires d'ouverture.
             </p>
             <dl class="font-sans text-[14px] md:text-[15px] text-cgws-ink space-y-3">
@@ -346,8 +346,8 @@ onUnmounted(() => {
           </li>
         </ul>
 
-        <!-- Bloc consignation — mise en avant, PAS le motif "wanted poster"
-             complet (réservé à consignation.vue) : simple callout avec bordure
+        <!-- Bloc dépôt-vente — mise en avant, PAS le motif "wanted poster"
+             complet (réservé à depot-vente.vue) : simple callout avec bordure
              accent-deco, pour rappeler sans dupliquer. -->
         <div
           class="bg-cgws-surface border-2 border-cgws-accent-deco rounded-[--ui-radius] p-6 md:p-8
@@ -362,13 +362,13 @@ onUnmounted(() => {
               Vous voulez vendre votre selle ?
             </h3>
             <p class="font-sans text-sm md:text-[15px] text-cgws-ink-soft max-w-[60ch]">
-              Notre service de consignation vous permet de déposer votre matériel en
+              Notre service de dépôt-vente vous permet de déposer votre matériel en
               toute confiance : nous l'exposons, nous le vendons pour vous, selon des
               conditions définies ensemble.
             </p>
           </div>
-          <CgwsButton as="NuxtLink" to="/consignation" variant="primary" size="sm" class="flex-shrink-0 w-full md:w-auto">
-            Découvrir la consignation
+          <CgwsButton as="NuxtLink" to="/depot-vente" variant="primary" size="sm" class="flex-shrink-0 w-full md:w-auto">
+            Découvrir le dépôt-vente
           </CgwsButton>
         </div>
       </div>

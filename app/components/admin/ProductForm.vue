@@ -316,7 +316,7 @@ defineExpose({ setServerError })
       <!-- Fieldset 3: Consignation -->
       <fieldset class="bg-cgws-surface border border-cgws-hairline rounded-[4px] p-5">
         <legend class="font-sans font-semibold text-xs uppercase tracking-widest text-cgws-accent px-1 mb-3">
-          Consignation
+          Dépôt-vente
         </legend>
 
         <label
@@ -330,11 +330,11 @@ defineExpose({ setServerError })
             class="w-4 h-4 rounded-sm border-cgws-edge accent-cgws-accent focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:ring-offset-2"
           >
           <span class="font-sans text-sm font-medium text-cgws-ink group-hover:text-cgws-accent transition-colors">
-            Article en consignation
+            Article en dépôt-vente
           </span>
         </label>
         <p class="font-sans text-xs text-cgws-ink-soft mt-1 ml-7">
-          Cochez si cet article a été déposé par un particulier via le service de consignation.
+          Cochez si cet article a été déposé par un particulier via le service de dépôt-vente.
         </p>
 
         <Transition name="expand">

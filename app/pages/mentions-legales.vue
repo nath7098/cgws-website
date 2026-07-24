@@ -273,7 +273,7 @@ useSeoMeta({
           class="font-serif font-semibold text-[17px] md:text-[18px]
                  text-cgws-ink mb-2 mt-6"
         >
-          6.4 Service de consignation
+          6.4 Service de dépôt-vente
         </h3>
         <p
           class="font-sans text-[14px] md:text-[15px] text-cgws-ink/80 leading-relaxed"

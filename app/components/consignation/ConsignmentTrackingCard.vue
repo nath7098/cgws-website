@@ -28,7 +28,7 @@ const badgeVariant = computed(() => STATUS_BADGE_VARIANT[props.consignment.statu
 <template>
   <div
     role="group"
-    :aria-label="`Consignation : ${consignment.itemDescription}, statut ${statusLabel}`"
+    :aria-label="`Dépôt-vente : ${consignment.itemDescription}, statut ${statusLabel}`"
     class="bg-cgws-surface border border-cgws-edge rounded-[6px] p-5 flex flex-col gap-3"
   >
     <!-- En-tête : badge statut + date de dépôt -->

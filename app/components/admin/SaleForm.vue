@@ -384,7 +384,7 @@ function formatCategory(cat: Product['category']): string {
                       ? 'bg-cgws-accent/20 text-cgws-accent'
                       : 'bg-cgws-success/15 text-cgws-success'"
                   >
-                    {{ selectedProduct.isConsignment ? 'Consignation' : 'Propre' }}
+                    {{ selectedProduct.isConsignment ? 'Dépôt-vente' : 'Propre' }}
                   </span>
                 </div>
               </div>
@@ -526,7 +526,7 @@ function formatCategory(cat: Product['category']): string {
                     v-if="agreedPrice === null"
                     class="mt-1 font-sans text-xs italic text-cgws-ink-soft"
                   >
-                    Prix accordé non défini — vérifiez la fiche de consignation.
+                    Prix accordé non défini — vérifiez la fiche de dépôt-vente.
                   </p>
                 </template>
               </div>

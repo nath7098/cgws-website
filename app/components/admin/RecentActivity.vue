@@ -30,11 +30,11 @@ const isEmpty = computed<boolean>(() =>
 // ─── Display helpers ─────────────────────────────────────────────────────────
 
 const sectionTitle = computed<string>(() =>
-  props.type === 'consignments' ? 'Consignations récentes' : 'Ventes récentes',
+  props.type === 'consignments' ? 'Dépôts-ventes récents' : 'Ventes récentes',
 )
 
 const captionText = computed<string>(() =>
-  props.type === 'consignments' ? '5 dernières consignations' : '5 dernières ventes',
+  props.type === 'consignments' ? '5 derniers dépôts-ventes' : '5 dernières ventes',
 )
 
 const viewAllHref = computed<string>(() =>

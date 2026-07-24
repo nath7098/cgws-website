@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Consignations — CGWS Administration',
+  title: 'Dépôts-ventes — CGWS Administration',
   robots: 'noindex, nofollow',
 })
 
@@ -108,7 +108,7 @@ async function fetchConsignments(): Promise<void> {
     pendingCount.value = data.pendingCount
   }
   catch {
-    showToast('error', 'Erreur lors du chargement des consignations')
+    showToast('error', 'Erreur lors du chargement des dépôts-ventes')
   }
   finally {
     isLoading.value = false
@@ -169,7 +169,7 @@ onUnmounted(() => {
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="font-serif font-bold text-2xl text-cgws-ink">
-          Consignations
+          Dépôts-ventes
         </h2>
         <p
           class="font-sans text-sm mt-0.5"
@@ -264,7 +264,7 @@ onUnmounted(() => {
           aria-hidden="true"
         />
         <p class="font-sans text-sm text-cgws-ink-soft italic">
-          Aucune demande de consignation.
+          Aucune demande de dépôt-vente.
         </p>
         <button
           v-if="filterStatus || searchQuery"
@@ -324,7 +324,7 @@ onUnmounted(() => {
       <div class="bg-cgws-surface border border-cgws-hairline rounded-[4px] overflow-hidden">
         <table
           class="w-full text-sm font-sans"
-          aria-label="Liste des consignations"
+          aria-label="Liste des dépôts-ventes"
         >
           <caption class="sr-only">
             {{ totalCount }} demande{{ totalCount !== 1 ? 's' : '' }}, demandes en attente affichées en premier
@@ -421,7 +421,7 @@ onUnmounted(() => {
                   aria-hidden="true"
                 />
                 <p class="font-sans text-sm text-cgws-ink-soft italic">
-                  Aucune demande de consignation.
+                  Aucune demande de dépôt-vente.
                 </p>
                 <button
                   v-if="filterStatus || searchQuery"
@@ -530,7 +530,7 @@ onUnmounted(() => {
         {{ totalCount }} demande{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} de {{ totalPages }}
       </p>
       <nav
-        aria-label="Pagination des consignations"
+        aria-label="Pagination des dépôts-ventes"
         class="inline-flex items-center gap-1"
       >
         <button

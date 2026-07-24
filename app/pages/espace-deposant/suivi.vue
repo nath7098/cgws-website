@@ -9,7 +9,7 @@ import type { DepositorConsignmentView } from '~/types'
 definePageMeta({ middleware: 'depositor' })
 
 useSeoMeta({
-  title: 'Mes consignations — Espace déposant — CGWS',
+  title: 'Mes dépôts-ventes — Espace déposant — CGWS',
   robots: 'noindex, nofollow',
 })
 
@@ -59,7 +59,7 @@ onMounted(fetchConsignments)
       <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8 md:mb-10">
         <div>
           <h1 class="font-heading text-cgws-heading uppercase tracking-wide text-[28px] md:text-[32px] leading-none mb-2">
-            Mes consignations
+            Mes dépôts-ventes
           </h1>
           <p class="font-sans text-cgws-ink-soft text-[15px]">
             Voici l'état de votre dépôt chez CGWS.
@@ -77,7 +77,7 @@ onMounted(fetchConsignments)
         aria-busy="true"
         class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6"
       >
-        <p class="sr-only" aria-live="polite">Chargement de vos consignations…</p>
+        <p class="sr-only" aria-live="polite">Chargement de vos dépôts-ventes…</p>
         <div
           v-for="n in 2"
           :key="n"
@@ -108,7 +108,7 @@ onMounted(fetchConsignments)
           aria-hidden="true"
         />
         <p class="font-sans text-cgws-ink-soft text-sm leading-relaxed">
-          Aucune consignation trouvée pour cette adresse.
+          Aucun dépôt-vente trouvé pour cette adresse.
           Contactez CGWS si vous pensez qu'il s'agit d'une erreur.
         </p>
         <NuxtLink
@@ -131,7 +131,7 @@ onMounted(fetchConsignments)
           aria-hidden="true"
         />
         <p class="font-sans text-cgws-danger text-sm mb-4">
-          Impossible de charger vos consignations pour le moment. Veuillez réessayer.
+          Impossible de charger vos dépôts-ventes pour le moment. Veuillez réessayer.
         </p>
         <CgwsButton variant="secondary" size="sm" type="button" @click="fetchConsignments">
           Réessayer

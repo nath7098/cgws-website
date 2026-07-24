@@ -12,7 +12,7 @@ const props = defineProps<{
 const labels: Record<BadgeVariant, string> = {
   new: 'Neuf',
   occasion: 'Occasion',
-  consignment: 'Consignation',
+  consignment: 'Dépôt-vente',
   sold: 'Vendu',
   rejected: 'Refusé',
   reserved: 'Réservé',

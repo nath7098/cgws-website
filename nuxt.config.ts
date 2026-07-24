@@ -114,7 +114,7 @@ export default defineNuxtConfig({
     urls: [
       { loc: '/', changefreq: 'weekly', priority: 1.0 },
       { loc: '/catalogue', changefreq: 'daily', priority: 0.9 },
-      { loc: '/consignation', changefreq: 'monthly', priority: 0.6 },
+      { loc: '/depot-vente', changefreq: 'monthly', priority: 0.6 },
       { loc: '/contact', changefreq: 'monthly', priority: 0.5 },
       { loc: '/mentions-legales', changefreq: 'yearly', priority: 0.1 },
     ],
@@ -126,6 +126,13 @@ export default defineNuxtConfig({
     // Nuxt built assets have content-hash filenames — safe to cache immutably
     '/_nuxt/**': {
       headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },
+    },
+    // Redirection 301 permanente de l'ancienne URL /consignation vers la
+    // nouvelle /depot-vente (renommage du terme de façade). Préserve le SEO et
+    // les liens externes existants. `statusCode` = clé attendue par la version
+    // de Nitro embarquée ici (le renommage en `status` est postérieur).
+    '/consignation': {
+      redirect: { to: '/depot-vente', statusCode: 301 },
     },
   },
 
