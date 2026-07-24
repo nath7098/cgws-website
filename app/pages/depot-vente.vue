@@ -1,9 +1,9 @@
 <script setup lang="ts">
 useSeoMeta({
-  title: 'Consignation — Vendez votre matériel western avec CGWS',
+  title: 'Dépôt-vente — Vendez votre matériel western avec CGWS',
   description:
-    'Déposez votre selle, bride ou équipement western en consignation chez CGWS à Brèches (37). Service simple, rapide et transparent : 20 % de commission, 3 mois renouvelables.',
-  ogTitle: 'Service de Consignation — CGWS Brèches',
+    'Déposez votre selle, bride ou équipement western en dépôt-vente chez CGWS à Brèches (37). Service simple, rapide et transparent : 20 % de commission, 3 mois renouvelables.',
+  ogTitle: 'Service de dépôt-vente — CGWS Brèches',
   ogDescription:
     "Confiez-nous votre matériel western d'occasion. Nous l'exposons en boutique et en ligne, vous recevez le prix convenu.",
   ogType: 'website',
@@ -51,17 +51,17 @@ onUnmounted(() => {
     <!-- ====================================================================
          1 — Page Hero
     ==================================================================== -->
-    <section class="bg-cgws-ground py-12 md:py-16 lg:py-20 text-center" aria-labelledby="consignation-heading">
+    <section class="bg-cgws-ground py-12 md:py-16 lg:py-20 text-center" aria-labelledby="depot-vente-heading">
       <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
 
         <!-- Eyebrow -->
         <p class="font-eyebrow text-cgws-accent text-sm tracking-widest uppercase mb-4">
-          CONSIGNATION
+          DÉPÔT-VENTE
         </p>
 
         <!-- Main heading -->
         <h1
-          id="consignation-heading"
+          id="depot-vente-heading"
           class="font-display uppercase text-cgws-ink leading-none
                  text-[48px] md:text-[56px] lg:text-[72px]
                  mb-4 md:mb-6"
@@ -101,7 +101,7 @@ onUnmounted(() => {
     <StarDivider bg-class="bg-cgws-surface" />
 
     <!-- ====================================================================
-         4 — Conditions de consignation (wanted poster)
+         4 — Conditions de dépôt-vente (wanted poster)
     ==================================================================== -->
     <section class="conditions-section bg-cgws-ground py-10 md:py-14 lg:py-16">
       <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
@@ -198,7 +198,7 @@ onUnmounted(() => {
     <StarDivider />
 
     <!-- ====================================================================
-         6 — Formulaire de consignation
+         6 — Formulaire de dépôt-vente
     ==================================================================== -->
     <ConsignmentForm />
 

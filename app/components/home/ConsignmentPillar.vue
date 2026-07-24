@@ -2,7 +2,7 @@
 // ConsignmentPillar — pilier différenciateur « dépôt-vente de selles » sur la
 // homepage (US-108). Conservé comme pilier visible (BRAND_DIRECTION §1), mais
 // POSITIONNÉ APRÈS la boutique : face aux gros e-commerçants, c'est le service
-// qu'eux ne peuvent pas offrir. Renvoie vers la page /consignation pour le
+// qu'eux ne peuvent pas offrir. Renvoie vers la page /depot-vente pour le
 // détail (conditions, formulaire) — ici, teaser compact façon « wanted poster »
 // cohérent avec le design system (double bordure charcoal, chiffres accent).
 let ctx: { revert: () => void } | undefined
@@ -72,7 +72,7 @@ onUnmounted(() => {
 
             <CgwsButton
               as="NuxtLink"
-              to="/consignation"
+              to="/depot-vente"
               variant="secondary"
               size="md"
               class="w-full sm:w-auto"

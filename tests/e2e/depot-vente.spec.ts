@@ -1,25 +1,25 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Consignation — page et formulaire', () => {
-  test('la page /consignation charge et affiche le h1', async ({ page }) => {
-    await page.goto('/consignation')
+test.describe('Dépôt-vente — page et formulaire', () => {
+  test('la page /depot-vente charge et affiche le h1', async ({ page }) => {
+    await page.goto('/depot-vente')
 
     const h1 = page.locator('h1')
     await expect(h1).toBeVisible({ timeout: 10000 })
-    // The h1 text in consignation.vue: "Déposez votre matériel Trouvez-lui un nouveau propriétaire"
+    // The h1 text in depot-vente.vue: "Déposez votre matériel Trouvez-lui un nouveau propriétaire"
     await expect(h1).toContainText('Déposez votre matériel')
   })
 
   test('la section "3 étapes" est présente', async ({ page }) => {
-    await page.goto('/consignation')
+    await page.goto('/depot-vente')
 
-    // HowItWorks renders a <section aria-label="Fonctionnement du service de consignation en 3 étapes">
-    const howItWorks = page.locator('[aria-label="Fonctionnement du service de consignation en 3 étapes"]')
+    // HowItWorks renders a <section aria-label="Fonctionnement du service de dépôt-vente en 3 étapes">
+    const howItWorks = page.locator('[aria-label="Fonctionnement du service de dépôt-vente en 3 étapes"]')
     await expect(howItWorks).toBeVisible({ timeout: 10000 })
   })
 
-  test('le formulaire de consignation contient les champs requis', async ({ page }) => {
-    await page.goto('/consignation')
+  test('le formulaire de dépôt-vente contient les champs requis', async ({ page }) => {
+    await page.goto('/depot-vente')
 
     // Scroll to the form section
     await page.locator('#consignment-form').scrollIntoViewIfNeeded()
@@ -34,7 +34,7 @@ test.describe('Consignation — page et formulaire', () => {
   })
 
   test('la soumission vide déclenche les messages de validation', async ({ page }) => {
-    await page.goto('/consignation')
+    await page.goto('/depot-vente')
 
     // Scroll to and find the submit button inside the form
     await page.locator('#consignment-form').scrollIntoViewIfNeeded()
@@ -56,7 +56,7 @@ test.describe('Consignation — page et formulaire', () => {
   })
 
   test('le formulaire ne soumet pas avec des données invalides', async ({ page }) => {
-    await page.goto('/consignation')
+    await page.goto('/depot-vente')
     await page.locator('#consignment-form').scrollIntoViewIfNeeded()
 
     // Fill only the email field with an invalid value

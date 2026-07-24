@@ -52,7 +52,7 @@ export type AnalyticsEventPayloadMap = {
     cart_value: number
     items_count: number
   }
-  /** Affichage du formulaire de dépôt sur /consignation. */
+  /** Affichage du formulaire de dépôt sur /depot-vente. */
   consignment_form_viewed: undefined
   /** Soumission de dépôt RÉUSSIE — `photos_count` est un COMPTE, jamais les
    *  fichiers ni leurs noms. `category` uniquement si disponible (le

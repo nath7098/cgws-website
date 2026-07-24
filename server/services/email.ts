@@ -75,7 +75,7 @@ export interface ContactEmailData {
 
 const subjectLabels: Record<string, string> = {
   'question-produit': 'Question sur un produit',
-  'consignation': 'Service de consignation',
+  'consignation': 'Service de dépôt-vente',
   'rdv-boutique': 'Rendez-vous en boutique',
   'commande': 'Commande / Livraison',
   'autre': 'Autre',
@@ -230,7 +230,7 @@ function buildConsignmentConfirmationHtml(data: ConsignmentEmailData): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Votre demande de consignation — CGWS</title>
+  <title>Votre demande de dépôt-vente — CGWS</title>
   <style>
     body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
     .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
@@ -262,7 +262,7 @@ function buildConsignmentConfirmationHtml(data: ConsignmentEmailData): string {
       <div class="body-inner">
         <p class="greeting">Bonjour ${data.depositorName},</p>
         <p class="intro">
-          Votre demande de consignation a bien été reçue. Camille vous contactera sous 48h
+          Votre demande de dépôt-vente a bien été reçue. Camille vous contactera sous 48h
           pour valider les conditions et convenir d'un prix de mise en vente.
         </p>
 
@@ -299,7 +299,7 @@ function buildConsignmentConfirmationHtml(data: ConsignmentEmailData): string {
 
         <p class="note">
           Le prix de mise en vente sera défini en accord avec vous lors de notre prise de contact.
-          La commission CGWS est de 20 % du prix de vente final, pour une durée de consignation de 3 mois renouvelable.
+          La commission CGWS est de 20 % du prix de vente final, pour une durée de dépôt-vente de 3 mois renouvelable.
         </p>
       </div>
     </div>
@@ -323,7 +323,7 @@ export async function sendConsignmentConfirmation(
   await sendViaResend(resend, {
     from: resolveEmailFrom(),
     to: [data.depositorEmail],
-    subject: 'Votre demande de consignation est bien reçue — CGWS',
+    subject: 'Votre demande de dépôt-vente est bien reçue — CGWS',
     html: buildConsignmentConfirmationHtml(data),
   }, 'consignment-confirmation')
 }
@@ -352,7 +352,7 @@ function buildConsignmentAcceptHtml(data: ConsignmentAcceptEmailData): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Votre consignation a été acceptée — CGWS</title>
+  <title>Votre dépôt-vente a été accepté — CGWS</title>
   <style>
     body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
     .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
@@ -383,14 +383,14 @@ function buildConsignmentAcceptHtml(data: ConsignmentAcceptEmailData): string {
       <div class="body-inner">
         <p class="greeting">Bonjour ${data.depositorName},</p>
         <p class="intro">
-          Bonne nouvelle ! Votre demande de consignation a été examinée et
+          Bonne nouvelle ! Votre demande de dépôt-vente a été examinée et
           <strong>nous acceptons de mettre votre article en vente</strong>
           dans notre boutique.
         </p>
         <hr class="divider" />
         <table class="table">
           <thead>
-            <tr><th colspan="2">DÉTAILS DE VOTRE CONSIGNATION</th></tr>
+            <tr><th colspan="2">DÉTAILS DE VOTRE DÉPÔT-VENTE</th></tr>
           </thead>
           <tbody>
             <tr>
@@ -415,7 +415,7 @@ function buildConsignmentAcceptHtml(data: ConsignmentAcceptEmailData): string {
           Votre article est désormais en vente sur notre site et en boutique.
           Vous serez contacté dès qu'une vente sera conclue pour convenir des modalités de reversement
           (80 % du prix de vente effectif vous sera reversé).
-          La durée de consignation est de 3 mois renouvelable.
+          La durée de dépôt-vente est de 3 mois renouvelable.
         </p>
         <p style="margin-top:16px;font-size:14px;color:#1A0B03;">
           Pour toute question, n'hésitez pas à nous contacter :
@@ -442,7 +442,7 @@ export async function sendConsignmentAcceptEmail(
   await sendViaResend(resend, {
     from: resolveEmailFrom(),
     to: [data.depositorEmail],
-    subject: 'Votre consignation a été acceptée — CGWS',
+    subject: 'Votre dépôt-vente a été accepté — CGWS',
     html: buildConsignmentAcceptHtml(data),
   }, 'consignment-accept')
 }
@@ -461,7 +461,7 @@ function buildConsignmentRejectHtml(data: ConsignmentRejectEmailData): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Votre demande de consignation — CGWS</title>
+  <title>Votre demande de dépôt-vente — CGWS</title>
   <style>
     body { margin: 0; padding: 0; background: #FAF3E3; font-family: Georgia, serif; color: #1A0B03; }
     .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
@@ -492,7 +492,7 @@ function buildConsignmentRejectHtml(data: ConsignmentRejectEmailData): string {
       <div class="body-inner">
         <p class="greeting">Bonjour ${data.depositorName},</p>
         <p class="intro">
-          Nous avons examiné votre demande de consignation pour
+          Nous avons examiné votre demande de dépôt-vente pour
           <strong>${data.itemDescription}</strong>
           et nous ne sommes malheureusement pas en mesure de l'accepter pour le moment.
         </p>
@@ -543,7 +543,7 @@ export async function sendConsignmentRejectEmail(
   await sendViaResend(resend, {
     from: resolveEmailFrom(),
     to: [data.depositorEmail],
-    subject: 'Votre demande de consignation — CGWS',
+    subject: 'Votre demande de dépôt-vente — CGWS',
     html: buildConsignmentRejectHtml(data),
   }, 'consignment-reject')
 }
@@ -645,7 +645,7 @@ function buildConsignmentSaleHtml(data: ConsignmentSaleEmailData): string {
               <td class="net-cell">${netFormatted}</td>
             </tr>
             <tr>
-              <th>Référence consignation</th>
+              <th>Référence dépôt-vente</th>
               <td style="font-size:11px;color:#7B3B1C;">${data.consignmentId}</td>
             </tr>
           </tbody>

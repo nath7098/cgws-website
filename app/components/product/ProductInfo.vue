@@ -242,20 +242,20 @@ onUnmounted(() => {
       v-if="product.isConsignment && !isSold"
       class="product-info-consignment bg-cgws-surface border border-cgws-hairline rounded-[4px] p-4 flex flex-col gap-3"
       role="note"
-      aria-label="Information consignation"
+      aria-label="Information dépôt-vente"
     >
       <div class="self-start">
         <CgwsBadge variant="consignment" />
       </div>
       <p class="font-sans text-[13px] text-cgws-ink-soft leading-relaxed">
-        Cet article est proposé en consignation par un particulier. Son prix a été convenu avec CGWS.
+        Cet article est proposé en dépôt-vente par un particulier. Son prix a été convenu avec CGWS.
       </p>
       <!-- eslint-disable link-checker/valid-route, link-checker/valid-sitemap-link -->
       <NuxtLink
-        to="/consignation"
+        to="/depot-vente"
         class="font-sans font-medium text-[13px] text-cgws-accent hover:text-cgws-ink-soft transition-colors duration-150 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cgws-accent rounded-sm self-start"
       >
-        En savoir plus sur la consignation
+        En savoir plus sur le dépôt-vente
       </NuxtLink>
       <!-- eslint-enable link-checker/valid-route, link-checker/valid-sitemap-link -->
     </div>

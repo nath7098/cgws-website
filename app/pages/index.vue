@@ -16,13 +16,10 @@ useSeoMeta({
 })
 
 useHead({
-  link: [
-    {
-      rel: 'preload',
-      as: 'image',
-      href: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80&auto=format&fit=crop',
-    },
-  ],
+  // Le preload du hero (LCP) est désormais injecté par <NuxtPicture preload>
+  // dans HeroSection.vue : @nuxt/image génère le <link rel=preload> pointant la
+  // variante réellement servie (imagesrcset), au lieu d'un href figé ici qui se
+  // désynchronisait de l'image effective. Ne rien redéclarer côté page.
   script: [
     {
       type: 'application/ld+json',

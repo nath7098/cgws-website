@@ -125,11 +125,11 @@ onUnmounted(() => {
             />
           </svg>
           <div class="overflow-hidden rounded-lg shadow-[0_8px_32px_rgba(61,26,6,0.12)] bg-cgws-surface">
-            <!-- Placeholder Unsplash — À remplacer par la vraie photo de Camille -->
-            <!-- Photo crédit : Unsplash (placeholder uniquement, supprimer à la mise en ligne) -->
+            <!-- Vraie photo de Camille sur son cheval (asset local, IPX) —
+                 même image que la page à-propos (parité voulue). -->
             <NuxtImg
-              src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=600&h=800&q=80&auto=format&fit=crop"
-              alt="Cavalière avec son cheval quarter horse dans une prairie — image d'illustration"
+              src="/images/camille-reining.jpg"
+              alt="Camille Guignon à cheval dans une arène extérieure ensoleillée"
               class="w-full object-cover object-center
                      aspect-[4/5] md:aspect-auto md:max-h-[540px] lg:max-h-[580px]"
               :width="600"

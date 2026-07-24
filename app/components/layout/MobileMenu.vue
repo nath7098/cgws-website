@@ -17,7 +17,7 @@ let isClosing = false
 type NavLink = { label: string; to: string }
 const navLinks: NavLink[] = [
   { label: 'Catalogue', to: '/catalogue' },
-  { label: 'Consignation', to: '/consignation' },
+  { label: 'Dépôt-vente', to: '/depot-vente' },
   { label: 'À Propos', to: '/a-propos' },
   { label: 'Contact', to: '/contact' },
 ]
@@ -231,13 +231,13 @@ onUnmounted(() => {
         <div class="px-5 pb-8 mt-auto flex-shrink-0">
           <CgwsButton
             as="NuxtLink"
-            to="/consignation"
+            to="/depot-vente"
             variant="primary"
             size="sm"
             class="w-full justify-center"
             @click="close"
           >
-            Consigner une selle
+            Déposer une selle
           </CgwsButton>
         </div>
       </div>

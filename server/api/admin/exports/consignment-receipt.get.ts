@@ -125,7 +125,7 @@ export default defineEventHandler(async (event: H3Event) => {
     info: {
       title: `Bon de dépôt CGWS — ${receiptId}`,
       author: 'CGWS — Camille Guignon Western Shop',
-      subject: 'Bon de dépôt consignation',
+      subject: 'Bon de dépôt-vente',
     },
     content: [
       // ── En-tête ─────────────────────────────────────────────────────────
@@ -265,7 +265,7 @@ export default defineEventHandler(async (event: H3Event) => {
               { text: depositDate, style: 'fieldValue' },
             ],
             [
-              { text: 'Durée de consignation', style: 'fieldLabel' },
+              { text: 'Durée de dépôt-vente', style: 'fieldLabel' },
               { text: `${CONSIGNMENT_MONTHS} mois (jusqu'au ${endDate})`, style: 'fieldValue' },
             ],
           ],
@@ -274,7 +274,7 @@ export default defineEventHandler(async (event: H3Event) => {
         marginBottom: 8,
       },
       {
-        text: "Au-delà de la durée de consignation, l'article sera retourné au déposant.",
+        text: "Au-delà de la durée de dépôt-vente, l'article sera retourné au déposant.",
         style: 'footnote',
         marginBottom: 30,
       },

@@ -342,7 +342,7 @@ onUnmounted(() => {
             Propre
           </option>
           <option value="consignment">
-            Consignation
+            Dépôt-vente
           </option>
         </select>
         <UIcon
@@ -513,7 +513,7 @@ onUnmounted(() => {
                   ? 'bg-cgws-accent/20 text-cgws-accent'
                   : 'bg-cgws-success/15 text-cgws-success'"
               >
-                {{ sale.isConsignment ? 'Consignation' : 'Propre' }}
+                {{ sale.isConsignment ? 'Dépôt-vente' : 'Propre' }}
               </span>
             </td>
             <td class="py-3 px-3 text-right font-display text-base text-cgws-accent whitespace-nowrap">
@@ -604,7 +604,7 @@ onUnmounted(() => {
               ? 'bg-cgws-accent/20 text-cgws-accent'
               : 'bg-cgws-success/15 text-cgws-success'"
           >
-            {{ sale.isConsignment ? 'Consignation' : 'Propre' }}
+            {{ sale.isConsignment ? 'Dépôt-vente' : 'Propre' }}
           </span>
         </div>
         <p class="font-sans text-xs text-cgws-ink-soft">

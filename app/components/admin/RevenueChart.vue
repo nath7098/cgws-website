@@ -123,7 +123,7 @@ const chartData = computed<ChartData<'bar'>>(() => ({
       stack: 'revenue',
     },
     {
-      label: 'CA consignation',
+      label: 'CA dépôt-vente',
       data: effectiveData.value.map(d => d.consignmentRevenue),
       backgroundColor: themeColors.value.accentDeco, // --cgws-accent-deco — cgws-denim n'existe qu'en peau Rugueux, non réutilisable ici
       borderColor: themeColors.value.ground, // --cgws-ground (résolu au runtime, theme-aware)
@@ -257,7 +257,7 @@ onMounted(() => {
         </div>
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-sm bg-cgws-accent-deco inline-block flex-shrink-0" />
-          <span class="font-sans text-xs text-cgws-ink-soft">CA consignation</span>
+          <span class="font-sans text-xs text-cgws-ink-soft">CA dépôt-vente</span>
         </div>
       </div>
     </template>
