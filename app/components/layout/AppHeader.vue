@@ -14,7 +14,7 @@ const route = useRoute()
 type NavLink = { label: string; to: string }
 const navLinks: NavLink[] = [
   { label: 'Catalogue', to: '/catalogue' },
-  { label: 'Consignation', to: '/consignation' },
+  { label: 'Dépôt-vente', to: '/depot-vente' },
   { label: 'À Propos', to: '/a-propos' },
   { label: 'Contact', to: '/contact' },
 ]

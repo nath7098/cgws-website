@@ -143,12 +143,12 @@ async function loadConsignment(): Promise<void> {
     form.notes = data.consignment.notes ?? ''
 
     useSeoMeta({
-      title: `Consignation — ${data.consignment.depositorName} — CGWS Administration`,
+      title: `Dépôt-vente — ${data.consignment.depositorName} — CGWS Administration`,
       robots: 'noindex, nofollow',
     })
   }
   catch {
-    loadError.value = 'Consignation introuvable ou erreur de chargement.'
+    loadError.value = 'Dépôt-vente introuvable ou erreur de chargement.'
   }
 }
 
@@ -181,7 +181,7 @@ async function handleAccept(): Promise<void> {
 
     consignment.value = data.consignment
     linkedProduct.value = data.linkedProduct
-    showToast('success', 'Consignation acceptée — produit créé au catalogue.')
+    showToast('success', 'Dépôt-vente accepté — produit créé au catalogue.')
   }
   catch (err: unknown) {
     const httpErr = err as { data?: { statusCode?: number }, statusCode?: number }
@@ -272,7 +272,7 @@ async function handleDownloadReceipt(): Promise<void> {
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
 useSeoMeta({
-  title: 'Consignation — CGWS Administration',
+  title: 'Dépôt-vente — CGWS Administration',
   robots: 'noindex, nofollow',
 })
 
@@ -293,7 +293,7 @@ onUnmounted(() => {
         <NuxtLink
           to="/admin/consignations"
           class="flex-shrink-0 p-1.5 rounded-sm text-cgws-ink-soft hover:text-cgws-accent hover:bg-cgws-accent/10 transition-colors focus-visible:ring-2 focus-visible:ring-cgws-accent focus-visible:outline-none"
-          aria-label="Retour à la liste des consignations"
+          aria-label="Retour à la liste des dépôts-ventes"
         >
           <UIcon
             name="i-lucide-arrow-left"
@@ -655,7 +655,7 @@ onUnmounted(() => {
                 class="w-4 h-4"
                 aria-hidden="true"
               />
-              {{ isSubmitting && pendingAction === 'accept' ? 'Validation…' : 'Accepter la consignation' }}
+              {{ isSubmitting && pendingAction === 'accept' ? 'Validation…' : 'Accepter le dépôt-vente' }}
             </button>
 
             <!-- Reject button -->
@@ -697,7 +697,7 @@ onUnmounted(() => {
             </div>
             <div>
               <p class="font-sans text-sm font-semibold text-cgws-ink mb-1">
-                Consignation acceptée — article en vente
+                Dépôt-vente accepté — article en vente
               </p>
               <p class="font-sans text-sm text-cgws-ink-soft">
                 Un produit a été créé automatiquement au catalogue
@@ -773,7 +773,7 @@ onUnmounted(() => {
             </div>
             <div>
               <p class="font-sans text-sm font-semibold text-cgws-ink mb-1">
-                Consignation refusée
+                Dépôt-vente refusé
               </p>
               <p class="font-sans text-sm text-cgws-ink-soft">
                 Un email de refus a été envoyé à

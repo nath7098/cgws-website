@@ -384,7 +384,7 @@ function resetForm(): void {
 // ---------------------------------------------------------------------------
 
 // US-103 — consignment_form_viewed : affichage du formulaire de dépôt
-// (onMounted = client only, une capture par visite de /consignation).
+// (onMounted = client only, une capture par visite de /depot-vente).
 onMounted(() => {
   capture('consignment_form_viewed')
 })
@@ -407,7 +407,7 @@ onUnmounted(() => {
           VOTRE DEMANDE
         </p>
         <h2 class="font-serif font-bold text-cgws-ink text-3xl">
-          Formulaire de Consignation
+          Formulaire de dépôt-vente
         </h2>
       </div>
 
@@ -436,7 +436,7 @@ onUnmounted(() => {
                 Merci {{ submittedPrenom }}&nbsp;!
               </p>
               <p class="font-sans text-sm text-cgws-ink/70 leading-relaxed mb-2">
-                Votre demande de consignation a bien été enregistrée.
+                Votre demande de dépôt-vente a bien été enregistrée.
               </p>
               <p class="font-sans text-sm text-cgws-ink/70 leading-relaxed mb-2">
                 Camille vous contactera sous 48h pour valider les conditions.
@@ -461,7 +461,7 @@ onUnmounted(() => {
         <form
           v-else
           key="form"
-          aria-label="Formulaire de demande de consignation"
+          aria-label="Formulaire de demande de dépôt-vente"
           novalidate
           @submit.prevent="handleSubmit"
         >

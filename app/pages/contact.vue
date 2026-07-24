@@ -12,7 +12,7 @@ useSeoMeta({
     `Contactez la boutique ${BRAND_NAME} (CGWS) à Brèches, Indre-et-Loire. Formulaire de contact, adresse, horaires et carte pour nous trouver facilement.`,
   ogTitle: `Contact — ${BRAND_NAME}`,
   ogDescription:
-    'Une question, un rendez-vous ou un projet de consignation ? Contactez Camille et l\'équipe CGWS à Brèches (37).',
+    'Une question, un rendez-vous ou un projet de dépôt-vente ? Contactez Camille et l\'équipe CGWS à Brèches (37).',
   ogType: 'website',
   ogImage: DEFAULT_OG_IMAGE,
   twitterCard: 'summary_large_image',
@@ -40,7 +40,7 @@ const { capture } = useAnalytics()
 
 const subjectOptions: SelectOption[] = [
   { value: 'question-produit', label: 'Question sur un produit' },
-  { value: 'consignation', label: 'Service de consignation' },
+  { value: 'consignation', label: 'Service de dépôt-vente' },
   { value: 'rdv-boutique', label: 'Rendez-vous en boutique' },
   { value: 'commande', label: 'Commande / Livraison' },
   { value: 'autre', label: 'Autre' },
@@ -254,7 +254,7 @@ onUnmounted(() => {
         </h1>
         <p class="contact-hero-tagline font-serif italic text-cgws-ink-soft text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
           Une question sur un article, un rendez-vous en boutique,
-          un projet de consignation — nous sommes à votre écoute.
+          un projet de dépôt-vente — nous sommes à votre écoute.
         </p>
       </div>
     </section>

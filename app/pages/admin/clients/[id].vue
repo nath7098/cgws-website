@@ -348,7 +348,7 @@ onUnmounted(() => {
                 class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
                        bg-cgws-accent/10 font-sans text-xs font-medium text-cgws-accent"
               >
-                {{ consignments.length }} consignation{{ consignments.length !== 1 ? 's' : '' }}
+                {{ consignments.length }} {{ consignments.length !== 1 ? 'dépôts-ventes' : 'dépôt-vente' }}
               </span>
             </div>
           </div>
@@ -511,7 +511,7 @@ onUnmounted(() => {
               class="px-4 py-3 border-b border-cgws-hairline bg-cgws-surface/30
                      font-sans text-[10px] uppercase tracking-widest text-cgws-ink-soft"
             >
-              Consignations déposées ({{ consignments.length }})
+              Articles en dépôt-vente ({{ consignments.length }})
             </div>
 
             <div class="p-3 space-y-2">
@@ -545,7 +545,7 @@ onUnmounted(() => {
                   :to="`/admin/consignations/${consignment.id}`"
                   class="flex-shrink-0 text-cgws-accent hover:text-cgws-ink-soft transition-colors
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cgws-accent"
-                  :aria-label="`Voir la fiche de consignation : ${consignment.itemDescription}`"
+                  :aria-label="`Voir la fiche de dépôt-vente : ${consignment.itemDescription}`"
                 >
                   <UIcon
                     name="i-lucide-arrow-right"

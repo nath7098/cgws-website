@@ -61,7 +61,7 @@ const kpis = computed<KpiItem[]>(() => [
   },
   {
     id: 'consignations',
-    label: 'Consignations en attente',
+    label: 'Dépôts-ventes en attente',
     value: consignationsAttente.value,
     icon: 'i-lucide-inbox',
     variant: typeof consignationsAttente.value === 'number' && consignationsAttente.value > 0
@@ -297,7 +297,7 @@ onMounted(() => {
             class="w-4 h-4 mr-1.5"
             aria-hidden="true"
           />
-          Gérer les consignations
+          Gérer les dépôts-ventes
         </CgwsButton>
 
         <CgwsButton

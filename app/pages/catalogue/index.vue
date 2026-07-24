@@ -5,7 +5,7 @@ import { CATALOGUE_CONTEXT_KEY } from '~/composables/useCatalogue'
 useSeoMeta({
   title: 'Catalogue — Selles, brides, bottes & accessoires western | CGWS',
   description:
-    'Parcourez notre sélection complète d\'équipements équestres western : selles, brides & licols, bottes, vêtements, accessoires et protections — neufs et occasion, dont articles en consignation.',
+    'Parcourez notre sélection complète d\'équipements équestres western : selles, brides & licols, bottes, vêtements, accessoires et protections — neufs et occasion, dont articles en dépôt-vente.',
   ogTitle: 'Catalogue CGWS — Équipements western neufs & occasion',
   ogDescription:
     'Selles, brides, bottes et accessoires western. Filtrez par catégorie, marque et prix. Livraison disponible.',

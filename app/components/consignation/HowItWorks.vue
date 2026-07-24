@@ -64,7 +64,7 @@ onUnmounted(() => {
 <template>
   <section
     class="how-it-works-section bg-cgws-surface py-10 md:py-14 lg:py-16"
-    aria-label="Fonctionnement du service de consignation en 3 étapes"
+    aria-label="Fonctionnement du service de dépôt-vente en 3 étapes"
   >
     <div class="max-w-[1280px] mx-auto px-[clamp(1rem,4vw,2rem)]">
 

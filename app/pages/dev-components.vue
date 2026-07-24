@@ -180,7 +180,7 @@ const colors: Record<string, string> = {
       <div class="flex flex-wrap gap-4 items-center">
         <CgwsButton variant="primary">Découvrir le catalogue</CgwsButton>
         <CgwsButton variant="primary" size="sm">Primary sm</CgwsButton>
-        <CgwsButton variant="secondary">Service consignation</CgwsButton>
+        <CgwsButton variant="secondary">Service dépôt-vente</CgwsButton>
         <CgwsButton variant="secondary" size="sm">Secondary sm</CgwsButton>
         <CgwsButton variant="ghost">En savoir plus</CgwsButton>
         <CgwsButton variant="destructive">Supprimer</CgwsButton>

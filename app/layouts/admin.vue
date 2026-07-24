@@ -83,7 +83,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'i-lucide-layout-dashboard' },
   { href: '/admin/produits', label: 'Produits', icon: 'i-lucide-package' },
-  { href: '/admin/consignations', label: 'Consignations', icon: 'i-lucide-arrow-left-right' },
+  { href: '/admin/consignations', label: 'Dépôts-ventes', icon: 'i-lucide-arrow-left-right' },
   { href: '/admin/ventes', label: 'Ventes', icon: 'i-lucide-receipt' },
   { href: '/admin/clients', label: 'Clients', icon: 'i-lucide-users' },
   { href: '/admin/rapports', label: 'Rapports', icon: 'i-lucide-bar-chart-2' },

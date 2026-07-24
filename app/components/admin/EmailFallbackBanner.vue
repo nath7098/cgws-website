@@ -42,7 +42,7 @@ onMounted(async () => {
     </div>
     <p class="font-sans text-[13px] md:text-sm text-cgws-ink leading-relaxed">
       <strong class="font-semibold text-cgws-danger">Expéditeur email de test actif</strong> —
-      vos emails de contact, consignation et vente ne partent qu'à l'adresse du compte Resend.
+      vos emails de contact, dépôt-vente et vente ne partent qu'à l'adresse du compte Resend.
       Le domaine cgws.fr doit être vérifié dans Resend.
     </p>
   </div>

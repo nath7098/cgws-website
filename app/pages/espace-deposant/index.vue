@@ -3,7 +3,7 @@
 // neutre affiché systématiquement après une soumission au format valide.
 
 useSeoMeta({
-  title: 'Espace déposant — Suivi de consignation — CGWS',
+  title: 'Espace déposant — Suivi de dépôt-vente — CGWS',
   description:
     'Suivez l\'état de votre dépôt-vente chez CGWS (en attente, en vente, vendu) grâce à un lien de connexion envoyé par email.',
   robots: 'noindex, follow',
@@ -88,7 +88,7 @@ onMounted(async () => {
         </svg>
 
         <p class="font-eyebrow text-cgws-ink-soft text-[12px] uppercase tracking-[0.3em] mb-3 mt-6">
-          Suivi de consignation
+          Suivi de dépôt-vente
         </p>
         <h1
           id="depositor-heading"
@@ -159,7 +159,7 @@ onMounted(async () => {
                   class="w-4 h-4 mt-0.5 text-cgws-success flex-shrink-0"
                   aria-hidden="true"
                 />
-                Si cette adresse est associée à une consignation, un lien de connexion
+                Si cette adresse est associée à un dépôt-vente, un lien de connexion
                 vient de vous être envoyé. Vérifiez votre boîte de réception (et vos spams).
               </p>
             </div>
@@ -175,9 +175,9 @@ onMounted(async () => {
       </div>
 
       <p class="font-sans text-sm text-cgws-ink-soft mt-6">
-        Une consignation en cours ?
+        Un dépôt-vente en cours ?
         <NuxtLink
-          to="/consignation"
+          to="/depot-vente"
           class="text-cgws-accent hover:underline focus-visible:ring-2 focus-visible:ring-cgws-accent rounded-sm"
         >
           Découvrez nos conditions de dépôt
